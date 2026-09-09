@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق إدارة المشاوير</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1f4e78; }
+        label { display: block; margin-top: 15px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; margin-top: 20px; background-color: #1f4e78; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        button:hover { background-color: #153a5b; }
+        #message { text-align: center; margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>إضافة مشوار جديد</h2>
+    <form id="tripForm">
+        
+        <label>اسم العميل:</label>
+        <select id="client_name" required>
+            <option value="">-- اختر العميل --</option>
+            <option value="باتروس (Albatros)">باتروس (Albatros)</option>
+            <option value="المالكية (Malikia)">المالكية (Malikia)</option>
+            <option value="أكاسيا (Akassia)">أكاسيا (Akassia)</option>
+        </select>
+
+        <label>اسم السائق:</label>
+        <select id="driver_name" required>
+            <option value="">-- اختر السائق --</option>
+            <option value="أديب">أديب</option>
+            <option value="حسين">حسين</option>
+            <option value="مرزوق">مرزوق</option>
+            <option value="إسماعيل">إسماعيل</option>
+        </select>
+
+        <label>نوع المشوار:</label>
+        <input type="text" id="trip_name" placeholder="مثال: باتروس قصير اشعة" required>
+
+        <label>إيراد المشوار (المبلغ من العميل):</label>
+        <input type="number" id="revenue" required>
+
+        <label>يومية السائق (مصروف السائق):</label>
+        <input type="number" id="driver_fee" required>
+
+        <label>ملاحظات (اختياري):</label>
+        <input type="text" id="notes">
+
+        <button type="submit" id="submitBtn">حفظ المشوار</button>
+    </form>
+    <div id="message"></div>
+</div>
+
+<script>
+    // ضَع الرابط الخاص بك من Google Apps Script هنا
+    const GOOGLE_SCRIPT_URL = "ضع_الرابط_الذي_نسخته_هنا";
+
+    document.getElementById("tripForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const btn = document.getElementById("submitBtn");
+        const msg = document.getElementById("message");
+        
+        btn.innerText = "جاري الحفظ...";
+        btn.disabled = true;
+
+        const data = {
+            client_name: document.getElementById("client_name").value,
+            driver_name: document.getElementById("driver_name").value,
+            trip_name: document.getElementById("trip_name").value,
+            revenue: document.getElementById("revenue").value,
+            driver_fee: document.getElementById("driver_fee").value,
+            notes: document.getElementById("notes").value
+        };
+
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        }).then(() => {
+            msg.style.color = "green";
+            msg.innerText = "✅ تم حفظ المشوار بنجاح!";
+            document.getElementById("tripForm").reset();
+            btn.innerText = "حفظ المشوار";
+            btn.disabled = false;
+        }).catch(error => {
+            msg.style.color = "red";
+            msg.innerText = "❌ حدث خطأ أثناء الحفظ.";
+            btn.innerText = "حفظ المشوار";
+            btn.disabled = false;
+        });
+    });
+</script>
+
+</body>
+</html>
