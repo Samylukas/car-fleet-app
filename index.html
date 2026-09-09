@@ -9,19 +9,22 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; direction: rtl; overflow-x: hidden; }
 
-        /* --- شاشة الترحيب (Splash Screen) --- */
+        /* --- شاشة الترحيب (Splash Screen) البيضاء --- */
         #splashScreen {
             position: fixed; inset: 0;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            background: #ffffff; /* خلفية بيضاء */
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 999999; color: white; transition: opacity 0.6s ease, visibility 0.6s ease;
+            z-index: 999999; color: #1e3c72; /* لون النص أزرق داكن */
+            transition: opacity 0.6s ease, visibility 0.6s ease;
         }
         .splash-logo { font-size: 4rem; margin-bottom: 10px; animation: bounceIn 1.5s ease; }
-        .splash-title { font-size: 2rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; }
-        .splash-subtitle { font-size: 1rem; color: #bdc3c7; margin-bottom: 30px; }
+        .splash-title { font-size: 2.2rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; }
+        .splash-subtitle { font-size: 1.1rem; color: #7f8c8d; margin-bottom: 30px; }
         .spinner {
-            width: 45px; height: 45px; border: 4px solid rgba(255,255,255,0.2);
-            border-top-color: #f39c12; border-radius: 50%; animation: spin 1s linear infinite;
+            width: 45px; height: 45px; 
+            border: 4px solid rgba(30, 60, 114, 0.1); /* لون حدود خفيف */
+            border-top-color: #f39c12; /* لون برتقالي/ذهبي للتحميل */
+            border-radius: 50%; animation: spin 1s linear infinite;
         }
 
         @keyframes bounceIn {
@@ -74,7 +77,7 @@
         .section-title { font-weight: bold; color: #1e3c72; border-bottom: 2px solid #f39c12; padding-bottom: 8px; margin-bottom: 20px; font-size: 1.2rem; display: inline-block; }
         
         .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
-        .form-group { display: flex; flex-direction: column; }
+        .form-group { display: flex; flex-direction: column; text-align: right; }
         .form-group label { font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #2c3e50; }
         .form-group input, .form-group select {
             padding: 12px; border: 1px solid #dcdde1; border-radius: 8px; font-size: 0.95rem;
@@ -95,12 +98,13 @@
         /* --- الأزرار --- */
         .btn { border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 1rem; transition: transform 0.1s, opacity 0.3s; color: white; }
         .btn:active { transform: scale(0.97); }
-        .btn-green { background: #27ae60; } .btn-green:hover { background: #219653; }
-        .btn-blue { background: #1e3c72; } .btn-blue:hover { background: #152b52; }
-        .btn-red { background: #e74c3c; } .btn-red:hover { background: #c0392b; }
-        .btn-gold { background: #f39c12; } .btn-gold:hover { background: #d68910; }
+        .btn:disabled { background: #95a5a6; cursor: not-allowed; opacity: 0.8; }
+        .btn-green { background: #27ae60; } .btn-green:hover:not(:disabled) { background: #219653; }
+        .btn-blue { background: #1e3c72; } .btn-blue:hover:not(:disabled) { background: #152b52; }
+        .btn-red { background: #e74c3c; } .btn-red:hover:not(:disabled) { background: #c0392b; }
+        .btn-gold { background: #f39c12; } .btn-gold:hover:not(:disabled) { background: #d68910; }
 
-        /* --- التنبيهات (Toasts) --- */
+        /* --- التنبيهات --- */
         #toastStack { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
         .toast { color: white; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); animation: toastIn 0.3s ease; }
         @keyframes toastIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -116,10 +120,9 @@
 </head>
 <body>
 
-<!-- رسائل التنبيه العائمة -->
 <div id="toastStack"></div>
 
-<!-- 1. شاشة الترحيب (Splash Screen) -->
+<!-- 1. شاشة الترحيب -->
 <div id="splashScreen">
     <div class="splash-logo">🚘</div>
     <div class="splash-title">Samy Fleet Pro</div>
@@ -133,20 +136,17 @@
         <h2>تسجيل الدخول</h2>
         <p>نظام إدارة أسطول السيارات والمشاوير</p>
         
-        <div class="form-group" style="text-align: right;">
-            <label>صفة المستخدم:</label>
-            <select id="loginUser" style="width:100%; margin-bottom:15px; font-weight:bold;">
-                <option value="admin">مدير النظام (Admin)</option>
-                <option value="user">موظف تشغيل (User)</option>
-            </select>
+        <div class="form-group">
+            <label>اسم المستخدم:</label>
+            <input type="text" id="loginUser" placeholder="أدخل اسم المستخدم..." style="text-align:center;">
         </div>
         
-        <div class="form-group" style="text-align: right;">
+        <div class="form-group" style="margin-top:15px; margin-bottom: 25px;">
             <label>كلمة المرور:</label>
-            <input type="password" id="loginPass" placeholder="أدخل كلمة المرور..." style="width:100%; margin-bottom:20px; text-align:center; letter-spacing: 3px;" onkeypress="if(event.key === 'Enter') login()">
+            <input type="password" id="loginPass" placeholder="أدخل كلمة المرور..." style="text-align:center; letter-spacing: 3px;" onkeypress="if(event.key === 'Enter') login()">
         </div>
         
-        <button class="btn btn-blue" style="width:100%; font-size:1.1rem;" onclick="login()">دخول النظام 🚀</button>
+        <button id="loginBtn" class="btn btn-blue" style="width:100%; font-size:1.1rem;" onclick="login()" disabled>⏳ جاري الاتصال بالبيانات...</button>
     </div>
 </div>
 
@@ -250,7 +250,7 @@
                 <span id="netCommission" style="color:#f1c40f; font-size:2rem; font-weight:bold;">0.00</span> <span style="font-weight:bold; color:#f1c40f;">ج.م</span>
             </div>
 
-            <button class="btn btn-green" style="width:100%; margin-top:20px; font-size:1.2rem; padding:15px;" onclick="saveTrip()">حفظ المشوار وإرساله إلى جوجل شيت 💾</button>
+            <button class="btn btn-green" style="width:100%; margin-top:20px; font-size:1.2rem; padding:15px;" onclick="saveTrip()">حفظ المشوار وإرساله 💾</button>
         </div>
     </div>
 
@@ -329,15 +329,16 @@
 
 <script>
     // ==========================================
-    // 🔗 رابط الربط مع Google Apps Script الخاص بك
+    // 🔗 رابط الـ Google Apps Script الخاص بك (تأكد من وضعه هنا)
     // ==========================================
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH8WrOZiqBqwYVo5NGc_Rg0EMS_m7LoB2bi1n6-NSYg3P7_uVLRzzq4dJAuJ28SPsMww/exec"; 
+    const GOOGLE_SCRIPT_URL = "YOUR_SCRIPT_URL_HERE"; 
     
     // ==========================================
     // إعدادات المتغيرات والصلاحيات
     // ==========================================
     let RATES = { USD: 50, EUR: 55, GBP: 65, EGP: 1 };
     let currentUserRole = '';
+    let cloudUsers = []; // تخزين اليوزرات من الشيت
 
     // ضبط تاريخ اليوم افتراضياً
     const today = new Date().toISOString().slice(0, 10);
@@ -345,8 +346,25 @@
     document.getElementById('repFrom').value = today;
     document.getElementById('repTo').value = today;
 
-    // --- إزالة الـ Splash Screen بعد التحميل ---
+    // --- تحميل اليوزرات وإخفاء الـ Splash Screen ---
     window.addEventListener('load', () => {
+        // جلب اليوزرات من جوجل شيت
+        fetch(GOOGLE_SCRIPT_URL + "?action=getUsers")
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    cloudUsers = data.users;
+                    // تفعيل زر الدخول
+                    const loginBtn = document.getElementById('loginBtn');
+                    loginBtn.innerText = "دخول النظام 🚀";
+                    loginBtn.disabled = false;
+                }
+            })
+            .catch(err => {
+                toast('❌ فشل الاتصال بقاعدة البيانات. تأكد من إعداد رابط السكربت!', 'error');
+            });
+
+        // إخفاء الـ Splash Screen بعد 2.2 ثانية
         setTimeout(() => {
             const splash = document.getElementById('splashScreen');
             const login = document.getElementById('loginOverlay');
@@ -357,15 +375,15 @@
                 login.style.opacity = '1';
                 login.style.transition = 'opacity 0.5s ease';
             }, 600);
-        }, 2200); // الشاشة الترحيبية تظهر لثانيتين
+        }, 2200);
     });
 
-    // دالة إظهار التنبيهات المنبثقة (Toasts)
+    // --- دالة التنبيهات ---
     function toast(msg, type='info') {
         const stack = document.getElementById('toastStack');
         const el = document.createElement('div');
         el.className = 'toast';
-        el.style.backgroundColor = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : '#34495e');
+        el.style.backgroundColor = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : '#1e3c72');
         el.innerHTML = msg;
         stack.appendChild(el);
         setTimeout(() => {
@@ -375,32 +393,36 @@
         }, 3500);
     }
 
-    // --- نظام تسجيل الدخول ---
+    // --- نظام تسجيل الدخول الديناميكي ---
     function login() {
-        const user = document.getElementById('loginUser').value;
-        const pass = document.getElementById('loginPass').value;
+        const userInput = document.getElementById('loginUser').value.trim();
+        const passInput = document.getElementById('loginPass').value.trim();
         
-        // كلمات المرور الافتراضية
-        if (user === 'admin' && pass === '1234') {
-            currentUserRole = 'Admin';
-        } else if (user === 'user' && pass === '0000') {
-            currentUserRole = 'User';
-        } else {
-            toast('❌ كلمة المرور غير صحيحة!', 'error');
+        if(!userInput || !passInput) {
+            toast('⚠️ يرجى إدخال اسم المستخدم وكلمة المرور', 'error');
             return;
         }
 
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        
-        document.getElementById('userInfo').textContent = `👤 مرحباً، ${user === 'admin' ? 'أدمن النظام' : 'موظف التشغيل'}`;
-        
-        // إخفاء التبويبات حسب الصلاحية
-        document.querySelectorAll('.admin-only').forEach(el => {
-            el.style.display = currentUserRole === 'Admin' ? '' : 'none';
-        });
+        // مطابقة اليوزر مع البيانات الواردة من الشيت
+        const matchedUser = cloudUsers.find(u => u.username === userInput && u.password === passInput);
 
-        toast(`✅ مرحباً بك في Samy Fleet Pro!`, 'success');
+        if (matchedUser) {
+            currentUserRole = matchedUser.role; // (Admin أو User)
+            
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            
+            document.getElementById('userInfo').textContent = `👤 مرحباً، ${matchedUser.username}`;
+            
+            // إخفاء التبويبات حسب الصلاحية
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = currentUserRole === 'Admin' ? '' : 'none';
+            });
+
+            toast(`✅ مرحباً بك في Samy Fleet Pro!`, 'success');
+        } else {
+            toast('❌ اسم المستخدم أو كلمة المرور غير صحيحة!', 'error');
+        }
     }
 
     function logout() {
@@ -516,11 +538,11 @@
             document.getElementById('tripNotes').value = '';
             calcTotals();
 
-            btn.innerText = "حفظ المشوار وإرساله إلى جوجل شيت 💾";
+            btn.innerText = "حفظ المشوار وإرساله 💾";
             btn.disabled = false;
         }).catch(err => {
-            toast('❌ حدث خطأ في الاتصال بالسيرفر. تأكد من الإنترنت!', 'error');
-            btn.innerText = "حفظ المشوار وإرساله إلى جوجل شيت 💾";
+            toast('❌ حدث خطأ في الاتصال. تأكد من رابط السكربت والإنترنت!', 'error');
+            btn.innerText = "حفظ المشوار وإرساله 💾";
             btn.disabled = false;
         });
     }
