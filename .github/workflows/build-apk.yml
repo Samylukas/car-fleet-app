@@ -23,13 +23,11 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Prepare Web Assets & Build Android App
+      - name: Build Android App with Capacitor
         run: |
-          mkdir -p www
-          cp index.html www/
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Car Fleet" "com.samylukas.carfleet" --web-dir www
+          npx cap init "Car Fleet" "com.samylukas.carfleet" --web-dir .
           npx cap add android
           npx cap sync android
 
