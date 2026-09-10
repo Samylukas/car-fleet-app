@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car Fleet Management</title>
+    <title>Safaga Management App</title>
     <style>
-        /* إعدادات الشاشة الأساسية */
+        /* إعدادات عامة للخطوط والمسافات */
         * {
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -19,128 +19,115 @@
             padding: 20px;
         }
 
-        /* شريط التنقل العلوي */
+        /* شريط التنقل (تاتس للتبديل بين الشاشات) - لن يظهر في الطباعة */
         .navbar {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         .navbar button {
-            padding: 10px 22px;
-            font-size: 15px;
-            font-weight: bold;
+            padding: 10px 20px;
+            font-size: 16px;
             cursor: pointer;
             background-color: #1a365d;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 5px;
             margin: 0 5px;
-            transition: background 0.2s;
         }
         .navbar button:hover {
             background-color: #2a528a;
         }
 
         /* =========================================
-           توسيع الحاوية وإلغاء أشرطة التمرير (No Scrollbars)
+           1. شاشة الـ Master Data (التوسيط والديناميكية)
            ========================================= */
         .master-data-container {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 25px;
+            flex-wrap: wrap; /* للنزول للسطر التالي في الشاشات الصغيرة */
+            justify-content: center; /* توسيط الكروت */
+            gap: 20px;
             width: 100%;
-            max-width: 1400px; /* حاوية عريضة تتسع للمحتوى */
+            max-width: 1200px;
             margin: 0 auto;
         }
 
         .card {
             background: white;
-            flex: 1 1 480px; /* السماح للكارت بالتمدد والانتشار */
-            min-width: 380px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-            padding: 25px;
-            overflow: visible !important; /* إلغاء التمرير الداخلي تماماً */
+            flex: 1;
+            min-width: 320px;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
         }
 
         .card h3 {
             color: #1a365d;
-            border-bottom: 2px solid #28a745;
+            border-bottom: 2px solid #28a745; /* الخط الأخضر */
             padding-bottom: 10px;
-            margin-bottom: 20px;
-            font-size: 20px;
+            margin-bottom: 15px;
         }
 
         .input-group {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .input-group input {
             flex: 1;
-            padding: 10px 14px;
+            padding: 8px;
             border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 15px;
+            border-radius: 4px;
         }
 
         .input-group button {
             background-color: #28a745;
             color: white;
             border: none;
-            padding: 10px 22px;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: bold;
+            padding: 8px 15px;
+            border-radius: 4px;
             cursor: pointer;
         }
 
-        /* الجدول بدون أشرطة تمرير أفقية أو رأسية */
         .data-table {
-            width: 100% !important;
+            width: 100%;
             border-collapse: collapse;
-            table-layout: auto;
         }
 
         .data-table th {
             background-color: #1a365d;
             color: white;
-            padding: 12px;
-            text-align: center;
-            font-size: 15px;
+            padding: 10px;
+            text-align: left;
         }
 
         .data-table td {
-            padding: 12px;
+            padding: 10px;
             border-bottom: 1px solid #eee;
             text-align: center;
-            font-size: 15px;
-            white-space: nowrap;
         }
 
         /* =========================================
-           إعدادات التقرير والطباعة (Portrait & 70 Records)
+           2. شاشة التقارير (تصغير الحجم و 70 سجل)
            ========================================= */
         .report-container {
-            max-width: 950px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            display: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: none; /* مخفية في البداية */
         }
 
-        /* تكبير اسم الشريك والعنوان */
+        /* تكبير اسم الشريك */
         .report-title {
-            font-size: 26px; 
+            font-size: 24px; 
             font-weight: bold;
             text-align: center;
             color: #1a365d;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #1a365d;
-            padding-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .report-table {
@@ -150,31 +137,39 @@
             border-bottom: 3px solid #1a365d; 
         }
 
-        /* مقاسات مضغوطة لتتسع لـ 70 سجلاً في صفحة واحدة طولي */
+        /* تصغير المسافات عشان يشيل 70 سجل */
         .report-table th, .report-table td {
-            padding: 3px 6px; 
-            font-size: 11px; 
-            line-height: 1.1;
-            border: 1px solid #ccc;
+            padding: 4px 8px; /* مسافات داخلية صغيرة */
+            font-size: 13px; /* حجم خط مناسب للطباعة الكثيفة */
+            line-height: 1.2;
+            border: 1px solid #ddd;
             text-align: center;
         }
 
         .report-table th {
-            background-color: #fdf5e6;
+            background-color: #fdf5e6; /* لون مقارب للصورة */
             color: #1a365d;
             font-weight: bold;
         }
 
-        /* إعدادات الطباعة الطولية */
+        .no-data {
+            padding: 15px !important;
+            font-size: 14px !important;
+            color: #666;
+        }
+
+        /* =========================================
+           3. إعدادات الطباعة (Portrait)
+           ========================================= */
         @media print {
             @page {
-                size: portrait;
-                margin: 0.8cm;
+                size: portrait; /* إجبار الطباعة بشكل طولي */
+                margin: 1cm;
             }
             body {
                 background-color: white;
-                padding: 0;
             }
+            /* إخفاء الزراير والقوائم وقت الطباعة */
             .no-print {
                 display: none !important;
             }
@@ -182,8 +177,6 @@
                 box-shadow: none;
                 margin: 0;
                 padding: 0;
-                width: 100%;
-                max-width: 100%;
             }
         }
     </style>
@@ -196,7 +189,7 @@
         <button onclick="showTab('report')">📄 Reports</button>
     </div>
 
-    <!-- شاشة إدارة البيانات -->
+    <!-- شاشة إدخال البيانات -->
     <div id="master-view">
         <h2 style="color: #1a365d; margin-bottom: 20px; text-align: center;">⚙️ Master Data Management</h2>
         
@@ -255,7 +248,8 @@
 
     <!-- شاشة التقرير -->
     <div id="report-view" class="report-container">
-        <button class="no-print" onclick="window.print()" style="float: right; padding: 6px 16px; background: #1a365d; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold;">🖨️ Print Report</button>
+        <!-- زرار الطباعة -->
+        <button class="no-print" onclick="window.print()" style="float: right; padding: 5px 15px; background: #1a365d; color: white; border: none; cursor: pointer; border-radius: 4px;">🖨️ Print</button>
         
         <div class="report-title">
             Partner Report: Adeeb (2026-09-10 to 2026-09-10) 🚘
@@ -264,23 +258,24 @@
         <table class="report-table">
             <thead>
                 <tr>
-                    <th>#</th>
                     <th>Date</th>
-                    <th>From</th>
-                    <th>To</th>
+                    <th>Destination</th>
                     <th>Car Type</th>
                     <th>Type</th>
                     <th>Amount</th>
                 </tr>
             </thead>
             <tbody>
+                <!-- صف يظهر عند عدم وجود بيانات -->
                 <tr>
-                    <td colspan="7" style="padding: 15px; font-size: 13px;">لا توجد بيانات لهذه الفترة</td>
+                    <td colspan="5" class="no-data">لا توجد بيانات لهذه الفترة</td>
                 </tr>
+                <!-- لبرمجة 70 سجل لاحقاً، الـ <tr> سيتكرر هنا ولن يأخذ مساحة كبيرة بفضل الـ CSS -->
             </tbody>
         </table>
     </div>
 
+    <!-- كود جافاسكريبت بسيط للتبديل بين الشاشات -->
     <script>
         function showTab(tabName) {
             if (tabName === 'master') {
