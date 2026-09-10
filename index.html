@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Samy Fleet Pro 2026</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
@@ -55,6 +56,8 @@
         .summary-box { margin-top:10px; padding:10px; border-radius:8px; display:inline-block; border: 1px solid; }
         .summary-rev { background:#eafaf1; border-color:#27ae60; color:#27ae60; }
         
+        .action-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px; }
+
         .btn { border: none; padding: 12px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.95rem; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;}
         .btn:disabled { background: #95a5a6; cursor: not-allowed; }
         .btn:hover:not(:disabled) { filter: brightness(0.9); }
@@ -127,9 +130,9 @@
             <div class="header-flex">
                 <h2 class="section-title">📝 Add New Trip</h2>
                 <div class="record-nav">
-                    <button class="btn btn-green" onclick="navNew()" title="Start new blank trip">🆕 New</button>
-                    <button class="btn btn-gray" onclick="clearForm()" title="Clear form fields">🧹 Clear</button>
-                    <button class="btn btn-red" onclick="cancelCurrentTrip()" title="Cancel or delete this trip">❌ Cancel Trip</button>
+                    <button class="btn btn-green" onclick="navNew()">🆕 New</button>
+                    <button class="btn btn-gray" onclick="clearForm()">🧹 Clear</button>
+                    <button class="btn btn-red" onclick="cancelCurrentTrip()">❌ Cancel Trip</button>
                     <button class="btn btn-outline" onclick="navFirst()">⏪ First</button>
                     <button class="btn btn-outline" onclick="navPrev()">◀️ Prev</button>
                     <button class="btn btn-outline" onclick="navNext()">Next ▶️</button>
@@ -195,7 +198,6 @@
             <p style="color:#7f8c8d; font-size:0.9rem; margin-bottom:15px;">إضافة/حذف العملاء والسائقين وأنواع المشاوير. <b>يتم الحفظ في Google Sheets فوراً.</b></p>
             
             <div class="master-grid">
-                <!-- Clients Master -->
                 <div class="master-card">
                     <h3>👥 Clients Management</h3>
                     <div style="display:flex; gap:8px; margin-bottom:10px;">
@@ -207,7 +209,6 @@
                     </div>
                 </div>
 
-                <!-- Drivers Master -->
                 <div class="master-card">
                     <h3>🚘 Drivers Management</h3>
                     <div style="display:flex; gap:8px; margin-bottom:10px;">
@@ -219,7 +220,6 @@
                     </div>
                 </div>
 
-                <!-- Trip Types Master -->
                 <div class="master-card" style="grid-column: 1 / -1;">
                     <h3>🗺️ Trip Types & Dual Rates (تسعير المشاوير)</h3>
                     <div class="grid-form" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:8px; margin-bottom:10px;">
@@ -253,7 +253,7 @@
 
     <!-- Tab 3: Reports -->
     <div id="reportsTab" class="tab-content admin-only">
-        <div class="card">
+        <div class="card" id="reportPrintArea">
             <h2 class="section-title">📊 Reports Dashboard</h2>
             <div class="grid-form">
                 <div class="form-group"><label>Report Type:</label><select id="reportType" onchange="toggleReportTarget()"><option value="client">Client Statement (Revenue)</option><option value="driver">Driver Statement (Expenses)</option></select></div>
@@ -261,8 +261,20 @@
                 <div class="form-group"><label>From Date:</label><input type="date" id="repFrom"></div>
                 <div class="form-group"><label>To Date:</label><input type="date" id="repTo"></div>
             </div>
-            <div style="display:flex; gap:10px; margin-top:15px;"><button id="searchBtn" class="btn btn-blue" style="flex:1;" onclick="fetchReports()">Search 🔍</button><button class="btn btn-green" style="flex:1;" onclick="exportToExcel()">Export Excel 📊</button></div>
-            <div class="table-responsive" id="reportPrintArea"><table id="reportsTable"><thead><tr><th>Date & Time</th><th>Description</th><th>Amount (EGP)</th></tr></thead><tbody><tr><td colspan="3" style="text-align:center; color:#7f8c8d; padding:20px;">Data will appear here...</td></tr></tbody></table></div>
+            
+            <div class="action-buttons" data-html2canvas-ignore="true">
+                <button id="searchBtn" class="btn btn-blue" onclick="fetchReports()">Search 🔍</button>
+                <button class="btn btn-green" onclick="exportToExcel()">Export Excel 📊</button>
+                <!-- عودة زرار PDF -->
+                <button class="btn btn-red" onclick="exportToPDF()">Export PDF 📄</button>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="reportsTable">
+                    <thead><tr><th>Date & Time</th><th>Description</th><th>Amount (EGP)</th></tr></thead>
+                    <tbody><tr><td colspan="3" style="text-align:center; color:#7f8c8d; padding:20px;">Data will appear here after searching...</td></tr></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -301,13 +313,10 @@
                     if(data.users.length > 0) { userSelect.value = data.users[0].username; setTimeout(() => { document.getElementById('loginPass').focus(); }, 700); }
                     document.getElementById('loginBtn').innerText = "Login 🚀"; document.getElementById('loginBtn').disabled = false;
 
-                    clientsDB = data.clients || [];
-                    driversDB = data.drivers || [];
-                    tripsDB = data.trips || [];
+                    clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
                     recentTripsDB = data.recent || [];
                     
-                    updateDropdownsAndTables();
-                    renderRecentTrips();
+                    updateDropdownsAndTables(); renderRecentTrips();
                 }
             }).catch(err => { toast('⚠️ Connection issue.', 'warn'); });
 
@@ -326,17 +335,15 @@
         toggleReportTarget();
     }
 
-    // إضافة ومزامنة فورية للمصادر
     function addMasterItem(type, btn) {
-        let name="", price=0, dRate=0, sheetName="";
+        let name="", price=0, dRate=0;
         
-        if(type === 'client') { name = document.getElementById('mClientName').value.trim(); sheetName = "Clients"; }
-        else if(type === 'driver') { name = document.getElementById('mDriverName').value.trim(); sheetName = "Drivers"; }
-        else if(type === 'trip') { name = document.getElementById('mTripName').value.trim(); price = parseFloat(document.getElementById('mTripPrice').value) || 0; dRate = parseFloat(document.getElementById('mDriverRate').value) || 0; sheetName = "Trip_Types"; }
+        if(type === 'client') { name = document.getElementById('mClientName').value.trim(); }
+        else if(type === 'driver') { name = document.getElementById('mDriverName').value.trim(); }
+        else if(type === 'trip') { name = document.getElementById('mTripName').value.trim(); price = parseFloat(document.getElementById('mTripPrice').value) || 0; dRate = parseFloat(document.getElementById('mDriverRate').value) || 0; }
 
         if(!name) return toast('Name is required', 'error');
 
-        // تحديث محلي
         if(type === 'client') { if(!clientsDB.includes(name)) clientsDB.push(name); document.getElementById('mClientName').value = ''; }
         if(type === 'driver') { if(!driversDB.includes(name)) driversDB.push(name); document.getElementById('mDriverName').value = ''; }
         if(type === 'trip') { 
@@ -346,9 +353,8 @@
         }
         updateDropdownsAndTables();
 
-        // إرسال فوري للشيت
         btn.innerText = "⏳..."; btn.disabled = true;
-        const payload = { record_type: "add_master_single", master_type: sheetName, name: name, price: price, driverRate: dRate };
+        const payload = { record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB };
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) })
         .then(() => { btn.innerText = "Add"; btn.disabled = false; toast(`✅ Added to Google Sheets`, 'success'); })
         .catch(() => { btn.innerText = "Add"; btn.disabled = false; toast('❌ Sync Error', 'error'); });
@@ -357,14 +363,12 @@
     function removeMasterItem(sheetName, name, idx, btn) {
         if(!confirm('Delete this entry?')) return;
         
-        // تحديث محلي
         if(sheetName === 'Clients') clientsDB.splice(idx, 1);
         if(sheetName === 'Drivers') driversDB.splice(idx, 1);
         if(sheetName === 'Trip_Types') tripsDB.splice(idx, 1);
         updateDropdownsAndTables();
 
-        // إرسال فوري للحذف من الشيت
-        const payload = { record_type: "delete_master_single", master_type: sheetName, name: name };
+        const payload = { record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB };
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) })
         .then(() => toast('✅ Deleted from Google Sheets', 'warn')).catch(() => toast('❌ Error', 'error'));
     }
@@ -394,6 +398,11 @@
         currentRecordIndex = index; const trip = recentTripsDB[index]; 
         
         document.getElementById('tripDate').value = trip.date.includes('T') ? trip.date.slice(0,16) : trip.date.replace(' ', 'T').slice(0,16); 
+        
+        if(trip.client && !clientsDB.includes(trip.client)) { clientsDB.push(trip.client); updateDropdownsAndTables(); }
+        if(trip.driver && !driversDB.includes(trip.driver)) { driversDB.push(trip.driver); updateDropdownsAndTables(); }
+        if(trip.trip && !tripsDB.find(x => x.name === trip.trip)) { tripsDB.push({name: trip.trip, price: 0, driverRate: 0}); updateDropdownsAndTables(); }
+
         document.getElementById('tripClientSelect').value = trip.client || ''; document.getElementById('tripDriverSelect').value = trip.driver || ''; document.getElementById('tripNameSelect').value = trip.trip || '';
         document.getElementById('revEGP').value = trip.revenue || 0; document.getElementById('tripDriverFee').value = trip.fee || 0;
         document.getElementById('revUSD').value = 0; document.getElementById('revEUR').value = 0; document.getElementById('revGBP').value = 0; document.getElementById('tipEGP').value = 0; document.getElementById('tipUSD').value = 0; document.getElementById('tipEUR').value = 0; document.getElementById('tipGBP').value = 0; document.getElementById('tripNotes').value = ""; 
@@ -478,8 +487,7 @@
                     if (data.data.length === 0) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#7f8c8d; padding:20px;">No data found.</td></tr>'; return; }
                     data.data.forEach(row => {
                         const amt = parseFloat(row.amount) || 0; total += amt;
-                        let displayDate = row.date.replace('T', ' ').slice(0, 16);
-                        tbody.innerHTML += `<tr><td>${displayDate}</td><td>${row.desc}</td><td style="font-weight:bold;">${amt.toFixed(2)}</td></tr>`;
+                        tbody.innerHTML += `<tr><td>${row.date}</td><td>${row.desc}</td><td style="font-weight:bold;">${amt.toFixed(2)}</td></tr>`;
                     });
                     tbody.innerHTML += `<tr class="total-row"><td colspan="2" style="text-align:right; color:#1e3c72;">Total Balance:</td><td style="color:#27ae60;">${total.toFixed(2)}</td></tr>`;
                     toast('✅ Reports loaded!', 'success');
@@ -523,6 +531,12 @@
         let table = document.getElementById("reportsTable");
         let wb = XLSX.utils.table_to_book(table, {sheet: "Report"});
         XLSX.writeFile(wb, "SamyFleet_Report.xlsx"); toast('✅ Excel downloaded!', 'success');
+    }
+
+    function exportToPDF() {
+        const element = document.getElementById('reportPrintArea');
+        html2pdf().set({ margin: 0.5, filename: 'SamyFleet_Report.pdf' }).from(element).save()
+        .then(() => toast('✅ PDF downloaded!', 'success'));
     }
 </script>
 </body>
