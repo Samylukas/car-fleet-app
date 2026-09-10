@@ -63,6 +63,11 @@
         
         #toastStack { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
         .toast { color: white; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 600px; background: #fff; margin-top: 15px;}
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; font-size: 0.9rem; }
+        th { background: #1e3c72; color: white; }
+        .total-row { background: #eafaf1; font-weight: bold; font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -80,9 +85,7 @@
         <p>Secured Fleet Management</p>
         <div class="form-group">
             <label>Username:</label>
-            <select id="loginUser" style="text-align:center; font-weight: bold;">
-                <option value="">-- Select User --</option>
-            </select>
+            <select id="loginUser" style="text-align:center; font-weight: bold;"><option value="">-- Select User --</option></select>
         </div>
         <div class="form-group" style="margin-top:15px; margin-bottom: 25px;">
             <label>Password:</label>
@@ -106,8 +109,8 @@
 
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="showTab('addTripTab', this)">📝 Add Trip</button>
-        <button class="tab-btn admin-only" onclick="showTab('financeTab', this)">💵 Finance & Expenses</button>
-        <button class="tab-btn admin-only" onclick="showTab('reportsTab', this)">📊 Reports & Ledgers</button>
+        <button class="tab-btn admin-only" onclick="showTab('financeTab', this)">💵 Finance</button>
+        <button class="tab-btn admin-only" onclick="showTab('reportsTab', this)">📊 Reports</button>
         <button class="tab-btn admin-only" onclick="showTab('settingsTab', this)">🛠️ Exchange Rates</button>
     </div>
 
@@ -116,25 +119,8 @@
         <div class="card">
             <h2 class="section-title">Add New Trip</h2>
             <div class="grid-form">
-                <div class="form-group">
-                    <label>Client:</label>
-                    <select id="tripClient">
-                        <option value="">-- Select Client --</option>
-                        <option value="Albatros">Albatros</option>
-                        <option value="Malikia">Malikia</option>
-                        <option value="Akassia">Akassia</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Driver:</label>
-                    <select id="tripDriver">
-                        <option value="">-- Select Driver --</option>
-                        <option value="Adeeb">Adeeb</option>
-                        <option value="Hussein">Hussein</option>
-                        <option value="Marzouk">Marzouk</option>
-                        <option value="Ismail">Ismail</option>
-                    </select>
-                </div>
+                <div class="form-group"><label>Client:</label><select id="tripClient"><option value="">-- Select Client --</option><option value="Albatros">Albatros</option><option value="Malikia">Malikia</option><option value="Akassia">Akassia</option></select></div>
+                <div class="form-group"><label>Driver:</label><select id="tripDriver"><option value="">-- Select Driver --</option><option value="Adeeb">Adeeb</option><option value="Hussein">Hussein</option><option value="Marzouk">Marzouk</option><option value="Ismail">Ismail</option></select></div>
                 <div class="form-group"><label>Trip Name:</label><input type="text" id="tripName" placeholder="e.g. Airport Transfer..."></div>
                 <div class="form-group"><label>Date:</label><input type="date" id="tripDate"></div>
             </div>
@@ -165,10 +151,6 @@
                 <div class="form-group"><label>Notes (Optional):</label><input type="text" id="tripNotes" placeholder="Any details..."></div>
             </div>
 
-            <div style="margin-top:20px; padding:15px; background:#1e3c72; color:white; border-radius:10px; text-align:center;">
-                <span style="font-size:1.1rem;">Net Commission:</span><br><span id="netCommission" style="color:#f1c40f; font-size:2rem; font-weight:bold;">0.00</span> EGP
-            </div>
-
             <button class="btn btn-green" style="width:100%; margin-top:20px;" onclick="saveTrip()">Save & Submit Trip 💾</button>
         </div>
     </div>
@@ -188,9 +170,44 @@
         </div>
     </div>
 
-    <!-- Tab 3: Reports -->
+    <!-- Tab 3: Reports (UPDATED) -->
     <div id="reportsTab" class="tab-content admin-only">
-        <div class="card"><h2 class="section-title">📊 Reports</h2><p>Retrieve function pending backend setup.</p></div>
+        <div class="card">
+            <h2 class="section-title">📊 Reports Dashboard</h2>
+            <div class="grid-form">
+                <div class="form-group">
+                    <label>Report Type:</label>
+                    <select id="reportType" onchange="toggleReportTarget()">
+                        <option value="client">Client Statement (Revenue)</option>
+                        <option value="driver">Driver Statement (Expenses)</option>
+                    </select>
+                </div>
+                <!-- تم استرجاع قائمة المستهدفين هنا -->
+                <div class="form-group">
+                    <label>Target Name:</label>
+                    <select id="reportTarget">
+                        <option value="Albatros">Albatros</option>
+                        <option value="Malikia">Malikia</option>
+                        <option value="Akassia">Akassia</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>From Date:</label><input type="date" id="repFrom"></div>
+                <div class="form-group"><label>To Date:</label><input type="date" id="repTo"></div>
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-top:15px; flex-wrap: wrap;">
+                <!-- تم تفعيل زر البحث ليقوم بجلب الداتا -->
+                <button id="searchBtn" class="btn btn-blue" style="flex:1;" onclick="fetchReports()">Search 🔍</button>
+                <button class="btn btn-green" style="flex:1;" onclick="exportToExcel()">Export Excel 📊</button>
+            </div>
+            
+            <div class="table-responsive" id="reportPrintArea">
+                <table id="reportsTable">
+                    <thead><tr><th>Date</th><th>Description</th><th>Amount (EGP)</th></tr></thead>
+                    <tbody><tr><td colspan="3" style="color:#7f8c8d; text-align:center; padding:20px;">Data will appear here after searching...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- Tab 4: Settings -->
@@ -213,6 +230,8 @@
     const today = new Date().toISOString().slice(0, 10);
     document.getElementById('tripDate').value = today;
     document.getElementById('finDate').value = today;
+    document.getElementById('repFrom').value = today;
+    document.getElementById('repTo').value = today;
 
     window.addEventListener('load', () => {
         fetch(GOOGLE_SCRIPT_URL + "?action=getUsers", { redirect: 'follow' })
@@ -228,59 +247,37 @@
                     });
                     document.getElementById('loginBtn').innerText = "Login 🚀";
                     document.getElementById('loginBtn').disabled = false;
-                } else {
-                    document.getElementById('loginBtn').innerText = "Backend Error";
-                    toast('❌ Error from Google: ' + data.message, 'error');
                 }
-            }).catch(err => {
-                document.getElementById('loginBtn').innerText = "Connection Failed";
-                toast('❌ Connection failed. Check script URL or deployment.', 'error');
-            });
+            }).catch(err => { toast('❌ Connection failed.', 'error'); });
 
         setTimeout(() => {
             document.getElementById('splashScreen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('splashScreen').style.display = 'none';
-                document.getElementById('loginOverlay').style.visibility = 'visible';
-                document.getElementById('loginOverlay').style.opacity = '1';
-            }, 600);
+            setTimeout(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginOverlay').style.visibility = 'visible'; document.getElementById('loginOverlay').style.opacity = '1'; }, 600);
         }, 2200);
     });
 
     function toast(msg, type='info') {
         const stack = document.getElementById('toastStack');
-        const el = document.createElement('div');
-        el.className = 'toast';
+        const el = document.createElement('div'); el.className = 'toast';
         el.style.backgroundColor = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : '#1e3c72');
-        el.innerHTML = msg;
-        stack.appendChild(el);
+        el.innerHTML = msg; stack.appendChild(el);
         setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3500);
     }
 
-    function togglePasswordVisibility() {
-        const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password';
-    }
+    function togglePasswordVisibility() { const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password'; }
 
     function login() {
-        const u = document.getElementById('loginUser').value;
-        const p = document.getElementById('loginPass').value.trim();
+        const u = document.getElementById('loginUser').value, p = document.getElementById('loginPass').value.trim();
         if(!u || !p) return;
-        
-        const btn = document.getElementById('loginBtn');
-        btn.innerText = "Verifying..."; btn.disabled = true;
+        const btn = document.getElementById('loginBtn'); btn.innerText = "Verifying..."; btn.disabled = true;
 
         fetch(GOOGLE_SCRIPT_URL + "?action=login&username=" + encodeURIComponent(u) + "&password=" + encodeURIComponent(p), { redirect: 'follow' })
-            .then(res => res.json())
-            .then(data => {
+            .then(res => res.json()).then(data => {
                 if (data.status === 'success') {
-                    loggedInUser = u;
-                    document.getElementById('loginOverlay').style.display = 'none';
-                    document.getElementById('mainApp').style.display = 'block';
+                    loggedInUser = u; document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('mainApp').style.display = 'block';
                     document.getElementById('userInfo').textContent = `👤 Welcome, ${u.toUpperCase()}`;
                     document.querySelectorAll('.admin-only').forEach(el => { el.style.display = data.role === 'Admin' ? '' : 'none'; });
-                } else {
-                    toast('❌ Incorrect password!', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false;
-                }
+                } else { toast('❌ Incorrect password!', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; }
             }).catch(err => { toast('❌ Auth error.', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; });
     }
 
@@ -290,15 +287,68 @@
     function calcTotals() {
         const totalRev = (parseFloat(document.getElementById('revEGP').value) || 0) + ((parseFloat(document.getElementById('revUSD').value) || 0) * RATES.USD) + ((parseFloat(document.getElementById('revEUR').value) || 0) * RATES.EUR) + ((parseFloat(document.getElementById('revGBP').value) || 0) * RATES.GBP);
         document.getElementById('totalRevEGP').textContent = totalRev.toFixed(2);
-        const driverFee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
-        document.getElementById('netCommission').textContent = (totalRev - driverFee).toFixed(2);
     }
     function updateRates() { RATES.USD = parseFloat(document.getElementById('rateUSD').value) || 50; RATES.EUR = parseFloat(document.getElementById('rateEUR').value) || 55; RATES.GBP = parseFloat(document.getElementById('rateGBP').value) || 65; calcTotals(); }
 
+    function toggleReportTarget() {
+        const type = document.getElementById('reportType').value;
+        const target = document.getElementById('reportTarget');
+        if (type === 'client') {
+            target.innerHTML = `<option value="Albatros">Albatros</option><option value="Malikia">Malikia</option><option value="Akassia">Akassia</option>`;
+        } else {
+            target.innerHTML = `<option value="Adeeb">Adeeb</option><option value="Hussein">Hussein</option><option value="Marzouk">Marzouk</option><option value="Ismail">Ismail</option>`;
+        }
+    }
+
+    // دالة جلب التقارير التي تم تفعيلها
+    function fetchReports() {
+        const type = document.getElementById('reportType').value;
+        const target = document.getElementById('reportTarget').value;
+        const fromDate = document.getElementById('repFrom').value;
+        const toDate = document.getElementById('repTo').value;
+        
+        if (!target) return toast('⚠️ Please select a target', 'error');
+
+        const btn = document.getElementById('searchBtn');
+        btn.innerText = "⏳ Searching..."; btn.disabled = true;
+
+        const url = `${GOOGLE_SCRIPT_URL}?action=getReports&type=${type}&target=${encodeURIComponent(target)}&from=${fromDate}&to=${toDate}`;
+
+        fetch(url, { redirect: 'follow' })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerText = "Search 🔍"; btn.disabled = false;
+                if (data.status === 'success') {
+                    const tbody = document.querySelector('#reportsTable tbody');
+                    tbody.innerHTML = '';
+                    let total = 0;
+                    
+                    if (data.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#7f8c8d; padding:20px;">No data found for this period.</td></tr>';
+                        return;
+                    }
+
+                    data.data.forEach(row => {
+                        const amt = parseFloat(row.amount) || 0;
+                        total += amt;
+                        const d = new Date(row.date).toLocaleDateString('en-GB');
+                        tbody.innerHTML += `<tr><td>${d}</td><td>${row.desc}</td><td style="font-weight:bold;">${amt.toFixed(2)}</td></tr>`;
+                    });
+
+                    tbody.innerHTML += `<tr class="total-row"><td colspan="2" style="text-align:right; color:#1e3c72;">Total Balance:</td><td style="color:#27ae60;">${total.toFixed(2)}</td></tr>`;
+                    toast('✅ Reports loaded!', 'success');
+                } else {
+                    toast('❌ Error: ' + data.message, 'error');
+                }
+            })
+            .catch(err => {
+                btn.innerText = "Search 🔍"; btn.disabled = false;
+                toast('❌ Network error while fetching reports', 'error');
+            });
+    }
+
     function saveTrip() {
-        const client = document.getElementById('tripClient').value;
-        const driver = document.getElementById('tripDriver').value;
-        const tripName = document.getElementById('tripName').value;
+        const client = document.getElementById('tripClient').value, driver = document.getElementById('tripDriver').value, tripName = document.getElementById('tripName').value;
         if (!client || !driver || !tripName) return toast('⚠️ Complete all core fields!', 'error');
 
         const payload = { record_type: "trip", client_name: client, driver_name: driver, trip_name: tripName, date: document.getElementById('tripDate').value, notes: document.getElementById('tripNotes').value, revenue: parseFloat(document.getElementById('totalRevEGP').textContent) || 0, driver_fee: parseFloat(document.getElementById('tripDriverFee').value) || 0, tip_egp: document.getElementById('tipEGP').value || 0, tip_usd: document.getElementById('tipUSD').value || 0, tip_eur: document.getElementById('tipEUR').value || 0, tip_gbp: document.getElementById('tipGBP').value || 0, total_tip: parseFloat(document.getElementById('tipEGP').value || 0) + ((document.getElementById('tipUSD').value || 0)*RATES.USD) };
@@ -309,13 +359,11 @@
         .catch(err => { toast('❌ Error.', 'error'); btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; });
     }
 
-    function saveFinance() {
-        const payload = { record_type: "finance", fin_type: document.getElementById('finType').value, category: document.getElementById('finCategory').value, amount: parseFloat(document.getElementById('finAmount').value), date: document.getElementById('finDate').value, notes: document.getElementById('finNotes').value, added_by: loggedInUser };
-        const btn = event.target; btn.innerText = "⏳ Saving..."; btn.disabled = true;
-        
-        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        .then(() => { toast('✅ Saved!', 'success'); btn.innerText = "Submit Transaction 💾"; btn.disabled = false; })
-        .catch(err => { toast('❌ Error.', 'error'); btn.disabled = false; });
+    function exportToExcel() {
+        let table = document.getElementById("reportsTable");
+        let wb = XLSX.utils.table_to_book(table, {sheet: "Report"});
+        XLSX.writeFile(wb, "SamyFleet_Report.xlsx");
+        toast('✅ Excel downloaded!', 'success');
     }
 </script>
 </body>
