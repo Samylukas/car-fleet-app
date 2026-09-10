@@ -138,7 +138,6 @@
                 <div class="record-nav">
                     <button class="btn btn-green" onclick="navNew()">🆕 New</button>
                     <button class="btn btn-gray" onclick="clearForm()">🧹 Clear</button>
-                    <button class="btn btn-red" onclick="cancelCurrentTrip()">❌ Cancel</button>
                     <button class="btn btn-outline" onclick="navFirst()">⏪ First</button>
                     <button class="btn btn-outline" onclick="navPrev()">◀️ Prev</button>
                     <button class="btn btn-outline" onclick="navNext()">Next ▶️</button>
@@ -253,6 +252,7 @@
                     <select id="reportType" onchange="toggleReportTarget()">
                         <option value="client">Client Report (Detailed)</option>
                         <option value="driver">Partner Report (Detailed)</option>
+                        <option value="trip_detailed">Trip Report (Detailed)</option>
                         <option value="trips">Trips Analysis Report (Chart)</option>
                         <option value="clients_agg">Clients Aggregated Report</option>
                         <option value="partners_agg">Partners Aggregated Report</option>
@@ -330,14 +330,33 @@
         setTimeout(() => { document.getElementById('splashScreen').style.opacity = '0'; setTimeout(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginOverlay').style.visibility = 'visible'; document.getElementById('loginOverlay').style.opacity = '1'; }, 600); }, 2200);
     });
 
+    // دالة لتعبئة بيانات الماستر في حقول التعديل
+    function editMaster(type, idx) {
+        if (type === 'client') {
+            document.getElementById('mClientName').value = clientsDB[idx];
+            document.getElementById('mClientName').focus();
+        } else if (type === 'driver') {
+            document.getElementById('mDriverName').value = driversDB[idx];
+            document.getElementById('mDriverName').focus();
+        } else if (type === 'trip') {
+            document.getElementById('mTripName').value = tripsDB[idx].name;
+            document.getElementById('mTripPrice').value = tripsDB[idx].price;
+            document.getElementById('mDriverRate').value = tripsDB[idx].driverRate;
+            document.getElementById('mTripName').focus();
+        }
+        window.scrollTo({ top: document.getElementById('mastersTab').offsetTop, behavior: 'smooth' });
+        toast('Ready to edit. Click Add/Update to save changes.', 'info');
+    }
+
     function updateDropdownsAndTables() {
         document.getElementById('tripClientSelect').innerHTML = '<option value="">-- Select Client --</option>' + clientsDB.map(i => `<option value="${i}">${i}</option>`).join('');
         document.getElementById('tripDriverSelect').innerHTML = '<option value="">-- Select Partner --</option>' + driversDB.map(i => `<option value="${i}">${i}</option>`).join('');
         document.getElementById('tripNameSelect').innerHTML   = '<option value="">-- Select Trip Type --</option>' + tripsDB.map(i => `<option value="${i.name}">${i.name}</option>`).join('');
 
-        document.getElementById('mClientTable').querySelector('tbody').innerHTML = clientsDB.map((c, i) => `<tr><td>${c}</td><td style="text-align:right;"><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="removeMasterItem('Clients', '${c}', ${i}, this)">🗑️</button></td></tr>`).join('');
-        document.getElementById('mDriverTable').querySelector('tbody').innerHTML = driversDB.map((d, i) => `<tr><td>${d}</td><td style="text-align:right;"><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="removeMasterItem('Drivers', '${d}', ${i}, this)">🗑️</button></td></tr>`).join('');
-        document.getElementById('mTripTable').querySelector('tbody').innerHTML = tripsDB.map((t, i) => `<tr><td>${t.name}</td><td>${t.price}</td><td>${t.driverRate}</td><td style="text-align:right;"><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i}, this)">🗑️</button></td></tr>`).join('');
+        // إضافة زر (✏️ Edit) في جداول الماستر
+        document.getElementById('mClientTable').querySelector('tbody').innerHTML = clientsDB.map((c, i) => `<tr><td>${c}</td><td style="text-align:right; white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem; margin-right:5px;" onclick="editMaster('client', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="removeMasterItem('Clients', '${c}', ${i}, this)">🗑️</button></td></tr>`).join('');
+        document.getElementById('mDriverTable').querySelector('tbody').innerHTML = driversDB.map((d, i) => `<tr><td>${d}</td><td style="text-align:right; white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem; margin-right:5px;" onclick="editMaster('driver', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="removeMasterItem('Drivers', '${d}', ${i}, this)">🗑️</button></td></tr>`).join('');
+        document.getElementById('mTripTable').querySelector('tbody').innerHTML = tripsDB.map((t, i) => `<tr><td>${t.name}</td><td>${t.price}</td><td>${t.driverRate}</td><td style="text-align:right; white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem; margin-right:5px;" onclick="editMaster('trip', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i}, this)">🗑️</button></td></tr>`).join('');
         
         toggleReportTarget();
     }
@@ -362,8 +381,8 @@
         btn.innerText = "⏳..."; btn.disabled = true;
         const payload = { record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB };
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) })
-        .then(() => { btn.innerText = "Add"; btn.disabled = false; toast(`✅ Added!`, 'success'); })
-        .catch(() => { btn.innerText = "Add"; btn.disabled = false; toast('❌ Sync Error', 'error'); });
+        .then(() => { btn.innerText = "Add / Update"; btn.disabled = false; toast(`✅ Saved to system`, 'success'); })
+        .catch(() => { btn.innerText = "Add / Update"; btn.disabled = false; toast('❌ Sync Error', 'error'); });
     }
 
     function removeMasterItem(sheetName, name, idx, btn) {
@@ -406,7 +425,7 @@
         document.getElementById('tripClientSelect').value = trip.client || ''; document.getElementById('tripDriverSelect').value = trip.driver || ''; document.getElementById('tripNameSelect').value = trip.trip || '';
         document.getElementById('revEGP').value = trip.revenue || 0; document.getElementById('tripDriverFee').value = trip.fee || 0;
         document.getElementById('revUSD').value = 0; document.getElementById('revEUR').value = 0; document.getElementById('revGBP').value = 0; document.getElementById('tipEGP').value = 0; document.getElementById('tipUSD').value = 0; document.getElementById('tipEUR').value = 0; document.getElementById('tipGBP').value = 0; document.getElementById('tripNotes').value = ""; 
-        calcTotals(); toast(`Loaded record ${index + 1} of ${recentTripsDB.length}`, 'success');
+        calcTotals(); window.scrollTo(0, 0); toast(`Loaded record ${index + 1} of ${recentTripsDB.length}`, 'success');
     }
 
     function navNew() { clearForm(); }
@@ -421,13 +440,13 @@
         tbody.innerHTML = '';
         recentTripsDB.forEach((t, index) => { 
             let displayDate = t.date.replace('T', ' ').slice(0, 16);
-            tbody.innerHTML += `<tr><td>${displayDate}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="cancelTripIndex(${index})">Cancel</button></td></tr>`; 
+            // إضافة زر التعديل لجدول المشاوير الحديثة
+            tbody.innerHTML += `<tr><td>${displayDate}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem; margin-right:5px;" onclick="loadTripIntoForm(${index})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="cancelTripIndex(${index})">🗑️</button></td></tr>`; 
         });
     }
 
     function cancelTripIndex(index) { if(confirm('Cancel this trip?')) { recentTripsDB.splice(index, 1); renderRecentTrips(); toast('Trip canceled', 'warn'); } }
-    function cancelCurrentTrip() { if(currentRecordIndex !== -1 && recentTripsDB[currentRecordIndex]) { if(confirm('Cancel and remove this trip record?')) { recentTripsDB.splice(currentRecordIndex, 1); renderRecentTrips(); clearForm(); toast('Trip canceled ❌', 'warn'); } } else { clearForm(); } }
-
+    
     function toggleReportTarget() {
         const type = document.getElementById('reportType').value;
         const targetContainer = document.getElementById('targetContainer');
@@ -441,6 +460,9 @@
         } else if(type === 'driver') {
             targetContainer.style.display = 'flex'; targetLabel.innerText = 'Partner Name:';
             driversDB.forEach(item => { targetSelect.innerHTML += `<option value="${item}">${item}</option>`; });
+        } else if(type === 'trip_detailed') {
+            targetContainer.style.display = 'flex'; targetLabel.innerText = 'Trip Name:';
+            tripsDB.forEach(item => { targetSelect.innerHTML += `<option value="${item.name}">${item.name}</option>`; });
         } else {
             targetContainer.style.display = 'none'; 
         }
@@ -454,35 +476,22 @@
 
     function togglePasswordVisibility() { const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password'; }
 
-    // دالة الدخول المشفرة والمحمية من البلوك
     function login() {
         const u = document.getElementById('loginUser').value, p = document.getElementById('loginPass').value.trim();
         if(!u || !p) return;
         const btn = document.getElementById('loginBtn'); btn.innerText = "Verifying..."; btn.disabled = true;
 
-        // استخدمنا usr و pwd لتفادي قيود الـ AdBlockers
         fetch(GOOGLE_SCRIPT_URL + "?action=verifyAccess&usr=" + encodeURIComponent(u) + "&pwd=" + encodeURIComponent(p), { redirect: 'follow' })
-            .then(res => res.text())
-            .then(text => {
+            .then(res => res.text()).then(text => {
                 try {
                     const data = JSON.parse(text);
                     if (data.status === 'success') {
                         loggedInUser = u; document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('mainApp').style.display = 'block';
                         document.getElementById('userInfo').textContent = `👤 Welcome, ${u.toUpperCase()}`;
                         document.querySelectorAll('.admin-only').forEach(el => { el.style.display = data.role === 'Admin' ? '' : 'none'; });
-                    } else {
-                        toast(`❌ ${data.message}`, 'error');
-                        btn.innerText = "Login 🚀"; btn.disabled = false; document.getElementById('loginPass').focus();
-                    }
-                } catch(e) {
-                    toast('❌ خطأ في السيرفر: تأكد من عمل New Deployment', 'error');
-                    btn.innerText = "Login 🚀"; btn.disabled = false;
-                }
-            })
-            .catch(err => {
-                toast('❌ تم حظر الاتصال، جرب تصفح مخفي', 'error');
-                btn.innerText = "Login 🚀"; btn.disabled = false;
-            });
+                    } else { toast(`❌ ${data.message}`, 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; document.getElementById('loginPass').focus(); }
+                } catch(e) { toast('❌ Error logging in', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; }
+            }).catch(err => { toast('❌ Connection blocked. Try incognito.', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; });
     }
 
     function logout() { location.reload(); }
@@ -512,7 +521,7 @@
         const fromDate = document.getElementById('repFrom').value;
         const toDate = document.getElementById('repTo').value;
         
-        if ((type === 'client' || type === 'driver') && !target) return toast('⚠️ Please select a target', 'error');
+        if ((type === 'client' || type === 'driver' || type === 'trip_detailed') && !target) return toast('⚠️ Please select a target', 'error');
 
         const btn = document.getElementById('searchBtn'); btn.innerText = "⏳ Searching..."; btn.disabled = true;
 
@@ -539,6 +548,7 @@
         let titleText = "";
         if(type === 'client') titleText = `Client Report: ${target}`;
         else if(type === 'driver') titleText = `Partner Report: ${target}`;
+        else if(type === 'trip_detailed') titleText = `Trip Report: ${target}`;
         else if(type === 'trips') titleText = `Trips Analysis Report (تحليل المشاوير)`;
         else if(type === 'clients_agg') titleText = `Clients Aggregated Report (مجمع العملاء)`;
         else if(type === 'partners_agg') titleText = `Partners Aggregated Report (مجمع الشركاء)`;
@@ -553,7 +563,7 @@
             return;
         }
 
-        if (type === 'client' || type === 'driver') {
+        if (type === 'client' || type === 'driver' || type === 'trip_detailed') {
             thead.innerHTML = '<tr><th>#</th><th>Date & Time</th><th>Description</th><th>Amount (EGP)</th></tr>';
             dataArr.forEach((row, i) => {
                 const amt = parseFloat(row.amount) || 0; total += amt;
