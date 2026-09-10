@@ -64,9 +64,6 @@
         .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } 
         .btn-gray { background: #7f8c8d; } .btn-outline { background: #fff; color: #1e3c72; border: 1px solid #1e3c72; }
 
-        .scroll-btn-group { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
-        .scroll-btn { width: 45px; height: 45px; border-radius: 50%; background: #1e3c72; color: white; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.7; }
-        
         #toastStack { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
         .toast { color: white; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         
@@ -74,8 +71,6 @@
         table { width: 100%; border-collapse: collapse; min-width: 600px; background: #fff; text-align: center; }
         th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
         th { background: #1e3c72; color: white; position: sticky; top: 0; }
-        .total-row { background: #eafaf1; font-weight: bold; font-size: 1.1rem; text-align: left;}
-        .total-row td { text-align: left; }
         .recent-table th { background: #f39c12; color: #fff; }
 
         .record-nav { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -86,11 +81,15 @@
         .master-card { background: #f9fbfd; border: 1px solid #e1e8ed; padding: 20px; border-radius: 10px; }
         .master-card h3 { color: #1e3c72; margin-bottom: 15px; border-bottom: 2px solid #27ae60; padding-bottom: 5px; font-size: 1.1rem; }
 
-        /* Report formatting */
-        .report-print-container { background: #fff; padding: 20px; border-radius: 8px; direction: rtl; } 
-        .report-print-container table th, .report-print-container table td { text-align: right; } 
-        .report-title-header { text-align: center; color: #1e3c72; margin-bottom: 20px; font-size: 1.5rem; display: none; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        #chartContainer { max-width: 700px; margin: 20px auto; height: 350px; display: none; }
+        /* Report Formatting (Optimized for Printing & Colors) */
+        .report-print-container { background: #fff; padding: 15px; border-radius: 8px; direction: rtl; } 
+        .report-print-container table { font-size: 0.85rem; border: 1px solid #ddd; }
+        /* Light Blue Header for printing, static position to prevent PDF bugs */
+        .report-print-container table th { background: #3498db !important; color: white; padding: 8px; border: 1px solid #ddd; position: static !important; } 
+        .report-print-container table td { padding: 8px; border: 1px solid #ddd; }
+        .report-title-header { text-align: center; color: #3498db; margin-bottom: 15px; font-size: 1.3rem; display: none; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .total-row { background: #f9fbfd !important; font-weight: bold; font-size: 1rem; }
+        #chartContainer { max-width: 600px; margin: 20px auto; height: 300px; display: none; }
     </style>
 </head>
 <body>
@@ -138,6 +137,7 @@
                 <div class="record-nav">
                     <button class="btn btn-green" onclick="navNew()">🆕 New</button>
                     <button class="btn btn-gray" onclick="clearForm()">🧹 Clear</button>
+                    <button class="btn btn-red" onclick="cancelCurrentTrip()">❌ Cancel</button>
                     <button class="btn btn-outline" onclick="navFirst()">⏪ First</button>
                     <button class="btn btn-outline" onclick="navPrev()">◀️ Prev</button>
                     <button class="btn btn-outline" onclick="navNext()">Next ▶️</button>
@@ -301,10 +301,8 @@
     let clientsDB = [], driversDB = [], tripsDB = []; 
     let recentTripsDB = [];
     let currentRecordIndex = -1;
-    let editingTripId = null; // الاحتفاظ بـ ID المشوار عند التعديل
+    let editingTripId = null; 
     let reportChartInstance = null;
-    
-    // متغيرات تتبع التعديل للبيانات الأساسية
     let editingMasterIndex = { client: -1, driver: -1, trip: -1 };
 
     function getCurrentLocalDateTime() {
@@ -336,42 +334,24 @@
         setTimeout(() => { document.getElementById('splashScreen').style.opacity = '0'; setTimeout(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginOverlay').style.visibility = 'visible'; document.getElementById('loginOverlay').style.opacity = '1'; }, 600); }, 2200);
     });
 
+    function loadMasterEdit(type, index) {
+        if(type === 'client') { document.getElementById('mClientName').value = clientsDB[index]; editingMasterIndex.client = index; document.getElementById('addClientBtn').innerText = "Update"; document.getElementById('addClientBtn').classList.replace('btn-green', 'btn-blue'); } 
+        else if(type === 'driver') { document.getElementById('mDriverName').value = driversDB[index]; editingMasterIndex.driver = index; document.getElementById('addDriverBtn').innerText = "Update"; document.getElementById('addDriverBtn').classList.replace('btn-green', 'btn-blue'); } 
+        else if(type === 'trip') { document.getElementById('mTripName').value = tripsDB[index].name; document.getElementById('mTripPrice').value = tripsDB[index].price; document.getElementById('mDriverRate').value = tripsDB[index].driverRate; editingMasterIndex.trip = index; document.getElementById('addTripMasterBtn').innerText = "Update"; document.getElementById('addTripMasterBtn').classList.replace('btn-green', 'btn-blue'); }
+    }
+
     function updateDropdownsAndTables() {
         document.getElementById('tripClientSelect').innerHTML = '<option value="">-- Select Client --</option>' + clientsDB.map(i => `<option value="${i}">${i}</option>`).join('');
         document.getElementById('tripDriverSelect').innerHTML = '<option value="">-- Select Partner --</option>' + driversDB.map(i => `<option value="${i}">${i}</option>`).join('');
         document.getElementById('tripNameSelect').innerHTML   = '<option value="">-- Select Trip Type --</option>' + tripsDB.map(i => `<option value="${i.name}">${i.name}</option>`).join('');
 
-        // جداول البيانات الأساسية مع زر التعديل والحذف
-        document.getElementById('mClientTable').querySelector('tbody').innerHTML = clientsDB.map((c, i) => `<tr><td>${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('client', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Clients', '${c}', ${i})">🗑️</button></td></tr>`).join('');
-        document.getElementById('mDriverTable').querySelector('tbody').innerHTML = driversDB.map((d, i) => `<tr><td>${d}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('driver', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Drivers', '${d}', ${i})">🗑️</button></td></tr>`).join('');
-        document.getElementById('mTripTable').querySelector('tbody').innerHTML = tripsDB.map((t, i) => `<tr><td>${t.name}</td><td>${t.price}</td><td>${t.driverRate}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('trip', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i})">🗑️</button></td></tr>`).join('');
+        document.getElementById('mClientTable').querySelector('tbody').innerHTML = clientsDB.map((c, i) => `<tr><td style="text-align:right;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('client', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Clients', '${c}', ${i}, this)">🗑️</button></td></tr>`).join('');
+        document.getElementById('mDriverTable').querySelector('tbody').innerHTML = driversDB.map((d, i) => `<tr><td style="text-align:right;">${d}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('driver', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Drivers', '${d}', ${i}, this)">🗑️</button></td></tr>`).join('');
+        document.getElementById('mTripTable').querySelector('tbody').innerHTML = tripsDB.map((t, i) => `<tr><td style="text-align:right;">${t.name}</td><td>${t.price}</td><td>${t.driverRate}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('trip', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i}, this)">🗑️</button></td></tr>`).join('');
         
         toggleReportTarget();
     }
 
-    // تجهيز حقل البيانات الأساسية للتعديل
-    function loadMasterEdit(type, index) {
-        if(type === 'client') {
-            document.getElementById('mClientName').value = clientsDB[index];
-            editingMasterIndex.client = index;
-            document.getElementById('addClientBtn').innerText = "Update";
-            document.getElementById('addClientBtn').classList.replace('btn-green', 'btn-blue');
-        } else if(type === 'driver') {
-            document.getElementById('mDriverName').value = driversDB[index];
-            editingMasterIndex.driver = index;
-            document.getElementById('addDriverBtn').innerText = "Update";
-            document.getElementById('addDriverBtn').classList.replace('btn-green', 'btn-blue');
-        } else if(type === 'trip') {
-            document.getElementById('mTripName').value = tripsDB[index].name;
-            document.getElementById('mTripPrice').value = tripsDB[index].price;
-            document.getElementById('mDriverRate').value = tripsDB[index].driverRate;
-            editingMasterIndex.trip = index;
-            document.getElementById('addTripMasterBtn').innerText = "Update";
-            document.getElementById('addTripMasterBtn').classList.replace('btn-green', 'btn-blue');
-        }
-    }
-
-    // إضافة أو تعديل في البيانات الأساسية
     function addMasterItem(type, btn) {
         let name="", price=0, dRate=0;
         if(type === 'client') { name = document.getElementById('mClientName').value.trim(); }
@@ -380,38 +360,22 @@
 
         if(!name) return toast('Name is required', 'error');
 
-        // تحديث أو إضافة محلياً
         if(type === 'client') { 
-            if(editingMasterIndex.client > -1) clientsDB[editingMasterIndex.client] = name;
-            else if(!clientsDB.includes(name)) clientsDB.push(name); 
-            document.getElementById('mClientName').value = ''; 
-            editingMasterIndex.client = -1; btn.innerText = "Add"; btn.classList.replace('btn-blue', 'btn-green');
-        }
-        else if(type === 'driver') { 
-            if(editingMasterIndex.driver > -1) driversDB[editingMasterIndex.driver] = name;
-            else if(!driversDB.includes(name)) driversDB.push(name); 
-            document.getElementById('mDriverName').value = ''; 
-            editingMasterIndex.driver = -1; btn.innerText = "Add"; btn.classList.replace('btn-blue', 'btn-green');
-        }
-        else if(type === 'trip') { 
-            if(editingMasterIndex.trip > -1) {
-                tripsDB[editingMasterIndex.trip] = {name: name, price: price, driverRate: dRate};
-            } else {
-                let existing = tripsDB.find(t => t.name === name);
-                if(existing) { existing.price = price; existing.driverRate = dRate; } else { tripsDB.push({name: name, price: price, driverRate: dRate}); }
-            }
+            if(editingMasterIndex.client > -1) clientsDB[editingMasterIndex.client] = name; else if(!clientsDB.includes(name)) clientsDB.push(name); 
+            document.getElementById('mClientName').value = ''; editingMasterIndex.client = -1; btn.innerText = "Add"; btn.classList.replace('btn-blue', 'btn-green');
+        } else if(type === 'driver') { 
+            if(editingMasterIndex.driver > -1) driversDB[editingMasterIndex.driver] = name; else if(!driversDB.includes(name)) driversDB.push(name); 
+            document.getElementById('mDriverName').value = ''; editingMasterIndex.driver = -1; btn.innerText = "Add"; btn.classList.replace('btn-blue', 'btn-green');
+        } else if(type === 'trip') { 
+            if(editingMasterIndex.trip > -1) { tripsDB[editingMasterIndex.trip] = {name: name, price: price, driverRate: dRate}; } 
+            else { let ex = tripsDB.find(t => t.name === name); if(ex) { ex.price = price; ex.driverRate = dRate; } else { tripsDB.push({name: name, price: price, driverRate: dRate}); } }
             document.getElementById('mTripName').value = ''; document.getElementById('mTripPrice').value = ''; document.getElementById('mDriverRate').value = '';
             editingMasterIndex.trip = -1; btn.innerText = "Add / Update"; btn.classList.replace('btn-blue', 'btn-green');
         }
-        
         updateDropdownsAndTables();
-
-        // إرسال المصفوفة بالكامل للتحديث في جوجل شيت
         btn.disabled = true;
-        const payload = { record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB };
-        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) })
-        .then(() => { btn.disabled = false; toast(`✅ Saved to system`, 'success'); })
-        .catch(() => { btn.disabled = false; toast('❌ Sync Error', 'error'); });
+        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }) })
+        .then(() => { btn.disabled = false; toast(`✅ Saved to system`, 'success'); }).catch(() => { btn.disabled = false; toast('❌ Sync Error', 'error'); });
     }
 
     function removeMasterItem(sheetName, name, idx) {
@@ -420,44 +384,32 @@
         if(sheetName === 'Drivers') driversDB.splice(idx, 1);
         if(sheetName === 'Trip_Types') tripsDB.splice(idx, 1);
         updateDropdownsAndTables();
-
-        const payload = { record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB };
-        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) })
+        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }) })
         .then(() => toast('✅ Deleted', 'warn')).catch(() => toast('❌ Error', 'error'));
     }
 
     function onTripSelected() {
         const selectedTripName = document.getElementById('tripNameSelect').value;
         const matched = tripsDB.find(t => t.name === selectedTripName);
-        if (matched) {
-            document.getElementById('revEGP').value = matched.price || 0;
-            document.getElementById('tripDriverFee').value = matched.driverRate || 0;
-            calcTotals(); toast(`Auto-filled: Client ${matched.price} | Partner ${matched.driverRate}`, 'success');
-        }
+        if (matched) { document.getElementById('revEGP').value = matched.price || 0; document.getElementById('tripDriverFee').value = matched.driverRate || 0; calcTotals(); }
     }
 
     function clearForm() {
-        currentRecordIndex = -1;
-        editingTripId = null; 
-        document.getElementById('saveTripBtn').innerText = "Save & Submit Trip 💾";
-        document.getElementById('saveTripBtn').classList.replace('btn-blue', 'btn-green');
-        
+        currentRecordIndex = -1; editingTripId = null; 
+        document.getElementById('saveTripBtn').innerText = "Save & Submit Trip 💾"; document.getElementById('saveTripBtn').classList.replace('btn-blue', 'btn-green');
         document.getElementById('tripClientSelect').value = ''; document.getElementById('tripDriverSelect').value = ''; document.getElementById('tripNameSelect').value = '';
         document.getElementById('revEGP').value = '0'; document.getElementById('revUSD').value = '0'; document.getElementById('revEUR').value = '0'; document.getElementById('revGBP').value = '0';
+        document.getElementById('tipEGP').value = '0'; document.getElementById('tipUSD').value = '0'; document.getElementById('tipEUR').value = '0'; document.getElementById('tipGBP').value = '0';
         document.getElementById('tripDriverFee').value = ''; document.getElementById('tripNotes').value = '';
         document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals(); toast('Form cleared 🧹', 'info');
     }
 
-    // سحب بيانات المشوار للتعديل وتغيير الزر
     function loadTripIntoForm(index) {
         if(recentTripsDB.length === 0) return toast('No records available', 'error');
         if(index < 0) index = 0; if(index >= recentTripsDB.length) index = recentTripsDB.length - 1;
         currentRecordIndex = index; const trip = recentTripsDB[index]; 
-        
-        editingTripId = trip.id; // حفظ الـ ID الخاص بالمشوار
-        document.getElementById('saveTripBtn').innerText = "Update Trip (تعديل السجل) 🔄";
-        document.getElementById('saveTripBtn').classList.replace('btn-green', 'btn-blue');
-
+        editingTripId = trip.id;
+        document.getElementById('saveTripBtn').innerText = "Update Trip (تعديل السجل) 🔄"; document.getElementById('saveTripBtn').classList.replace('btn-green', 'btn-blue');
         document.getElementById('tripDate').value = trip.date.includes('T') ? trip.date.slice(0,16) : trip.date.replace(' ', 'T').slice(0,16); 
         document.getElementById('tripClientSelect').value = trip.client || ''; document.getElementById('tripDriverSelect').value = trip.driver || ''; document.getElementById('tripNameSelect').value = trip.trip || '';
         document.getElementById('revEGP').value = trip.revenue || 0; document.getElementById('tripDriverFee').value = trip.fee || 0;
@@ -477,8 +429,7 @@
         tbody.innerHTML = '';
         recentTripsDB.forEach((t, index) => { 
             let displayDate = t.date.replace('T', ' ').slice(0, 16);
-            // زر التعديل بجوار الإلغاء
-            tbody.innerHTML += `<tr><td>${displayDate}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadTripIntoForm(${index})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="cancelTripIndex(${index})">🗑️</button></td></tr>`; 
+            tbody.innerHTML += `<tr><td style="direction:ltr;">${displayDate}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem; margin-right:5px;" onclick="loadTripIntoForm(${index})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="cancelTripIndex(${index})">🗑️</button></td></tr>`; 
         });
     }
 
@@ -491,18 +442,10 @@
         const targetSelect = document.getElementById('reportTarget');
 
         targetSelect.innerHTML = ''; 
-        if(type === 'client') {
-            targetContainer.style.display = 'flex'; targetLabel.innerText = 'Client Name:';
-            clientsDB.forEach(item => { targetSelect.innerHTML += `<option value="${item}">${item}</option>`; });
-        } else if(type === 'driver') {
-            targetContainer.style.display = 'flex'; targetLabel.innerText = 'Partner Name:';
-            driversDB.forEach(item => { targetSelect.innerHTML += `<option value="${item}">${item}</option>`; });
-        } else if(type === 'trip_detailed') {
-            targetContainer.style.display = 'flex'; targetLabel.innerText = 'Trip Name:';
-            tripsDB.forEach(item => { targetSelect.innerHTML += `<option value="${item.name}">${item.name}</option>`; });
-        } else {
-            targetContainer.style.display = 'none'; 
-        }
+        if(type === 'client') { targetContainer.style.display = 'flex'; targetLabel.innerText = 'Client Name:'; clientsDB.forEach(item => { targetSelect.innerHTML += `<option value="${item}">${item}</option>`; }); } 
+        else if(type === 'driver') { targetContainer.style.display = 'flex'; targetLabel.innerText = 'Partner Name:'; driversDB.forEach(item => { targetSelect.innerHTML += `<option value="${item}">${item}</option>`; }); } 
+        else if(type === 'trip_detailed') { targetContainer.style.display = 'flex'; targetLabel.innerText = 'Trip Name:'; tripsDB.forEach(item => { targetSelect.innerHTML += `<option value="${item.name}">${item.name}</option>`; }); } 
+        else { targetContainer.style.display = 'none'; }
     }
 
     function toast(msg, type='info') {
@@ -526,9 +469,9 @@
                         loggedInUser = u; document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('mainApp').style.display = 'block';
                         document.getElementById('userInfo').textContent = `👤 Welcome, ${u.toUpperCase()}`;
                         document.querySelectorAll('.admin-only').forEach(el => { el.style.display = data.role === 'Admin' ? '' : 'none'; });
-                    } else { toast(`❌ ${data.message}`, 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; document.getElementById('loginPass').focus(); }
-                } catch(e) { toast('❌ Error logging in', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; }
-            }).catch(err => { toast('❌ Connection blocked. Try incognito.', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; });
+                    } else { toast(`❌ ${data.message}`, 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; }
+                } catch(e) { toast('❌ Error', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; }
+            }).catch(err => { toast('❌ Blocked.', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; });
     }
 
     function logout() { location.reload(); }
@@ -545,11 +488,7 @@
     function drawChart(labels, dataArr, labelTitle, type) {
         const ctx = document.getElementById('reportChart').getContext('2d');
         if(reportChartInstance) reportChartInstance.destroy();
-        reportChartInstance = new Chart(ctx, {
-            type: type,
-            data: { labels: labels, datasets: [{ label: labelTitle, data: dataArr, backgroundColor: ['#1e3c72', '#27ae60', '#f39c12', '#e74c3c', '#8e44ad', '#34495e'], borderWidth: 1 }] },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
+        reportChartInstance = new Chart(ctx, { type: type, data: { labels: labels, datasets: [{ label: labelTitle, data: dataArr, backgroundColor: ['#3498db', '#2ecc71', '#f1c40f', '#e74c3c', '#9b59b6', '#34495e'], borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false } });
     }
 
     function fetchReports() {
@@ -565,10 +504,8 @@
         fetch(`${GOOGLE_SCRIPT_URL}?action=getReports&type=${type}&target=${encodeURIComponent(target)}&from=${fromDate}&to=${toDate}`, { redirect: 'follow' })
             .then(res => res.json()).then(data => {
                 btn.innerText = "Search 🔍"; btn.disabled = false;
-                if (data.status === 'success') {
-                    renderDynamicReport(type, target, fromDate, toDate, data.data);
-                    toast('✅ Reports loaded!', 'success');
-                } else { toast('❌ Error: ' + data.message, 'error'); }
+                if (data.status === 'success') { renderDynamicReport(type, target, fromDate, toDate, data.data); toast('✅ Reports loaded!', 'success'); } 
+                else { toast('❌ Error', 'error'); }
             }).catch(err => { btn.innerText = "Search 🔍"; btn.disabled = false; toast('❌ Network error', 'error'); });
     }
 
@@ -600,35 +537,36 @@
             return;
         }
 
+        // حل جذري لمشكلة تداخل النص باستخدام (unicode-bidi: isolate) وتوجيه واضح للأعمدة
         if (type === 'client' || type === 'driver' || type === 'trip_detailed') {
             thead.innerHTML = '<tr><th>#</th><th>Date & Time</th><th>Description</th><th>Amount (EGP)</th></tr>';
             dataArr.forEach((row, i) => {
                 const amt = parseFloat(row.amount) || 0; total += amt;
-                tbody.innerHTML += `<tr><td>${i+1}</td><td>${row.date}</td><td>${row.desc}</td><td style="font-weight:bold;">${amt.toFixed(2)}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${row.date}</td><td><div style="unicode-bidi: isolate; direction: auto;">${row.desc}</div></td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
             });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="3" style="text-align:left;">Total Balance:</td><td style="color:#27ae60;">${total.toFixed(2)}</td></tr>`;
+            tbody.innerHTML += `<tr class="total-row"><td colspan="3" style="text-align:left; direction:ltr; padding-left:15px;">Total Balance / الإجمالي :</td><td style="color:#27ae60; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
         }
         else if (type === 'trips') {
             thead.innerHTML = '<tr><th>#</th><th>Date & Time</th><th>Trip Name</th><th>Client</th><th>Partner</th><th>Amount</th></tr>';
             let tripCounts = {};
             dataArr.forEach((row, i) => {
                 const amt = parseFloat(row.amount) || 0; total += amt;
-                tbody.innerHTML += `<tr><td>${i+1}</td><td>${row.date}</td><td>${row.trip}</td><td>${row.client}</td><td>${row.partner}</td><td style="font-weight:bold;">${amt.toFixed(2)}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${row.date}</td><td><div style="unicode-bidi: isolate; direction: auto;">${row.trip}</div></td><td>${row.client}</td><td>${row.partner}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
                 tripCounts[row.trip] = (tripCounts[row.trip] || 0) + 1;
             });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="5" style="text-align:left;">Total Revenue:</td><td style="color:#27ae60;">${total.toFixed(2)}</td></tr>`;
+            tbody.innerHTML += `<tr class="total-row"><td colspan="5" style="text-align:left; direction:ltr; padding-left:15px;">Total Revenue / الإجمالي :</td><td style="color:#27ae60; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
             chartContainer.style.display = 'block'; drawChart(Object.keys(tripCounts), Object.values(tripCounts), 'Most Frequent Trips', 'bar');
         }
         else if (type === 'clients_agg' || type === 'partners_agg') {
-            let labelType = type === 'clients_agg' ? 'Client' : 'Partner';
-            thead.innerHTML = `<tr><th>#</th><th>${labelType} Name</th><th>Total Trips</th><th>Total Amount (EGP)</th></tr>`;
+            let labelType = type === 'clients_agg' ? 'Client Name' : 'Partner Name';
+            thead.innerHTML = `<tr><th>#</th><th>${labelType}</th><th>Total Trips</th><th>Total Amount (EGP)</th></tr>`;
             let names = [], amounts = [];
             dataArr.forEach((row, i) => {
                 const amt = parseFloat(row.amount) || 0; total += amt;
-                tbody.innerHTML += `<tr><td>${i+1}</td><td>${row.name}</td><td>${row.count}</td><td style="font-weight:bold;">${amt.toFixed(2)}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${i+1}</td><td><div style="unicode-bidi: isolate; direction: auto;">${row.name}</div></td><td>${row.count}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
                 names.push(row.name); amounts.push(amt);
             });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="3" style="text-align:left;">Grand Total:</td><td style="color:#27ae60;">${total.toFixed(2)}</td></tr>`;
+            tbody.innerHTML += `<tr class="total-row"><td colspan="3" style="text-align:left; direction:ltr; padding-left:15px;">Grand Total / الإجمالي :</td><td style="color:#27ae60; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
             chartContainer.style.display = 'block'; drawChart(names, amounts, `Amount per ${labelType}`, 'pie');
         }
     }
@@ -644,38 +582,24 @@
         
         if (!client || !driver || !tripName) return toast('⚠️ Select Client, Partner and Trip Type!', 'error');
 
-        // منع التكرار القاطع للمشوار بناءً على البيانات الأساسية والتاريخ والمبالغ
-        const isDuplicate = recentTripsDB.some(t => 
-            t.client === client && t.driver === driver && t.trip === tripName && 
-            t.date === tDate && parseFloat(t.revenue) === tRev && parseFloat(t.fee) === tFee &&
-            t.id !== editingTripId // استثناء المشوار الجاري تعديله
-        );
-        if(isDuplicate) {
-            return toast('⚠️ تم إدخال هذا المشوار مسبقاً بنفس البيانات، تم الرفض لمنع التكرار!', 'error');
-        }
+        const isDuplicate = recentTripsDB.some(t => t.client === client && t.driver === driver && t.trip === tripName && t.date === tDate && parseFloat(t.revenue) === tRev && parseFloat(t.fee) === tFee && t.id !== editingTripId);
+        if(isDuplicate) return toast('⚠️ تم إدخال هذا المشوار مسبقاً بنفس البيانات!', 'error');
 
-        // تحديد ما إذا كان حفظ جديد أو تعديل
         const recordType = editingTripId ? "edit_trip" : "trip";
-        
         const payload = { record_type: recordType, trip_id: editingTripId, client_name: client, driver_name: driver, trip_name: tripName, date: tDate, notes: notes, revenue: tRev, driver_fee: tFee, tip_egp: 0, tip_usd: 0, tip_eur: 0, tip_gbp: 0, total_tip: 0 };
         const btn = document.getElementById('saveTripBtn'); btn.innerText = "⏳ Saving..."; btn.disabled = true;
 
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         .then(() => { 
-            toast('✅ Recorded successfully!', 'success'); 
-            btn.disabled = false;
-            
+            toast('✅ Recorded successfully!', 'success'); btn.disabled = false;
             if(editingTripId) {
-                // تحديث السجل في الواجهة
                 const idx = recentTripsDB.findIndex(t => t.id === editingTripId);
                 if(idx > -1) recentTripsDB[idx] = { id: editingTripId, date: tDate, client: client, driver: driver, trip: tripName, revenue: tRev, fee: tFee, notes: notes };
             } else {
-                // إضافة سجل جديد للواجهة (مع إنشاء ID مؤقت للفرونت إند)
                 const tempId = "TRIP-" + Math.floor(Math.random() * 10000);
                 recentTripsDB.unshift({ id: tempId, date: tDate, client: client, driver: driver, trip: tripName, revenue: tRev, fee: tFee, notes: notes });
                 if(recentTripsDB.length > 15) recentTripsDB.pop();
             }
-            
             renderRecentTrips(); clearForm(); 
         }).catch(err => { toast('❌ Error.', 'error'); btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; });
     }
@@ -700,10 +624,7 @@
         const element = document.getElementById('reportPrintArea');
         const pdfName = document.getElementById('printReportTitle').dataset.pdfname || 'SamyFleet_Report';
         toast('⏳ Generating PDF...', 'info');
-        html2pdf().set({ 
-            margin: 0.5, filename: `${pdfName}.pdf`, image: { type: 'jpeg', quality: 0.98 }, 
-            html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } 
-        }).from(element).save().then(() => toast('✅ PDF downloaded!', 'success'));
+        html2pdf().set({ margin: 0.5, filename: `${pdfName}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' } }).from(element).save().then(() => toast('✅ PDF downloaded!', 'success'));
     }
 </script>
 </body>
