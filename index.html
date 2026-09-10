@@ -43,11 +43,6 @@
         .form-group { display: flex; flex-direction: column; text-align: left; position: relative; }
         .form-group label { font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #2c3e50; }
         .form-group input, .form-group select { padding: 11px; border: 1px solid #dcdde1; border-radius: 8px; font-size: 0.95rem; outline: none; background: #f8f9fa; width: 100%; }
-        
-        /* تصميم الحقل المزدوج (قائمة + زر إضافة سريع) */
-        .select-with-add { display: flex; gap: 6px; align-items: center; }
-        .btn-inline-add { background: #27ae60; color: white; border: none; border-radius: 8px; padding: 11px 14px; cursor: pointer; font-weight: bold; font-size: 1.1rem; flex-shrink: 0; }
-        .btn-inline-add:hover { background: #219653; }
 
         .pass-wrapper { position: relative; width: 100%; }
         .pass-wrapper input { width: 100%; padding-right: 40px; }
@@ -68,7 +63,7 @@
         .btn:disabled { background: #95a5a6; cursor: not-allowed; }
         .btn:hover:not(:disabled) { filter: brightness(0.9); }
         .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } 
-        .btn-orange { background: #e67e22; } .btn-gray { background: #7f8c8d; }
+        .btn-gray { background: #7f8c8d; }
         .btn-outline { background: #fff; color: #1e3c72; border: 1px solid #1e3c72; } .btn-outline:hover { background: #f4f7f6; }
 
         .scroll-btn-group { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
@@ -87,6 +82,11 @@
         .record-nav { display: flex; gap: 6px; flex-wrap: wrap; }
         .record-nav .btn { padding: 8px 12px; font-size: 0.85rem; }
         .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+
+        /* Masters Tab Inner Cards */
+        .master-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 15px; }
+        .master-card { background: #f9fbfd; border: 1px solid #e1e8ed; padding: 20px; border-radius: 10px; }
+        .master-card h3 { color: #1e3c72; margin-bottom: 15px; border-bottom: 2px solid #27ae60; padding-bottom: 5px; font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -133,6 +133,7 @@
 
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="showTab('addTripTab', this)">📝 Add Trip</button>
+        <button class="tab-btn admin-only" onclick="showTab('mastersTab', this)">⚙️ Data Masters</button>
         <button class="tab-btn admin-only" onclick="showTab('financeTab', this)">💵 Finance</button>
         <button class="tab-btn admin-only" onclick="showTab('reportsTab', this)">📊 Reports & Ledgers</button>
         <button class="tab-btn admin-only" onclick="showTab('settingsTab', this)">🛠️ Exchange Rates</button>
@@ -144,7 +145,6 @@
             <div class="header-flex">
                 <h2 class="section-title" style="border:none; margin:0; padding:0;">📝 Add New Trip</h2>
                 
-                <!-- شريط أزرار التحكم الكامل -->
                 <div class="record-nav">
                     <button class="btn btn-green" onclick="navNew()" title="Start new blank trip">🆕 New</button>
                     <button class="btn btn-gray" onclick="clearForm()" title="Clear form fields">🧹 Clear</button>
@@ -157,37 +157,27 @@
             </div>
 
             <div class="grid-form">
-                <!-- 1. قائمة العملاء + زر إضافة جديد -->
+                <!-- قوائم منسدلة مغلقة تختار من الجداول فقط -->
                 <div class="form-group">
                     <label>Client:</label>
-                    <div class="select-with-add">
-                        <select id="tripClientSelect">
-                            <option value="">-- Select Client --</option>
-                        </select>
-                        <button class="btn-inline-add" onclick="addNewItem('client')" title="Add New Client">+</button>
-                    </div>
+                    <select id="tripClientSelect">
+                        <option value="">-- Select Client --</option>
+                    </select>
                 </div>
 
-                <!-- 2. قائمة السائقين + زر إضافة جديد -->
                 <div class="form-group">
                     <label>Driver:</label>
-                    <div class="select-with-add">
-                        <select id="tripDriverSelect">
-                            <option value="">-- Select Driver --</option>
-                        </select>
-                        <button class="btn-inline-add" onclick="addNewItem('driver')" title="Add New Driver">+</button>
-                    </div>
+                    <select id="tripDriverSelect">
+                        <option value="">-- Select Driver --</option>
+                    </select>
                 </div>
 
-                <!-- 3. قائمة المشاوير + زر إضافة جديد -->
+                <!-- عند اختيار المشوار يتغير السعران تلقائياً -->
                 <div class="form-group">
                     <label>Trip Name:</label>
-                    <div class="select-with-add">
-                        <select id="tripNameSelect">
-                            <option value="">-- Select Trip Type --</option>
-                        </select>
-                        <button class="btn-inline-add" onclick="addNewItem('trip')" title="Add New Trip Type">+</button>
-                    </div>
+                    <select id="tripNameSelect" onchange="onTripSelected()">
+                        <option value="">-- Select Trip Type --</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -218,7 +208,7 @@
             </div>
 
             <div class="grid-form" style="margin-top:25px; padding-top: 20px; border-top: 1px dashed #dcdde1;">
-                <div class="form-group"><label style="color:#e74c3c;">💵 Driver Fee / Expenses (EGP):</label><input type="number" id="tripDriverFee" placeholder="Driver salary, fuel..." oninput="calcTotals()"></div>
+                <div class="form-group"><label style="color:#e74c3c;">💵 Driver Fee / Expenses (EGP):</label><input type="number" id="tripDriverFee" placeholder="Auto-filled or manual..." oninput="calcTotals()"></div>
                 <div class="form-group"><label>Notes (Optional):</label><input type="text" id="tripNotes" placeholder="Any details..."></div>
             </div>
 
@@ -237,6 +227,66 @@
                     <tbody><tr><td colspan="7" style="text-align:center; color:#7f8c8d;">Loading recent trips...</td></tr></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- Tab: Data Masters (التبويب الجديد لإدارة البيانات الأساسية) -->
+    <div id="mastersTab" class="tab-content admin-only">
+        <div class="card">
+            <h2 class="section-title">⚙️ Master Data Management (إدارة البيانات الأساسية)</h2>
+            <p style="color:#7f8c8d; font-size:0.9rem; margin-bottom:15px;">أضف وعدّل وحذف العملاء والسائقين وأنواع المشاوير وأسعارها المزدوجة.</p>
+            
+            <div class="master-grid">
+                <!-- 1. Clients Master -->
+                <div class="master-card">
+                    <h3>👥 Clients Management</h3>
+                    <div style="display:flex; gap:8px; margin-bottom:10px;">
+                        <input type="text" id="mClientName" placeholder="New Client Name...">
+                        <button class="btn btn-green" style="padding:8px 12px;" onclick="addMasterItem('client')">Add</button>
+                    </div>
+                    <div class="table-responsive" style="max-height:200px;">
+                        <table id="mClientTable">
+                            <thead><tr><th>Client Name</th><th>Action</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. Drivers Master -->
+                <div class="master-card">
+                    <h3>🚘 Drivers Management</h3>
+                    <div style="display:flex; gap:8px; margin-bottom:10px;">
+                        <input type="text" id="mDriverName" placeholder="New Driver Name...">
+                        <button class="btn btn-green" style="padding:8px 12px;" onclick="addMasterItem('driver')">Add</button>
+                    </div>
+                    <div class="table-responsive" style="max-height:200px;">
+                        <table id="mDriverTable">
+                            <thead><tr><th>Driver Name</th><th>Action</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3. Trip Types & Dual Rates Master -->
+                <div class="master-card" style="grid-column: span 1;">
+                    <h3>🗺️ Trip Types & Dual Rates</h3>
+                    <div class="grid-form" style="grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+                        <input type="text" id="mTripName" placeholder="Trip Type..." style="grid-column:span 2;">
+                        <input type="number" id="mTripPrice" placeholder="Client Price (EGP)">
+                        <input type="number" id="mDriverRate" placeholder="Driver Rate (EGP)">
+                    </div>
+                    <button class="btn btn-green" style="width:100%; padding:8px; margin-bottom:10px;" onclick="addMasterItem('trip')">Add / Update Trip Type</button>
+
+                    <div class="table-responsive" style="max-height:200px;">
+                        <table id="mTripTable">
+                            <thead><tr><th>Trip</th><th>Client EGP</th><th>Driver EGP</th><th>Action</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-blue" style="width:100%; margin-top:20px; font-size:1.05rem;" onclick="syncMastersToCloud()">Save & Sync All Masters to Google Sheets ☁️</button>
         </div>
     </div>
 
@@ -307,10 +357,14 @@
     let RATES = { USD: 50, EUR: 55, GBP: 65, EGP: 1 };
     let loggedInUser = '';
 
-    // تخزين البيانات محلياً مع المزامنة
+    // تخزين البيانات الأساسية ككائنات تحتوي على الأسعار
     let clientsDB = JSON.parse(localStorage.getItem('fleetClients')) || ["Albatros", "Malikia", "Akassia", "Europa Clinic"];
     let driversDB = JSON.parse(localStorage.getItem('fleetDrivers')) || ["أديب", "حسين", "مرزوق", "إسماعيل"];
-    let tripsDB   = JSON.parse(localStorage.getItem('fleetTrips'))   || ["تحاليل", "أشعة", "Airport Transfer", "City Tour"];
+    let tripsDB   = JSON.parse(localStorage.getItem('fleetTripsObjects')) || [
+        { name: "تحاليل", price: 100, driverRate: 80 },
+        { name: "أشعة", price: 150, driverRate: 100 },
+        { name: "Airport Transfer", price: 500, driverRate: 350 }
+    ];
     let recentTripsDB = [];
     let currentRecordIndex = -1;
 
@@ -328,6 +382,7 @@
 
     window.addEventListener('load', () => {
         renderSelectDropdowns();
+        renderMastersTables();
         
         fetch(GOOGLE_SCRIPT_URL + "?action=getInitialData", { redirect: 'follow' })
             .then(res => res.json())
@@ -342,15 +397,20 @@
                     document.getElementById('loginBtn').innerText = "Login 🚀";
                     document.getElementById('loginBtn').disabled = false;
 
-                    if(data.clients && data.clients.length) mergeUnique(clientsDB, data.clients, 'fleetClients');
-                    if(data.drivers && data.drivers.length) mergeUnique(driversDB, data.drivers, 'fleetDrivers');
-                    if(data.trips && data.trips.length) mergeUnique(tripsDB, data.trips, 'fleetTrips');
+                    if(data.clients && data.clients.length) clientsDB = data.clients;
+                    if(data.drivers && data.drivers.length) driversDB = data.drivers;
+                    if(data.trips && data.trips.length) tripsDB = data.trips;
                     
+                    localStorage.setItem('fleetClients', JSON.stringify(clientsDB));
+                    localStorage.setItem('fleetDrivers', JSON.stringify(driversDB));
+                    localStorage.setItem('fleetTripsObjects', JSON.stringify(tripsDB));
+
                     recentTripsDB = data.recent || [];
                     renderSelectDropdowns(); 
+                    renderMastersTables();
                     renderRecentTrips();
                 }
-            }).catch(err => { toast('⚠️ Connection issue. Loaded local options.', 'warn'); });
+            }).catch(err => { toast('⚠️ Loaded local configuration.', 'warn'); });
 
         setTimeout(() => {
             document.getElementById('splashScreen').style.opacity = '0';
@@ -358,14 +418,7 @@
         }, 2200);
     });
 
-    function mergeUnique(targetArr, newArr, storageKey) {
-        newArr.forEach(item => {
-            if(item && targetArr.indexOf(item) === -1) targetArr.push(item);
-        });
-        localStorage.setItem(storageKey, JSON.stringify(targetArr));
-    }
-
-    // تعبئة القوائم المنسدلة الأصيلة <select>
+    // تعبئة القوائم المنسدلة المغلقة
     function renderSelectDropdowns() {
         const clientSel = document.getElementById('tripClientSelect');
         const driverSel = document.getElementById('tripDriverSelect');
@@ -373,23 +426,88 @@
 
         clientSel.innerHTML = '<option value="">-- Select Client --</option>' + clientsDB.map(i => `<option value="${i}">${i}</option>`).join('');
         driverSel.innerHTML = '<option value="">-- Select Driver --</option>' + driversDB.map(i => `<option value="${i}">${i}</option>`).join('');
-        tripSel.innerHTML   = '<option value="">-- Select Trip Type --</option>' + tripsDB.map(i => `<option value="${i}">${i}</option>`).join('');
+        tripSel.innerHTML   = '<option value="">-- Select Trip Type --</option>' + tripsDB.map(i => `<option value="${i.name}">${i.name}</option>`).join('');
 
         toggleReportTarget();
     }
 
-    // إضافة عميل/سائق/مشوار جديد فوراً
-    function addNewItem(type) {
-        let title = type === 'client' ? 'Client' : (type === 'driver' ? 'Driver' : 'Trip Type');
-        let val = prompt(`Enter new ${title} Name:`);
-        if(val && val.trim() !== "") {
-            val = val.trim();
-            if(type === 'client') { mergeUnique(clientsDB, [val], 'fleetClients'); document.getElementById('tripClientSelect').value = val; }
-            if(type === 'driver') { mergeUnique(driversDB, [val], 'fleetDrivers'); document.getElementById('tripDriverSelect').value = val; }
-            if(type === 'trip')   { mergeUnique(tripsDB, [val], 'fleetTrips'); document.getElementById('tripNameSelect').value = val; }
-            renderSelectDropdowns();
-            toast(`✅ Added new ${title}: ${val}`, 'success');
+    // تنزيل السعرين تلقائياً بمجرد اختيار المشوار
+    function onTripSelected() {
+        const selectedTripName = document.getElementById('tripNameSelect').value;
+        const matched = tripsDB.find(t => t.name === selectedTripName);
+        if (matched) {
+            document.getElementById('revEGP').value = matched.price || 0;
+            document.getElementById('tripDriverFee').value = matched.driverRate || 0;
+            calcTotals();
+            toast(`Auto-filled rates: Client ${matched.price} EGP | Driver ${matched.driverRate} EGP`, 'info');
         }
+    }
+
+    // إدارة الجداول في تبويب Data Masters
+    function renderMastersTables() {
+        // Clients
+        const cBody = document.querySelector('#mClientTable tbody');
+        cBody.innerHTML = clientsDB.map((c, idx) => `<tr><td>${c}</td><td><button class="btn btn-red" style="padding:3px 8px; font-size:0.75rem;" onclick="removeMasterItem('client', ${idx})">Delete</button></td></tr>`).join('');
+
+        // Drivers
+        const dBody = document.querySelector('#mDriverTable tbody');
+        dBody.innerHTML = driversDB.map((d, idx) => `<tr><td>${d}</td><td><button class="btn btn-red" style="padding:3px 8px; font-size:0.75rem;" onclick="removeMasterItem('driver', ${idx})">Delete</button></td></tr>`).join('');
+
+        // Trips & Rates
+        const tBody = document.querySelector('#mTripTable tbody');
+        tBody.innerHTML = tripsDB.map((t, idx) => `<tr><td>${t.name}</td><td>${t.price}</td><td>${t.driverRate}</td><td><button class="btn btn-red" style="padding:3px 8px; font-size:0.75rem;" onclick="removeMasterItem('trip', ${idx})">Delete</button></td></tr>`).join('');
+    }
+
+    function addMasterItem(type) {
+        if (type === 'client') {
+            let val = document.getElementById('mClientName').value.trim();
+            if(val && !clientsDB.includes(val)) { clientsDB.push(val); document.getElementById('mClientName').value = ''; }
+        } else if (type === 'driver') {
+            let val = document.getElementById('mDriverName').value.trim();
+            if(val && !driversDB.includes(val)) { driversDB.push(val); document.getElementById('mDriverName').value = ''; }
+        } else if (type === 'trip') {
+            let name = document.getElementById('mTripName').value.trim();
+            let price = parseFloat(document.getElementById('mTripPrice').value) || 0;
+            let dRate = parseFloat(document.getElementById('mDriverRate').value) || 0;
+            if (name) {
+                let existing = tripsDB.find(t => t.name === name);
+                if (existing) { existing.price = price; existing.driverRate = dRate; }
+                else { tripsDB.push({ name: name, price: price, driverRate: dRate }); }
+                document.getElementById('mTripName').value = ''; document.getElementById('mTripPrice').value = ''; document.getElementById('mDriverRate').value = '';
+            }
+        }
+        localStorage.setItem('fleetClients', JSON.stringify(clientsDB));
+        localStorage.setItem('fleetDrivers', JSON.stringify(driversDB));
+        localStorage.setItem('fleetTripsObjects', JSON.stringify(tripsDB));
+        renderSelectDropdowns();
+        renderMastersTables();
+        toast('Master item updated locally', 'success');
+    }
+
+    function removeMasterItem(type, idx) {
+        if (confirm('Delete this master entry?')) {
+            if (type === 'client') clientsDB.splice(idx, 1);
+            if (type === 'driver') driversDB.splice(idx, 1);
+            if (type === 'trip') tripsDB.splice(idx, 1);
+            localStorage.setItem('fleetClients', JSON.stringify(clientsDB));
+            localStorage.setItem('fleetDrivers', JSON.stringify(driversDB));
+            localStorage.setItem('fleetTripsObjects', JSON.stringify(tripsDB));
+            renderSelectDropdowns();
+            renderMastersTables();
+            toast('Entry removed', 'warn');
+        }
+    }
+
+    function syncMastersToCloud() {
+        const payload = {
+            record_type: "update_masters",
+            clients: clientsDB,
+            drivers: driversDB,
+            trips: tripsDB
+        };
+        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        .then(() => toast('✅ Masters synced to Google Sheets!', 'success'))
+        .catch(() => toast('❌ Error syncing masters', 'error'));
     }
 
     function clearForm() {
@@ -407,24 +525,18 @@
 
     function cancelCurrentTrip() {
         if(currentRecordIndex !== -1 && recentTripsDB[currentRecordIndex]) {
-            if(confirm('Are you sure you want to cancel and delete this trip record?')) {
+            if(confirm('Cancel and remove this trip record?')) {
                 recentTripsDB.splice(currentRecordIndex, 1);
                 renderRecentTrips();
                 clearForm();
                 toast('Trip canceled and removed ❌', 'warn');
             }
-        } else {
-            clearForm();
-            toast('Input canceled', 'info');
-        }
+        } else { clearForm(); toast('Input cleared', 'info'); }
     }
 
     function loadTripIntoForm(index) {
         if(recentTripsDB.length === 0) return toast('No records available', 'error');
-        if(index < 0) index = 0;
-        if(index >= recentTripsDB.length) index = recentTripsDB.length - 1;
-        
-        currentRecordIndex = index;
+        if(index < 0) index = 0; if(index >= recentTripsDB.length) index = recentTripsDB.length - 1; currentRecordIndex = index;
         const trip = recentTripsDB[index]; 
         
         document.getElementById('tripDate').value = trip.date.includes('T') ? trip.date.slice(0,16) : trip.date.replace(' ', 'T').slice(0,16); 
