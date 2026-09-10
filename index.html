@@ -85,7 +85,9 @@
         <p>Secured Fleet Management</p>
         <div class="form-group">
             <label>Username:</label>
-            <select id="loginUser" style="text-align:center; font-weight: bold;"><option value="">-- Select User --</option></select>
+            <select id="loginUser" style="text-align:center; font-weight: bold;">
+                <option value="">-- Select User --</option>
+            </select>
         </div>
         <div class="form-group" style="margin-top:15px; margin-bottom: 25px;">
             <label>Password:</label>
@@ -119,7 +121,6 @@
         <div class="card">
             <h2 class="section-title">Add New Trip</h2>
             <div class="grid-form">
-                <!-- تم تحويل القوائم إلى حقول نصية ذكية (Datalist) -->
                 <div class="form-group">
                     <label>Client:</label>
                     <input type="text" id="tripClient" list="clientList" placeholder="Type or select client...">
@@ -241,17 +242,10 @@
     let RATES = { USD: 50, EUR: 55, GBP: 65, EGP: 1 };
     let loggedInUser = '';
 
-    // --- ذاكرة القوائم المنسدلة الديناميكية ---
-    let clientsDB = JSON.parse(localStorage.getItem('fleetClients')) || ["Albatros", "Malikia", "Akassia"];
-    let driversDB = JSON.parse(localStorage.getItem('fleetDrivers')) || ["Adeeb", "Hussein", "Marzouk", "Ismail"];
-    let tripsDB   = JSON.parse(localStorage.getItem('fleetTrips'))   || ["Airport Transfer", "City Tour"];
-
-    function renderDatalists() {
-        document.getElementById('clientList').innerHTML = clientsDB.map(i => `<option value="${i}">`).join('');
-        document.getElementById('driverList').innerHTML = driversDB.map(i => `<option value="${i}">`).join('');
-        document.getElementById('tripList').innerHTML = tripsDB.map(i => `<option value="${i}">`).join('');
-        toggleReportTarget(); // Update reports dropdown as well
-    }
+    // المصفوفات اللي هتتعبى من جوجل شيت
+    let clientsDB = [];
+    let driversDB = [];
+    let tripsDB = [];
 
     const today = new Date().toISOString().slice(0, 10);
     document.getElementById('tripDate').value = today;
@@ -260,20 +254,30 @@
     document.getElementById('repTo').value = today;
 
     window.addEventListener('load', () => {
-        renderDatalists(); // تشغيل القوائم
-        fetch(GOOGLE_SCRIPT_URL + "?action=getUsers", { redirect: 'follow' })
+        // الاتصال بجوجل شيت لطلب الداتا كلها مرة واحدة
+        fetch(GOOGLE_SCRIPT_URL + "?action=getInitialData", { redirect: 'follow' })
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
+                    // 1. تعبئة قائمة المستخدمين واختيار الأول وعمل فوكس عالباسوورد
                     const userSelect = document.getElementById('loginUser');
                     data.users.forEach(u => {
-                        const opt = document.createElement('option');
-                        opt.value = u.username;
-                        opt.textContent = u.username.toUpperCase();
-                        userSelect.appendChild(opt);
+                        userSelect.innerHTML += `<option value="${u.username}">${u.username.toUpperCase()}</option>`;
                     });
+                    
+                    if(data.users.length > 0) {
+                        userSelect.value = data.users[0].username;
+                        setTimeout(() => { document.getElementById('loginPass').focus(); }, 700);
+                    }
+                    
                     document.getElementById('loginBtn').innerText = "Login 🚀";
                     document.getElementById('loginBtn').disabled = false;
+
+                    // 2. تعبئة القوائم المنسدلة من البيانات السابقة في الشيت
+                    clientsDB = data.clients || [];
+                    driversDB = data.drivers || [];
+                    tripsDB = data.trips || [];
+                    renderDatalists();
                 }
             }).catch(err => { toast('❌ Connection failed.', 'error'); });
 
@@ -282,6 +286,21 @@
             setTimeout(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginOverlay').style.visibility = 'visible'; document.getElementById('loginOverlay').style.opacity = '1'; }, 600);
         }, 2200);
     });
+
+    function renderDatalists() {
+        document.getElementById('clientList').innerHTML = clientsDB.map(i => `<option value="${i}">`).join('');
+        document.getElementById('driverList').innerHTML = driversDB.map(i => `<option value="${i}">`).join('');
+        document.getElementById('tripList').innerHTML = tripsDB.map(i => `<option value="${i}">`).join('');
+        toggleReportTarget(); 
+    }
+
+    function toggleReportTarget() {
+        const type = document.getElementById('reportType').value;
+        const target = document.getElementById('reportTarget');
+        target.innerHTML = '';
+        const list = (type === 'client') ? clientsDB : driversDB;
+        list.forEach(item => { target.innerHTML += `<option value="${item}">${item}</option>`; });
+    }
 
     function toast(msg, type='info') {
         const stack = document.getElementById('toastStack');
@@ -304,7 +323,7 @@
                     loggedInUser = u; document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('mainApp').style.display = 'block';
                     document.getElementById('userInfo').textContent = `👤 Welcome, ${u.toUpperCase()}`;
                     document.querySelectorAll('.admin-only').forEach(el => { el.style.display = data.role === 'Admin' ? '' : 'none'; });
-                } else { toast('❌ Incorrect password!', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; }
+                } else { toast('❌ Incorrect password!', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; document.getElementById('loginPass').focus(); }
             }).catch(err => { toast('❌ Auth error.', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; });
     }
 
@@ -314,16 +333,10 @@
     function calcTotals() {
         const totalRev = (parseFloat(document.getElementById('revEGP').value) || 0) + ((parseFloat(document.getElementById('revUSD').value) || 0) * RATES.USD) + ((parseFloat(document.getElementById('revEUR').value) || 0) * RATES.EUR) + ((parseFloat(document.getElementById('revGBP').value) || 0) * RATES.GBP);
         document.getElementById('totalRevEGP').textContent = totalRev.toFixed(2);
+        const driverFee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
+        document.getElementById('netCommission').textContent = (totalRev - driverFee).toFixed(2);
     }
     function updateRates() { RATES.USD = parseFloat(document.getElementById('rateUSD').value) || 50; RATES.EUR = parseFloat(document.getElementById('rateEUR').value) || 55; RATES.GBP = parseFloat(document.getElementById('rateGBP').value) || 65; calcTotals(); }
-
-    function toggleReportTarget() {
-        const type = document.getElementById('reportType').value;
-        const target = document.getElementById('reportTarget');
-        target.innerHTML = '';
-        const list = (type === 'client') ? clientsDB : driversDB;
-        list.forEach(item => { target.innerHTML += `<option value="${item}">${item}</option>`; });
-    }
 
     function fetchReports() {
         const type = document.getElementById('reportType').value;
@@ -386,26 +399,16 @@
             toast('✅ Recorded!', 'success'); 
             btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; 
 
-            // حفظ الأسماء الجديدة في الذاكرة
-            if(!clientsDB.includes(client)) { clientsDB.push(client); localStorage.setItem('fleetClients', JSON.stringify(clientsDB)); }
-            if(!driversDB.includes(driver)) { driversDB.push(driver); localStorage.setItem('fleetDrivers', JSON.stringify(driversDB)); }
-            if(!tripsDB.includes(tripName)) { tripsDB.push(tripName); localStorage.setItem('fleetTrips', JSON.stringify(tripsDB)); }
-            renderDatalists(); // تحديث القوائم فوراً
+            // إضافة الأسماء الجديدة فوراً للقوائم المنسدلة في نفس الجلسة
+            if(client && clientsDB.indexOf(client) === -1) clientsDB.push(client);
+            if(driver && driversDB.indexOf(driver) === -1) driversDB.push(driver);
+            if(tripName && tripsDB.indexOf(tripName) === -1) tripsDB.push(tripName);
+            renderDatalists();
 
-            // تفريغ الحقول بعد الحفظ
-            document.getElementById('tripClient').value = '';
-            document.getElementById('tripDriver').value = '';
-            document.getElementById('tripName').value = '';
-            document.getElementById('revEGP').value = '0';
-            document.getElementById('revUSD').value = '0';
-            document.getElementById('revEUR').value = '0';
-            document.getElementById('revGBP').value = '0';
-            document.getElementById('tipEGP').value = '0';
-            document.getElementById('tipUSD').value = '0';
-            document.getElementById('tipEUR').value = '0';
-            document.getElementById('tipGBP').value = '0';
-            document.getElementById('tripDriverFee').value = '';
-            calcTotals();
+            document.getElementById('tripClient').value = ''; document.getElementById('tripDriver').value = ''; document.getElementById('tripName').value = '';
+            document.getElementById('revEGP').value = '0'; document.getElementById('revUSD').value = '0'; document.getElementById('revEUR').value = '0'; document.getElementById('revGBP').value = '0';
+            document.getElementById('tipEGP').value = '0'; document.getElementById('tipUSD').value = '0'; document.getElementById('tipEUR').value = '0'; document.getElementById('tipGBP').value = '0';
+            document.getElementById('tripDriverFee').value = ''; calcTotals();
         })
         .catch(err => { toast('❌ Error.', 'error'); btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; });
     }
