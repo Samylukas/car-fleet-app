@@ -14,7 +14,6 @@
         #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.6s ease, visibility 0.6s ease; }
         .splash-logo { font-size: 4rem; margin-bottom: 10px; }
         .splash-title { font-size: 2.2rem; font-weight: bold; margin-bottom: 5px; }
-        .splash-subtitle { font-size: 1.1rem; color: #7f8c8d; margin-bottom: 30px; }
         .spinner { width: 45px; height: 45px; border: 4px solid rgba(30, 60, 114, 0.1); border-top-color: #f39c12; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -60,37 +59,21 @@
 
         .btn { border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 1rem; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
         .btn:disabled { background: #95a5a6; cursor: not-allowed; }
-        .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } .btn-gold { background: #f39c12; }
-
-        .scroll-btn-group { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
-        .scroll-btn { width: 45px; height: 45px; border-radius: 50%; background: #1e3c72; color: white; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.7; }
+        .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; }
         
         #toastStack { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
         .toast { color: white; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        
-        table { width: 100%; border-collapse: collapse; min-width: 600px; background: #fff; margin-top: 15px;}
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
-        th { background: #1e3c72; color: white; }
     </style>
 </head>
 <body>
-
 <div id="toastStack"></div>
 
-<div class="scroll-btn-group">
-    <button class="scroll-btn" onclick="window.scrollTo(0, 0)">⬆️</button>
-    <button class="scroll-btn" onclick="window.scrollTo(0, document.body.scrollHeight)">⬇️</button>
-</div>
-
-<!-- Splash Screen -->
 <div id="splashScreen">
     <div class="splash-logo">🚘</div>
     <div class="splash-title">Samy Fleet Pro</div>
-    <div class="splash-subtitle">ERP System 2026</div>
     <div class="spinner"></div>
 </div>
 
-<!-- Login Screen -->
 <div id="loginOverlay" style="visibility: hidden; opacity: 0;">
     <div class="login-card">
         <h2>Login</h2>
@@ -108,11 +91,10 @@
                 <button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility()">👁️</button>
             </div>
         </div>
-        <button id="loginBtn" class="btn btn-blue" style="width:100%;" onclick="login()" disabled>⏳ Connecting to Database...</button>
+        <button id="loginBtn" class="btn btn-blue" style="width:100%;" onclick="login()" disabled>⏳ Connecting...</button>
     </div>
 </div>
 
-<!-- Main Application -->
 <div class="app-container" id="mainApp" style="display:none;">
     <div class="header-bar">
         <div>
@@ -153,34 +135,23 @@
                         <option value="Ismail">Ismail</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Trip Name:</label>
-                    <input type="text" id="tripName" placeholder="e.g. Airport Transfer...">
-                </div>
-                <div class="form-group">
-                    <label>Date:</label>
-                    <input type="date" id="tripDate">
-                </div>
+                <div class="form-group"><label>Trip Name:</label><input type="text" id="tripName" placeholder="e.g. Airport Transfer..."></div>
+                <div class="form-group"><label>Date:</label><input type="date" id="tripDate"></div>
             </div>
 
-            <!-- Revenue Section -->
             <div style="margin-top: 25px;">
-                <label style="font-weight:bold; color:#1e3c72; font-size:1.05rem;">💰 Revenue Collected from Client:</label>
+                <label style="font-weight:bold; color:#1e3c72;">💰 Revenue Collected from Client:</label>
                 <div class="currency-grid">
                     <div class="currency-box"><label>EGP</label><input type="number" id="revEGP" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
                     <div class="currency-box"><label>USD ($)</label><input type="number" id="revUSD" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
                     <div class="currency-box"><label>EUR (€)</label><input type="number" id="revEUR" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
                     <div class="currency-box"><label>GBP (£)</label><input type="number" id="revGBP" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
                 </div>
-                <div class="summary-box summary-rev">
-                    <span style="font-weight:bold; color:#2c3e50;">Equivalent Revenue (EGP): </span>
-                    <span id="totalRevEGP" style="font-weight:bold; font-size:1.2rem;">0.00</span>
-                </div>
+                <div class="summary-box summary-rev"><span style="font-weight:bold;">Equivalent Revenue (EGP): </span><span id="totalRevEGP" style="font-weight:bold; font-size:1.2rem;">0.00</span></div>
             </div>
 
-            <!-- Tips Section -->
             <div style="margin-top: 25px;">
-                <label style="font-weight:bold; color:#d35400; font-size:1.05rem;">🎁 Tips / Gratuity:</label>
+                <label style="font-weight:bold; color:#d35400;">🎁 Tips / Gratuity:</label>
                 <div class="currency-grid tips-grid">
                     <div class="currency-box"><label>EGP</label><input type="number" id="tipEGP" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
                     <div class="currency-box"><label>USD ($)</label><input type="number" id="tipUSD" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
@@ -189,90 +160,43 @@
                 </div>
             </div>
 
-            <!-- Driver Fee / Expenses -->
             <div class="grid-form" style="margin-top:25px; padding-top: 20px; border-top: 1px dashed #dcdde1;">
-                <div class="form-group">
-                    <label style="color:#e74c3c;">💵 Driver Fee / Expenses (EGP):</label>
-                    <input type="number" id="tripDriverFee" placeholder="Driver salary, fuel, tolls..." oninput="calcTotals()">
-                </div>
-                <div class="form-group">
-                    <label>Notes (Optional):</label>
-                    <input type="text" id="tripNotes" placeholder="Any details...">
-                </div>
+                <div class="form-group"><label style="color:#e74c3c;">💵 Driver Fee / Expenses (EGP):</label><input type="number" id="tripDriverFee" placeholder="Driver salary, fuel..." oninput="calcTotals()"></div>
+                <div class="form-group"><label>Notes (Optional):</label><input type="text" id="tripNotes" placeholder="Any details..."></div>
             </div>
 
-            <!-- Net Commission -->
             <div style="margin-top:20px; padding:15px; background:#1e3c72; color:white; border-radius:10px; text-align:center;">
-                <span style="font-size:1.1rem;">Net Commission (Revenue - Driver Fee/Expenses):</span><br>
-                <span id="netCommission" style="color:#f1c40f; font-size:2rem; font-weight:bold;">0.00</span> EGP
+                <span style="font-size:1.1rem;">Net Commission:</span><br><span id="netCommission" style="color:#f1c40f; font-size:2rem; font-weight:bold;">0.00</span> EGP
             </div>
 
             <button class="btn btn-green" style="width:100%; margin-top:20px;" onclick="saveTrip()">Save & Submit Trip 💾</button>
         </div>
     </div>
 
-    <!-- Tab 2: Finance & Expenses (NEW) -->
+    <!-- Tab 2: Finance -->
     <div id="financeTab" class="tab-content admin-only">
         <div class="card">
             <h2 class="section-title">💵 General Finance & Expenses</h2>
-            <p style="color:#7f8c8d; font-size:0.9rem; margin-bottom:15px;">Log non-trip related expenses (maintenance, salaries) or external revenues.</p>
-            
             <div class="grid-form">
-                <div class="form-group">
-                    <label>Transaction Type:</label>
-                    <select id="finType">
-                        <option value="Expense" style="color:red; font-weight:bold;">Expense (مصروف)</option>
-                        <option value="Revenue" style="color:green; font-weight:bold;">Revenue (إيراد خارجي)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Category:</label>
-                    <input type="text" id="finCategory" list="catList" placeholder="e.g. Car Repair, Oil Change...">
-                    <datalist id="catList">
-                        <option value="Car Maintenance">
-                        <option value="Fuel / Gas">
-                        <option value="Fines & Tolls">
-                        <option value="Admin Expenses">
-                    </datalist>
-                </div>
-                <div class="form-group"><label>Amount (EGP):</label><input type="number" id="finAmount" placeholder="Enter amount..."></div>
+                <div class="form-group"><label>Type:</label><select id="finType"><option value="Expense" style="color:red;">Expense</option><option value="Revenue" style="color:green;">Revenue</option></select></div>
+                <div class="form-group"><label>Category:</label><input type="text" id="finCategory" list="catList"><datalist id="catList"><option value="Car Maintenance"><option value="Fuel / Gas"><option value="Admin Expenses"></datalist></div>
+                <div class="form-group"><label>Amount (EGP):</label><input type="number" id="finAmount"></div>
                 <div class="form-group"><label>Date:</label><input type="date" id="finDate"></div>
-                <div class="form-group" style="grid-column: span 2;"><label>Description / Notes:</label><input type="text" id="finNotes" placeholder="More details..."></div>
+                <div class="form-group" style="grid-column: span 2;"><label>Notes:</label><input type="text" id="finNotes"></div>
             </div>
-            
             <button class="btn btn-blue" style="width:100%; margin-top:20px;" onclick="saveFinance()">Submit Transaction 💾</button>
         </div>
     </div>
 
     <!-- Tab 3: Reports -->
     <div id="reportsTab" class="tab-content admin-only">
-        <div class="card">
-            <h2 class="section-title">📊 Reports Dashboard</h2>
-            <div class="grid-form">
-                <div class="form-group">
-                    <label>Report Type:</label>
-                    <select id="reportType"><option value="client">Client Statement</option><option value="driver">Driver Statement</option></select>
-                </div>
-                <div class="form-group"><label>From Date:</label><input type="date" id="repFrom"></div>
-                <div class="form-group"><label>To Date:</label><input type="date" id="repTo"></div>
-            </div>
-            <div style="display:flex; gap:10px; margin-top:15px; flex-wrap: wrap;">
-                <button class="btn btn-blue" style="flex:1;" onclick="toast('Retrieve function coming soon!', 'info')">Search 🔍</button>
-                <button class="btn btn-green" style="flex:1;" onclick="exportToExcel()">Export Excel 📊</button>
-            </div>
-            <div class="table-responsive" id="reportPrintArea">
-                <table id="reportsTable">
-                    <thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
-                    <tbody><tr><td colspan="3" style="color:#7f8c8d; padding:20px;">Data will appear here after searching...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
+        <div class="card"><h2 class="section-title">📊 Reports</h2><p>Retrieve function pending backend setup.</p></div>
     </div>
 
     <!-- Tab 4: Settings -->
     <div id="settingsTab" class="tab-content admin-only">
         <div class="card">
-            <h2 class="section-title">🛠️ Exchange Rate Settings</h2>
+            <h2 class="section-title">🛠️ Exchange Rates</h2>
             <div class="grid-form">
                 <div class="form-group"><label>USD to EGP:</label><input type="number" id="rateUSD" value="50" onchange="updateRates()"></div>
                 <div class="form-group"><label>EUR to EGP:</label><input type="number" id="rateEUR" value="55" onchange="updateRates()"></div>
@@ -283,20 +207,15 @@
 </div>
 
 <script>
-    // ==========================================
-    // تم وضع الرابط الخاص بك بشكل مباشر هنا!
-    // ==========================================
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH8WrOZiqBqwYVo5NGc_Rg0EMS_m7LoB2bi1n6-NSYg3P7_uVLRzzq4dJAuJ28SPsMww/exec"; 
-    
     let RATES = { USD: 50, EUR: 55, GBP: 65, EGP: 1 };
     let loggedInUser = '';
-
     const today = new Date().toISOString().slice(0, 10);
     document.getElementById('tripDate').value = today;
     document.getElementById('finDate').value = today;
 
     window.addEventListener('load', () => {
-        fetch(GOOGLE_SCRIPT_URL + "?action=getUsers")
+        fetch(GOOGLE_SCRIPT_URL + "?action=getUsers", { redirect: 'follow' })
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
@@ -309,8 +228,14 @@
                     });
                     document.getElementById('loginBtn').innerText = "Login 🚀";
                     document.getElementById('loginBtn').disabled = false;
+                } else {
+                    document.getElementById('loginBtn').innerText = "Backend Error";
+                    toast('❌ Error from Google: ' + data.message, 'error');
                 }
-            }).catch(err => { toast('❌ Database connection failed.', 'error'); });
+            }).catch(err => {
+                document.getElementById('loginBtn').innerText = "Connection Failed";
+                toast('❌ Connection failed. Check script URL or deployment.', 'error');
+            });
 
         setTimeout(() => {
             document.getElementById('splashScreen').style.opacity = '0';
@@ -333,104 +258,64 @@
     }
 
     function togglePasswordVisibility() {
-        const passInput = document.getElementById('loginPass');
-        passInput.type = passInput.type === 'password' ? 'text' : 'password';
+        const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password';
     }
 
-    // SECURED LOGIN
     function login() {
-        const userInput = document.getElementById('loginUser').value;
-        const passInput = document.getElementById('loginPass').value.trim();
-        if(!userInput || !passInput) { toast('⚠️ Enter credentials', 'error'); return; }
+        const u = document.getElementById('loginUser').value;
+        const p = document.getElementById('loginPass').value.trim();
+        if(!u || !p) return;
+        
+        const btn = document.getElementById('loginBtn');
+        btn.innerText = "Verifying..."; btn.disabled = true;
 
-        const loginBtn = document.getElementById('loginBtn');
-        loginBtn.innerText = "Verifying..."; loginBtn.disabled = true;
-
-        fetch(GOOGLE_SCRIPT_URL + "?action=login&username=" + encodeURIComponent(userInput) + "&password=" + encodeURIComponent(passInput))
+        fetch(GOOGLE_SCRIPT_URL + "?action=login&username=" + encodeURIComponent(u) + "&password=" + encodeURIComponent(p), { redirect: 'follow' })
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    loggedInUser = userInput;
+                    loggedInUser = u;
                     document.getElementById('loginOverlay').style.display = 'none';
                     document.getElementById('mainApp').style.display = 'block';
-                    document.getElementById('userInfo').textContent = `👤 Welcome, ${userInput.toUpperCase()}`;
+                    document.getElementById('userInfo').textContent = `👤 Welcome, ${u.toUpperCase()}`;
                     document.querySelectorAll('.admin-only').forEach(el => { el.style.display = data.role === 'Admin' ? '' : 'none'; });
-                    toast(`✅ Welcome!`, 'success');
                 } else {
-                    toast('❌ Incorrect password!', 'error');
-                    loginBtn.innerText = "Login 🚀"; loginBtn.disabled = false;
+                    toast('❌ Incorrect password!', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false;
                 }
-            }).catch(err => { toast('❌ Auth error.', 'error'); loginBtn.disabled = false; });
+            }).catch(err => { toast('❌ Auth error.', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; });
     }
 
     function logout() { location.reload(); }
-
-    function showTab(tabId, btn) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        btn.classList.add('active');
-    }
-
-    function updateRates() {
-        RATES.USD = parseFloat(document.getElementById('rateUSD').value) || 50;
-        RATES.EUR = parseFloat(document.getElementById('rateEUR').value) || 55;
-        RATES.GBP = parseFloat(document.getElementById('rateGBP').value) || 65;
-        calcTotals();
-    }
+    function showTab(tabId, btn) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btn.classList.add('active'); }
 
     function calcTotals() {
-        const rEgp = parseFloat(document.getElementById('revEGP').value) || 0;
-        const rUsd = parseFloat(document.getElementById('revUSD').value) || 0;
-        const rEur = parseFloat(document.getElementById('revEUR').value) || 0;
-        const rGbp = parseFloat(document.getElementById('revGBP').value) || 0;
-        const totalRev = rEgp + (rUsd * RATES.USD) + (rEur * RATES.EUR) + (rGbp * RATES.GBP);
+        const totalRev = (parseFloat(document.getElementById('revEGP').value) || 0) + ((parseFloat(document.getElementById('revUSD').value) || 0) * RATES.USD) + ((parseFloat(document.getElementById('revEUR').value) || 0) * RATES.EUR) + ((parseFloat(document.getElementById('revGBP').value) || 0) * RATES.GBP);
         document.getElementById('totalRevEGP').textContent = totalRev.toFixed(2);
-        
         const driverFee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
         document.getElementById('netCommission').textContent = (totalRev - driverFee).toFixed(2);
     }
+    function updateRates() { RATES.USD = parseFloat(document.getElementById('rateUSD').value) || 50; RATES.EUR = parseFloat(document.getElementById('rateEUR').value) || 55; RATES.GBP = parseFloat(document.getElementById('rateGBP').value) || 65; calcTotals(); }
 
     function saveTrip() {
         const client = document.getElementById('tripClient').value;
         const driver = document.getElementById('tripDriver').value;
         const tripName = document.getElementById('tripName').value;
-        if (!client || !driver || !tripName) { toast('⚠️ Complete all core fields!', 'error'); return; }
+        if (!client || !driver || !tripName) return toast('⚠️ Complete all core fields!', 'error');
 
-        const payload = { 
-            record_type: "trip", client_name: client, driver_name: driver, trip_name: tripName, date: document.getElementById('tripDate').value,
-            notes: document.getElementById('tripNotes').value, revenue: parseFloat(document.getElementById('totalRevEGP').textContent) || 0,
-            driver_fee: parseFloat(document.getElementById('tripDriverFee').value) || 0,
-            tip_egp: document.getElementById('tipEGP').value || 0, tip_usd: document.getElementById('tipUSD').value || 0,
-            tip_eur: document.getElementById('tipEUR').value || 0, tip_gbp: document.getElementById('tipGBP').value || 0,
-            total_tip: parseFloat(document.getElementById('tipEGP').value || 0) + ((document.getElementById('tipUSD').value || 0)*RATES.USD)
-        };
-
+        const payload = { record_type: "trip", client_name: client, driver_name: driver, trip_name: tripName, date: document.getElementById('tripDate').value, notes: document.getElementById('tripNotes').value, revenue: parseFloat(document.getElementById('totalRevEGP').textContent) || 0, driver_fee: parseFloat(document.getElementById('tripDriverFee').value) || 0, tip_egp: document.getElementById('tipEGP').value || 0, tip_usd: document.getElementById('tipUSD').value || 0, tip_eur: document.getElementById('tipEUR').value || 0, tip_gbp: document.getElementById('tipGBP').value || 0, total_tip: parseFloat(document.getElementById('tipEGP').value || 0) + ((document.getElementById('tipUSD').value || 0)*RATES.USD) };
         const btn = event.target; btn.innerText = "⏳ Saving..."; btn.disabled = true;
 
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        .then(() => { toast('✅ Trip recorded!', 'success'); btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; })
-        .catch(err => { toast('❌ Error saving.', 'error'); btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; });
+        .then(() => { toast('✅ Recorded!', 'success'); btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; })
+        .catch(err => { toast('❌ Error.', 'error'); btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; });
     }
 
     function saveFinance() {
-        const category = document.getElementById('finCategory').value;
-        const amount = parseFloat(document.getElementById('finAmount').value);
-        if (!category || !amount) { toast('⚠️ Enter category and amount', 'error'); return; }
-
-        const payload = {
-            record_type: "finance", fin_type: document.getElementById('finType').value, category: category,
-            amount: amount, date: document.getElementById('finDate').value, notes: document.getElementById('finNotes').value, added_by: loggedInUser
-        };
-
+        const payload = { record_type: "finance", fin_type: document.getElementById('finType').value, category: document.getElementById('finCategory').value, amount: parseFloat(document.getElementById('finAmount').value), date: document.getElementById('finDate').value, notes: document.getElementById('finNotes').value, added_by: loggedInUser };
         const btn = event.target; btn.innerText = "⏳ Saving..."; btn.disabled = true;
         
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        .then(() => { 
-            toast('✅ Transaction saved!', 'success'); 
-            document.getElementById('finCategory').value = ''; document.getElementById('finAmount').value = '';
-            btn.innerText = "Submit Transaction 💾"; btn.disabled = false; 
-        }).catch(err => { toast('❌ Error saving.', 'error'); btn.disabled = false; });
+        .then(() => { toast('✅ Saved!', 'success'); btn.innerText = "Submit Transaction 💾"; btn.disabled = false; })
+        .catch(err => { toast('❌ Error.', 'error'); btn.disabled = false; });
     }
 </script>
 </body>
