@@ -64,6 +64,9 @@
         .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } 
         .btn-gray { background: #7f8c8d; } .btn-outline { background: #fff; color: #1e3c72; border: 1px solid #1e3c72; }
 
+        .scroll-btn-group { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
+        .scroll-btn { width: 45px; height: 45px; border-radius: 50%; background: #1e3c72; color: white; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.7; }
+        
         #toastStack { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
         .toast { color: white; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         
@@ -71,6 +74,8 @@
         table { width: 100%; border-collapse: collapse; min-width: 600px; background: #fff; text-align: center; }
         th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
         th { background: #1e3c72; color: white; position: sticky; top: 0; }
+        .total-row { background: #eafaf1; font-weight: bold; font-size: 1.1rem; text-align: left;}
+        .total-row td { text-align: left; }
         .recent-table th { background: #f39c12; color: #fff; }
 
         .record-nav { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -81,15 +86,26 @@
         .master-card { background: #f9fbfd; border: 1px solid #e1e8ed; padding: 20px; border-radius: 10px; }
         .master-card h3 { color: #1e3c72; margin-bottom: 15px; border-bottom: 2px solid #27ae60; padding-bottom: 5px; font-size: 1.1rem; }
 
-        /* Report Formatting (Optimized for Printing & Colors) */
-        .report-print-container { background: #fff; padding: 15px; border-radius: 8px; direction: rtl; } 
-        .report-print-container table { font-size: 0.85rem; border: 1px solid #ddd; }
-        /* Light Blue Header for printing, static position to prevent PDF bugs */
-        .report-print-container table th { background: #3498db !important; color: white; padding: 8px; border: 1px solid #ddd; position: static !important; } 
-        .report-print-container table td { padding: 8px; border: 1px solid #ddd; }
-        .report-title-header { text-align: center; color: #3498db; margin-bottom: 15px; font-size: 1.3rem; display: none; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .total-row { background: #f9fbfd !important; font-weight: bold; font-size: 1rem; }
-        #chartContainer { max-width: 600px; margin: 20px auto; height: 300px; display: none; }
+        /* =========================================
+           Report Formatting (Optimized for Printing)
+           ========================================= */
+        .report-print-container { background: #fff; padding: 10px; border-radius: 8px; direction: rtl; } 
+        
+        /* جعل الخط أصغر والحواف أزرق غامق صريح لاستيعاب 50 سجل براحة */
+        .report-print-container table { font-size: 0.75rem; border: 1px solid #1e3c72; width: 100%; border-collapse: collapse; margin-top: 10px; }
+        
+        /* لون رأس الجدول كريمي فاتح مع خط أزرق غامق */
+        .report-print-container table th { background: #fdf5e6 !important; color: #1e3c72 !important; padding: 5px; border: 1px solid #1e3c72; font-weight: bold; position: static !important; } 
+        
+        .report-print-container table td { padding: 4px; border: 1px solid #1e3c72; color: #000; height: 22px; }
+        
+        /* الإجمالي */
+        .total-row { background: #fdf5e6 !important; font-weight: bold; font-size: 0.85rem; }
+        
+        /* عنوان التقرير أزرق غامق */
+        .report-title-header { text-align: center; color: #1e3c72; margin-bottom: 5px; font-size: 1.3rem; display: none; border-bottom: 2px solid #1e3c72; padding-bottom: 8px; font-weight: bold; }
+        
+        #chartContainer { max-width: 600px; margin: 15px auto; height: 300px; display: none; }
     </style>
 </head>
 <body>
@@ -203,7 +219,7 @@
                 </div>
 
                 <div class="master-card">
-                    <h3>🤝 Partners (Drivers)</h3>
+                    <h3>🤝 Partners</h3>
                     <div style="display:flex; gap:8px; margin-bottom:10px;">
                         <input type="text" id="mDriverName" placeholder="Partner Name..." style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">
                         <button id="addDriverBtn" class="btn btn-green" onclick="addMasterItem('driver', this)">Add</button>
@@ -509,6 +525,7 @@
             }).catch(err => { btn.innerText = "Search 🔍"; btn.disabled = false; toast('❌ Network error', 'error'); });
     }
 
+    // بناء وتنسيق التقارير (تصميم الطباعة الاحترافي)
     function renderDynamicReport(type, target, fromDate, toDate, dataArr) {
         const thead = document.querySelector('#reportsTable thead');
         const tbody = document.querySelector('#reportsTable tbody');
@@ -527,7 +544,7 @@
         else if(type === 'clients_agg') titleText = `Clients Aggregated Report`;
         else if(type === 'partners_agg') titleText = `Partners Aggregated Report`;
 
-        titleEl.innerText = `${titleText} (${fromDate} to ${toDate})`;
+        titleEl.innerHTML = `🚘 ${titleText} (${fromDate} to ${toDate})`;
         titleEl.style.display = "block";
         titleEl.dataset.pdfname = `${titleText.replace(/[^a-zA-Z0-9\u0621-\u064A]/g, '_')}_${fromDate}_To_${toDate}`;
 
@@ -537,24 +554,24 @@
             return;
         }
 
-        // حل جذري لمشكلة تداخل النص باستخدام (unicode-bidi: isolate) وتوجيه واضح للأعمدة
+        // التنسيق المصغر والألوان الدقيقة للتقارير التفصيلية
         if (type === 'client' || type === 'driver' || type === 'trip_detailed') {
             thead.innerHTML = '<tr><th>#</th><th>Date & Time</th><th>Description</th><th>Amount (EGP)</th></tr>';
             dataArr.forEach((row, i) => {
                 const amt = parseFloat(row.amount) || 0; total += amt;
-                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${row.date}</td><td><div style="unicode-bidi: isolate; direction: auto;">${row.desc}</div></td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${row.date}</td><td>${row.desc}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
             });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="3" style="text-align:left; direction:ltr; padding-left:15px;">Total Balance / الإجمالي :</td><td style="color:#27ae60; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
+            tbody.innerHTML += `<tr class="total-row"><td colspan="3" style="text-align:left; direction:ltr; padding-left:15px;">Total Balance / الإجمالي :</td><td style="color:#1e3c72; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
         }
         else if (type === 'trips') {
             thead.innerHTML = '<tr><th>#</th><th>Date & Time</th><th>Trip Name</th><th>Client</th><th>Partner</th><th>Amount</th></tr>';
             let tripCounts = {};
             dataArr.forEach((row, i) => {
                 const amt = parseFloat(row.amount) || 0; total += amt;
-                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${row.date}</td><td><div style="unicode-bidi: isolate; direction: auto;">${row.trip}</div></td><td>${row.client}</td><td>${row.partner}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${row.date}</td><td>${row.trip}</td><td>${row.client}</td><td>${row.partner}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
                 tripCounts[row.trip] = (tripCounts[row.trip] || 0) + 1;
             });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="5" style="text-align:left; direction:ltr; padding-left:15px;">Total Revenue / الإجمالي :</td><td style="color:#27ae60; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
+            tbody.innerHTML += `<tr class="total-row"><td colspan="5" style="text-align:left; direction:ltr; padding-left:15px;">Total Revenue / الإجمالي :</td><td style="color:#1e3c72; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
             chartContainer.style.display = 'block'; drawChart(Object.keys(tripCounts), Object.values(tripCounts), 'Most Frequent Trips', 'bar');
         }
         else if (type === 'clients_agg' || type === 'partners_agg') {
@@ -563,10 +580,10 @@
             let names = [], amounts = [];
             dataArr.forEach((row, i) => {
                 const amt = parseFloat(row.amount) || 0; total += amt;
-                tbody.innerHTML += `<tr><td>${i+1}</td><td><div style="unicode-bidi: isolate; direction: auto;">${row.name}</div></td><td>${row.count}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${i+1}</td><td>${row.name}</td><td>${row.count}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
                 names.push(row.name); amounts.push(amt);
             });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="3" style="text-align:left; direction:ltr; padding-left:15px;">Grand Total / الإجمالي :</td><td style="color:#27ae60; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
+            tbody.innerHTML += `<tr class="total-row"><td colspan="3" style="text-align:left; direction:ltr; padding-left:15px;">Grand Total / الإجمالي :</td><td style="color:#1e3c72; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
             chartContainer.style.display = 'block'; drawChart(names, amounts, `Amount per ${labelType}`, 'pie');
         }
     }
