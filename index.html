@@ -63,6 +63,8 @@
         .btn:disabled { background: #95a5a6; cursor: not-allowed; }
         .btn:hover:not(:disabled) { filter: brightness(0.9); }
         .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } .btn-outline { background: #fff; color: #1e3c72; border: 1px solid #1e3c72; } .btn-outline:hover { background: #f4f7f6; }
+        .btn-cancel { background: #e74c3c; color: white; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; border: none; cursor: pointer; }
+        .btn-cancel:hover { background: #c0392b; }
 
         .scroll-btn-group { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
         .scroll-btn { width: 45px; height: 45px; border-radius: 50%; background: #1e3c72; color: white; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.7; }
@@ -77,7 +79,6 @@
         .total-row { background: #eafaf1; font-weight: bold; font-size: 1.1rem; }
         .recent-table th { background: #f39c12; color: #fff; }
 
-        /* شريط تنقل السجلات */
         .record-nav { display: flex; gap: 5px; flex-wrap: wrap; }
         .record-nav .btn { padding: 8px 12px; font-size: 0.85rem; }
         .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
@@ -163,7 +164,6 @@
                     <input type="text" id="tripName" list="tripList" placeholder="e.g. Airport Transfer..." autocomplete="off">
                     <datalist id="tripList"></datalist>
                 </div>
-                <!-- تغيير الحقل ليدعم التاريخ والوقت -->
                 <div class="form-group"><label>Date & Time:</label><input type="datetime-local" id="tripDate"></div>
             </div>
 
@@ -204,8 +204,8 @@
             <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px; margin-bottom:15px;">🕒 Recent Trips</h3>
             <div class="table-responsive">
                 <table class="recent-table" id="recentTripsTable">
-                    <thead><tr><th>Date & Time</th><th>Client</th><th>Driver</th><th>Trip</th><th>Revenue</th><th>Fee</th></tr></thead>
-                    <tbody><tr><td colspan="6" style="text-align:center; color:#7f8c8d;">Loading recent trips...</td></tr></tbody>
+                    <thead><tr><th>Date & Time</th><th>Client</th><th>Driver</th><th>Trip</th><th>Revenue</th><th>Fee</th><th>Action</th></tr></thead>
+                    <tbody><tr><td colspan="7" style="text-align:center; color:#7f8c8d;">Loading recent trips...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -219,7 +219,6 @@
                 <div class="form-group"><label>Type:</label><select id="finType"><option value="Expense" style="color:red;">Expense</option><option value="Revenue" style="color:green;">Revenue</option></select></div>
                 <div class="form-group"><label>Category:</label><input type="text" id="finCategory" list="catList"><datalist id="catList"><option value="Car Maintenance"><option value="Fuel / Gas"><option value="Admin Expenses"></datalist></div>
                 <div class="form-group"><label>Amount (EGP):</label><input type="number" id="finAmount"></div>
-                <!-- تعديل حقل التاريخ هنا أيضاً -->
                 <div class="form-group"><label>Date & Time:</label><input type="datetime-local" id="finDate"></div>
                 <div class="form-group" style="grid-column: span 2;"><label>Notes:</label><input type="text" id="finNotes"></div>
             </div>
@@ -243,7 +242,6 @@
                     <label>Target Name:</label>
                     <select id="reportTarget"></select>
                 </div>
-                <!-- التقارير تظل باليوم فقط -->
                 <div class="form-group"><label>From Date:</label><input type="date" id="repFrom"></div>
                 <div class="form-group"><label>To Date:</label><input type="date" id="repTo"></div>
             </div>
@@ -283,7 +281,6 @@
     let clientsDB = [], driversDB = [], tripsDB = [], recentTripsDB = [];
     let currentRecordIndex = -1;
 
-    // الحصول على التاريخ والوقت المحلي بدقة لصيغة datetime-local
     function getCurrentLocalDateTime() {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -329,7 +326,6 @@
         currentRecordIndex = index;
         const trip = recentTripsDB[index]; 
         
-        // تعبئة البيانات
         document.getElementById('tripDate').value = trip.date.includes('T') ? trip.date.slice(0,16) : trip.date + "T00:00"; 
         document.getElementById('tripClient').value = trip.client;
         document.getElementById('tripDriver').value = trip.driver;
@@ -376,12 +372,20 @@
 
     function renderRecentTrips() {
         const tbody = document.querySelector('#recentTripsTable tbody');
-        if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">No recent trips</td></tr>'; return; }
+        if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#7f8c8d;">No recent trips</td></tr>'; return; }
         tbody.innerHTML = '';
-        recentTripsDB.forEach(t => { 
+        recentTripsDB.forEach((t, index) => { 
             let displayDate = t.date.replace('T', ' ').slice(0, 16);
-            tbody.innerHTML += `<tr><td>${displayDate}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td></tr>`; 
+            tbody.innerHTML += `<tr><td>${displayDate}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td><button class="btn-cancel" onclick="cancelTrip(${index})">Cancel Trip</button></td></tr>`; 
         });
+    }
+
+    function cancelTrip(index) {
+        if(confirm('Are you sure you want to cancel this trip?')) {
+            recentTripsDB.splice(index, 1);
+            renderRecentTrips();
+            toast('Trip canceled locally', 'warn');
+        }
     }
 
     function toggleReportTarget() {
@@ -464,7 +468,6 @@
         const client = document.getElementById('tripClient').value.trim();
         const driver = document.getElementById('tripDriver').value.trim();
         const tripName = document.getElementById('tripName').value.trim();
-        // تنسيق التاريخ والوقت المرسل
         const tDate = document.getElementById('tripDate').value.replace('T', ' ');
         const tRev = parseFloat(document.getElementById('totalRevEGP').textContent) || 0;
         const tFee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
