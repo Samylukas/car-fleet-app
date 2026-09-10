@@ -11,7 +11,6 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; overflow-x: hidden; scroll-behavior: smooth; }
 
-        /* Splash Screen */
         #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.6s ease, visibility 0.6s ease; }
         .splash-logo { font-size: 4rem; margin-bottom: 10px; }
         .splash-title { font-size: 2.2rem; font-weight: bold; margin-bottom: 5px; }
@@ -19,13 +18,10 @@
         .spinner { width: 45px; height: 45px; border: 4px solid rgba(30, 60, 114, 0.1); border-top-color: #f39c12; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Login Screen */
         #loginOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,60,114,0.95), rgba(42,82,152,0.95)); display: flex; justify-content: center; align-items: center; z-index: 99999; }
         .login-card { background: #ffffff; padding: 35px 25px; border-radius: 16px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .login-card h2 { color: #1e3c72; margin-bottom: 8px; font-size: 1.6rem; }
-        .login-card p { color: #7f8c8d; margin-bottom: 25px; font-size: 0.9rem; }
-
-        /* App Layout */
+        
         .app-container { max-width: 900px; margin: 20px auto; background: transparent; padding: 0 10px; min-height: 90vh; padding-bottom: 60px; }
         .header-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .header-bar span { font-weight: bold; color: #1e3c72; font-size: 1.1rem; }
@@ -34,7 +30,6 @@
         .network-online { background: #eafaf1; color: #27ae60; border: 1px solid #27ae60; }
         .network-offline { background: #fdedec; color: #c0392b; border: 1px solid #c0392b; }
 
-        /* Tabs */
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
         .nav-tabs::-webkit-scrollbar { display: none; }
         .tab-btn { background: #fff; color: #7f8c8d; border: 1px solid #e0e0e0; padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.95rem; flex-shrink: 0; }
@@ -42,7 +37,6 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Forms & Cards */
         .card { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
         .section-title { font-weight: bold; color: #1e3c72; border-bottom: 2px solid #f39c12; padding-bottom: 8px; margin-bottom: 20px; font-size: 1.2rem; display: inline-block; }
         .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
@@ -54,14 +48,12 @@
         .pass-wrapper input { width: 100%; padding-right: 40px; }
         .pass-toggle-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem; }
 
-        /* Currency Grid */
         .currency-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; background: #f1f8ff; padding: 15px; border-radius: 10px; margin-top: 10px; border: 1px solid #cce5ff;}
         .tips-grid { background: #fffaf0; border: 1px solid #fdebd0; }
         .currency-box { text-align: center; }
         .currency-box label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: #1e3c72; }
         .currency-box input { width: 100%; padding: 10px; border: 1px solid #a4b0be; border-radius: 6px; text-align: center; font-weight: bold; }
 
-        /* Summary Boxes */
         .summary-box { margin-top:10px; padding:10px; border-radius:8px; display:inline-block; border: 1px solid; }
         .summary-rev { background:#eafaf1; border-color:#27ae60; color:#27ae60; }
         .summary-tip { background:#fef5e7; border-color:#e67e22; color:#e67e22; }
@@ -69,7 +61,6 @@
         .btn { border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 1rem; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
         .btn:disabled { background: #95a5a6; cursor: not-allowed; }
         .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } .btn-gold { background: #f39c12; }
-        .btn-outline { background: transparent; border: 2px solid #1e3c72; color: #1e3c72; }
 
         .scroll-btn-group { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
         .scroll-btn { width: 45px; height: 45px; border-radius: 50%; background: #1e3c72; color: white; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.7; }
@@ -133,8 +124,8 @@
 
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="showTab('addTripTab', this)">📝 Add Trip</button>
+        <button class="tab-btn admin-only" onclick="showTab('financeTab', this)">💵 Finance & Expenses</button>
         <button class="tab-btn admin-only" onclick="showTab('reportsTab', this)">📊 Reports & Ledgers</button>
-        <button class="tab-btn admin-only" onclick="showTab('expensesTab', this)">⚙️ Maintenance</button>
         <button class="tab-btn admin-only" onclick="showTab('settingsTab', this)">🛠️ Exchange Rates</button>
     </div>
 
@@ -150,7 +141,6 @@
                         <option value="Albatros">Albatros</option>
                         <option value="Malikia">Malikia</option>
                         <option value="Akassia">Akassia</option>
-                        <option value="Lamaya">Lamaya</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -173,9 +163,9 @@
                 </div>
             </div>
 
-            <!-- 1. Revenue Section -->
+            <!-- Revenue Section -->
             <div style="margin-top: 25px;">
-                <label style="font-weight:bold; color:#1e3c72; font-size:1.05rem;">💰 Revenue Collected from Client (Multi-Currency):</label>
+                <label style="font-weight:bold; color:#1e3c72; font-size:1.05rem;">💰 Revenue Collected from Client:</label>
                 <div class="currency-grid">
                     <div class="currency-box"><label>EGP</label><input type="number" id="revEGP" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
                     <div class="currency-box"><label>USD ($)</label><input type="number" id="revUSD" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
@@ -188,26 +178,22 @@
                 </div>
             </div>
 
-            <!-- 2. Tips Section -->
+            <!-- Tips Section -->
             <div style="margin-top: 25px;">
-                <label style="font-weight:bold; color:#d35400; font-size:1.05rem;">🎁 Tips / Gratuity (Multi-Currency):</label>
+                <label style="font-weight:bold; color:#d35400; font-size:1.05rem;">🎁 Tips / Gratuity:</label>
                 <div class="currency-grid tips-grid">
                     <div class="currency-box"><label>EGP</label><input type="number" id="tipEGP" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
                     <div class="currency-box"><label>USD ($)</label><input type="number" id="tipUSD" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
                     <div class="currency-box"><label>EUR (€)</label><input type="number" id="tipEUR" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
                     <div class="currency-box"><label>GBP (£)</label><input type="number" id="tipGBP" value="0" oninput="calcTotals()" onfocus="if(this.value=='0')this.value=''"></div>
                 </div>
-                <div class="summary-box summary-tip">
-                    <span style="font-weight:bold; color:#2c3e50;">Equivalent Tips (EGP): </span>
-                    <span id="totalTipEGP" style="font-weight:bold; font-size:1.2rem;">0.00</span>
-                </div>
             </div>
 
-            <!-- Driver Expenses -->
+            <!-- Driver Fee / Expenses (UPDATED LABEL) -->
             <div class="grid-form" style="margin-top:25px; padding-top: 20px; border-top: 1px dashed #dcdde1;">
                 <div class="form-group">
-                    <label style="color:#e74c3c;">💵 Driver Fee (EGP):</label>
-                    <input type="number" id="tripDriverFee" placeholder="Amount given to driver..." oninput="calcTotals()">
+                    <label style="color:#e74c3c;">💵 Driver Fee / Expenses (EGP):</label>
+                    <input type="number" id="tripDriverFee" placeholder="Driver salary, fuel, tolls..." oninput="calcTotals()">
                 </div>
                 <div class="form-group">
                     <label>Notes (Optional):</label>
@@ -217,7 +203,7 @@
 
             <!-- Net Commission -->
             <div style="margin-top:20px; padding:15px; background:#1e3c72; color:white; border-radius:10px; text-align:center;">
-                <span style="font-size:1.1rem;">Net Commission (Revenue - Driver Fee):</span><br>
+                <span style="font-size:1.1rem;">Net Commission (Revenue - Driver Fee/Expenses):</span><br>
                 <span id="netCommission" style="color:#f1c40f; font-size:2rem; font-weight:bold;">0.00</span> EGP
             </div>
 
@@ -225,7 +211,40 @@
         </div>
     </div>
 
-    <!-- Tab 2: Reports -->
+    <!-- Tab 2: Finance & Expenses (NEW) -->
+    <div id="financeTab" class="tab-content admin-only">
+        <div class="card">
+            <h2 class="section-title">💵 General Finance & Expenses</h2>
+            <p style="color:#7f8c8d; font-size:0.9rem; margin-bottom:15px;">Log non-trip related expenses (maintenance, salaries) or external revenues.</p>
+            
+            <div class="grid-form">
+                <div class="form-group">
+                    <label>Transaction Type:</label>
+                    <select id="finType">
+                        <option value="Expense" style="color:red; font-weight:bold;">Expense (مصروف)</option>
+                        <option value="Revenue" style="color:green; font-weight:bold;">Revenue (إيراد خارجي)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Category:</label>
+                    <input type="text" id="finCategory" list="catList" placeholder="e.g. Car Repair, Oil Change...">
+                    <datalist id="catList">
+                        <option value="Car Maintenance">
+                        <option value="Fuel / Gas">
+                        <option value="Fines & Tolls">
+                        <option value="Admin Expenses">
+                    </datalist>
+                </div>
+                <div class="form-group"><label>Amount (EGP):</label><input type="number" id="finAmount" placeholder="Enter amount..."></div>
+                <div class="form-group"><label>Date:</label><input type="date" id="finDate"></div>
+                <div class="form-group" style="grid-column: span 2;"><label>Description / Notes:</label><input type="text" id="finNotes" placeholder="More details..."></div>
+            </div>
+            
+            <button class="btn btn-blue" style="width:100%; margin-top:20px;" onclick="saveFinance()">Submit Transaction 💾</button>
+        </div>
+    </div>
+
+    <!-- Tab 3: Reports -->
     <div id="reportsTab" class="tab-content admin-only">
         <div class="card">
             <h2 class="section-title">📊 Reports Dashboard</h2>
@@ -234,43 +253,23 @@
                     <label>Report Type:</label>
                     <select id="reportType"><option value="client">Client Statement</option><option value="driver">Driver Statement</option></select>
                 </div>
-                <div class="form-group">
-                    <label>Target Name:</label>
-                    <select id="reportTarget"><option value="Albatros">Albatros</option><option value="Malikia">Malikia</option></select>
-                </div>
                 <div class="form-group"><label>From Date:</label><input type="date" id="repFrom"></div>
                 <div class="form-group"><label>To Date:</label><input type="date" id="repTo"></div>
             </div>
-            
             <div style="display:flex; gap:10px; margin-top:15px; flex-wrap: wrap;">
                 <button class="btn btn-blue" style="flex:1;" onclick="toast('Retrieve function coming soon!', 'info')">Search 🔍</button>
                 <button class="btn btn-green" style="flex:1;" onclick="exportToExcel()">Export Excel 📊</button>
-                <button class="btn btn-red" style="flex:1;" onclick="exportToPDF()">Export PDF 📄</button>
             </div>
-            
             <div class="table-responsive" id="reportPrintArea">
                 <table id="reportsTable">
-                    <thead><tr><th>Date</th><th>Client/Driver</th><th>Trip Type</th><th>Amount</th></tr></thead>
-                    <tbody><tr><td colspan="4" style="color:#7f8c8d; padding:20px;">Data will appear here after searching...</td></tr></tbody>
+                    <thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
+                    <tbody><tr><td colspan="3" style="color:#7f8c8d; padding:20px;">Data will appear here after searching...</td></tr></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Tab 3 & 4 (Maintenance & Settings) -->
-    <div id="expensesTab" class="tab-content admin-only">
-        <div class="card">
-            <h2 class="section-title">⚙️ Maintenance & Expenses</h2>
-            <div class="grid-form">
-                <div class="form-group"><label>Expense Type:</label><select id="expType"><option>Car Maintenance</option><option>Fuel / Gas</option></select></div>
-                <div class="form-group"><label>Amount (EGP):</label><input type="number" placeholder="Enter amount..."></div>
-                <div class="form-group"><label>Details:</label><input type="text" placeholder="Details..."></div>
-                <div class="form-group"><label>Date:</label><input type="date"></div>
-            </div>
-            <button class="btn btn-blue" style="width:100%; margin-top:20px;" onclick="toast('Saved temporarily', 'success')">Log Expense 💾</button>
-        </div>
-    </div>
-
+    <!-- Tab 4: Settings -->
     <div id="settingsTab" class="tab-content admin-only">
         <div class="card">
             <h2 class="section-title">🛠️ Exchange Rate Settings</h2>
@@ -285,69 +284,40 @@
 
 <script>
     // ==========================================
-    // الرابط بتاعك اللي تم اعتماده
+    // ضع الرابط الخاص بك هنا
     // ==========================================
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH8WrOZiqBqwYVo5NGc_Rg0EMS_m7LoB2bi1n6-NSYg3P7_uVLRzzq4dJAuJ28SPsMww/exec"; 
+    const GOOGLE_SCRIPT_URL = "YOUR_SCRIPT_URL_HERE"; 
     
     let RATES = { USD: 50, EUR: 55, GBP: 65, EGP: 1 };
-    let currentUserRole = '';
-    let offlineTripsQueue = JSON.parse(localStorage.getItem('fleetOfflineTrips')) || [];
+    let loggedInUser = '';
 
     const today = new Date().toISOString().slice(0, 10);
     document.getElementById('tripDate').value = today;
-    document.getElementById('repFrom').value = today;
-    document.getElementById('repTo').value = today;
+    document.getElementById('finDate').value = today;
 
-    window.addEventListener('online', updateNetworkStatus);
-    window.addEventListener('offline', updateNetworkStatus);
-
-    function updateNetworkStatus() {
-        const badge = document.getElementById('networkStatus');
-        if (navigator.onLine) {
-            badge.className = 'network-badge network-online';
-            badge.innerHTML = '🟢 Online';
-            syncOfflineTrips();
-        } else {
-            badge.className = 'network-badge network-offline';
-            badge.innerHTML = `🔴 Offline`;
-        }
-    }
-
-    // Load Usernames Securely (No Passwords)
     window.addEventListener('load', () => {
-        updateNetworkStatus();
-        
-        if (navigator.onLine) {
-            fetch(GOOGLE_SCRIPT_URL + "?action=getUsers")
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        const userSelect = document.getElementById('loginUser');
-                        userSelect.innerHTML = '<option value="">-- Select User --</option>';
-                        data.users.forEach(u => {
-                            const opt = document.createElement('option');
-                            opt.value = u.username;
-                            opt.textContent = u.username.toUpperCase();
-                            userSelect.appendChild(opt);
-                        });
-                        const loginBtn = document.getElementById('loginBtn');
-                        loginBtn.innerText = "Login 🚀";
-                        loginBtn.disabled = false;
-                    }
-                })
-                .catch(err => { toast('❌ Database connection failed.', 'error'); });
-        } else {
-            toast('⚠️ No internet connection. You cannot login securely.', 'error');
-        }
+        fetch(GOOGLE_SCRIPT_URL + "?action=getUsers")
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const userSelect = document.getElementById('loginUser');
+                    data.users.forEach(u => {
+                        const opt = document.createElement('option');
+                        opt.value = u.username;
+                        opt.textContent = u.username.toUpperCase();
+                        userSelect.appendChild(opt);
+                    });
+                    document.getElementById('loginBtn').innerText = "Login 🚀";
+                    document.getElementById('loginBtn').disabled = false;
+                }
+            }).catch(err => { toast('❌ Database connection failed.', 'error'); });
 
         setTimeout(() => {
-            const splash = document.getElementById('splashScreen');
-            const login = document.getElementById('loginOverlay');
-            splash.style.opacity = '0';
+            document.getElementById('splashScreen').style.opacity = '0';
             setTimeout(() => {
-                splash.style.display = 'none';
-                login.style.visibility = 'visible';
-                login.style.opacity = '1';
+                document.getElementById('splashScreen').style.display = 'none';
+                document.getElementById('loginOverlay').style.visibility = 'visible';
+                document.getElementById('loginOverlay').style.opacity = '1';
             }, 600);
         }, 2200);
     });
@@ -367,52 +337,33 @@
         passInput.type = passInput.type === 'password' ? 'text' : 'password';
     }
 
-    // SECURED LOGIN (Server-Side Check)
+    // SECURED LOGIN
     function login() {
         const userInput = document.getElementById('loginUser').value;
         const passInput = document.getElementById('loginPass').value.trim();
-        
-        if(!userInput || !passInput) { toast('⚠️ Select a user and enter password', 'error'); return; }
-
-        if (!navigator.onLine) {
-            toast('❌ Must be online to verify login!', 'error');
-            return;
-        }
+        if(!userInput || !passInput) { toast('⚠️ Enter credentials', 'error'); return; }
 
         const loginBtn = document.getElementById('loginBtn');
-        loginBtn.innerText = "Verifying...";
-        loginBtn.disabled = true;
+        loginBtn.innerText = "Verifying..."; loginBtn.disabled = true;
 
         fetch(GOOGLE_SCRIPT_URL + "?action=login&username=" + encodeURIComponent(userInput) + "&password=" + encodeURIComponent(passInput))
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    currentUserRole = data.role; 
+                    loggedInUser = userInput;
                     document.getElementById('loginOverlay').style.display = 'none';
                     document.getElementById('mainApp').style.display = 'block';
                     document.getElementById('userInfo').textContent = `👤 Welcome, ${userInput.toUpperCase()}`;
-                    document.querySelectorAll('.admin-only').forEach(el => { el.style.display = currentUserRole === 'Admin' ? '' : 'none'; });
+                    document.querySelectorAll('.admin-only').forEach(el => { el.style.display = data.role === 'Admin' ? '' : 'none'; });
                     toast(`✅ Welcome!`, 'success');
                 } else {
                     toast('❌ Incorrect password!', 'error');
-                    loginBtn.innerText = "Login 🚀";
-                    loginBtn.disabled = false;
+                    loginBtn.innerText = "Login 🚀"; loginBtn.disabled = false;
                 }
-            })
-            .catch(err => {
-                toast('❌ Authentication error.', 'error');
-                loginBtn.innerText = "Login 🚀";
-                loginBtn.disabled = false;
-            });
+            }).catch(err => { toast('❌ Auth error.', 'error'); loginBtn.disabled = false; });
     }
 
-    function logout() {
-        document.getElementById('mainApp').style.display = 'none';
-        document.getElementById('loginOverlay').style.display = 'flex';
-        document.getElementById('loginPass').value = '';
-        document.getElementById('loginUser').value = '';
-        currentUserRole = '';
-    }
+    function logout() { location.reload(); }
 
     function showTab(tabId, btn) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -425,12 +376,10 @@
         RATES.USD = parseFloat(document.getElementById('rateUSD').value) || 50;
         RATES.EUR = parseFloat(document.getElementById('rateEUR').value) || 55;
         RATES.GBP = parseFloat(document.getElementById('rateGBP').value) || 65;
-        toast('🔄 Exchange rates updated', 'success');
         calcTotals();
     }
 
     function calcTotals() {
-        // Revenue Calc
         const rEgp = parseFloat(document.getElementById('revEGP').value) || 0;
         const rUsd = parseFloat(document.getElementById('revUSD').value) || 0;
         const rEur = parseFloat(document.getElementById('revEUR').value) || 0;
@@ -438,75 +387,50 @@
         const totalRev = rEgp + (rUsd * RATES.USD) + (rEur * RATES.EUR) + (rGbp * RATES.GBP);
         document.getElementById('totalRevEGP').textContent = totalRev.toFixed(2);
         
-        // Tips Calc
-        const tEgp = parseFloat(document.getElementById('tipEGP').value) || 0;
-        const tUsd = parseFloat(document.getElementById('tipUSD').value) || 0;
-        const tEur = parseFloat(document.getElementById('tipEUR').value) || 0;
-        const tGbp = parseFloat(document.getElementById('tipGBP').value) || 0;
-        const totalTip = tEgp + (tUsd * RATES.USD) + (tEur * RATES.EUR) + (tGbp * RATES.GBP);
-        document.getElementById('totalTipEGP').textContent = totalTip.toFixed(2);
-
-        // Net Calc
         const driverFee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
         document.getElementById('netCommission').textContent = (totalRev - driverFee).toFixed(2);
-    }
-
-    function exportToExcel() {
-        let table = document.getElementById("reportsTable");
-        let wb = XLSX.utils.table_to_book(table, {sheet: "Report"});
-        XLSX.writeFile(wb, "SamyFleet_Report.xlsx");
-        toast('✅ Excel downloaded successfully!', 'success');
-    }
-
-    function exportToPDF() {
-        const element = document.getElementById('reportPrintArea');
-        html2pdf().set({ margin: 0.5, filename: 'SamyFleet_Report.pdf' }).from(element).save().then(() => toast('✅ PDF downloaded successfully!', 'success'));
     }
 
     function saveTrip() {
         const client = document.getElementById('tripClient').value;
         const driver = document.getElementById('tripDriver').value;
         const tripName = document.getElementById('tripName').value;
-        const date = document.getElementById('tripDate').value;
-        
-        const totalRev = parseFloat(document.getElementById('totalRevEGP').textContent) || 0;
-        const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
-
-        if (!client || !driver || !tripName || !date) { toast('⚠️ Complete all core fields!', 'error'); return; }
+        if (!client || !driver || !tripName) { toast('⚠️ Complete all core fields!', 'error'); return; }
 
         const payload = { 
-            client_name: client, driver_name: driver, trip_name: tripName, date: date, notes: document.getElementById('tripNotes').value,
-            revenue: totalRev, driver_fee: fee,
-            tip_egp: document.getElementById('tipEGP').value || 0,
-            tip_usd: document.getElementById('tipUSD').value || 0,
-            tip_eur: document.getElementById('tipEUR').value || 0,
-            tip_gbp: document.getElementById('tipGBP').value || 0,
-            total_tip: document.getElementById('totalTipEGP').textContent
+            record_type: "trip", client_name: client, driver_name: driver, trip_name: tripName, date: document.getElementById('tripDate').value,
+            notes: document.getElementById('tripNotes').value, revenue: parseFloat(document.getElementById('totalRevEGP').textContent) || 0,
+            driver_fee: parseFloat(document.getElementById('tripDriverFee').value) || 0,
+            tip_egp: document.getElementById('tipEGP').value || 0, tip_usd: document.getElementById('tipUSD').value || 0,
+            tip_eur: document.getElementById('tipEUR').value || 0, tip_gbp: document.getElementById('tipGBP').value || 0,
+            total_tip: parseFloat(document.getElementById('tipEGP').value || 0) + ((document.getElementById('tipUSD').value || 0)*RATES.USD)
         };
 
-        const btn = event.target;
-
-        if (!navigator.onLine) {
-            offlineTripsQueue.push(payload);
-            localStorage.setItem('fleetOfflineTrips', JSON.stringify(offlineTripsQueue));
-            toast('📴 Saved locally (Offline mode).', 'success');
-            return;
-        }
-
-        btn.innerText = "⏳ Saving..."; btn.disabled = true;
+        const btn = event.target; btn.innerText = "⏳ Saving..."; btn.disabled = true;
 
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         .then(() => { toast('✅ Trip recorded!', 'success'); btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; })
         .catch(err => { toast('❌ Error saving.', 'error'); btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; });
     }
 
-    async function syncOfflineTrips() {
-        if (offlineTripsQueue.length === 0) return;
-        for (let trip of offlineTripsQueue) {
-            try { await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(trip) }); } catch(e) {}
-        }
-        offlineTripsQueue = [];
-        localStorage.setItem('fleetOfflineTrips', JSON.stringify(offlineTripsQueue));
+    function saveFinance() {
+        const category = document.getElementById('finCategory').value;
+        const amount = parseFloat(document.getElementById('finAmount').value);
+        if (!category || !amount) { toast('⚠️ Enter category and amount', 'error'); return; }
+
+        const payload = {
+            record_type: "finance", fin_type: document.getElementById('finType').value, category: category,
+            amount: amount, date: document.getElementById('finDate').value, notes: document.getElementById('finNotes').value, added_by: loggedInUser
+        };
+
+        const btn = event.target; btn.innerText = "⏳ Saving..."; btn.disabled = true;
+        
+        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        .then(() => { 
+            toast('✅ Transaction saved!', 'success'); 
+            document.getElementById('finCategory').value = ''; document.getElementById('finAmount').value = '';
+            btn.innerText = "Submit Transaction 💾"; btn.disabled = false; 
+        }).catch(err => { toast('❌ Error saving.', 'error'); btn.disabled = false; });
     }
 </script>
 </body>
