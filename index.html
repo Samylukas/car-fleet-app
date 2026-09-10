@@ -1,26 +1,11 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة أسطول السيارات - Safaga Fleet</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: #f4f7f6;<!DOCTYPE html>
 <html lang="ar" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safaga Management App</title>
+    <title>Car Fleet Management</title>
     <style>
-        /* إعدادات عامة للخطوط والمسافات */
+        /* إعدادات الشاشة الأساسية */
         * {
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -34,115 +19,128 @@
             padding: 20px;
         }
 
-        /* شريط التنقل (تاتس للتبديل بين الشاشات) - لن يظهر في الطباعة */
+        /* شريط التنقل العلوي */
         .navbar {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         .navbar button {
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 10px 22px;
+            font-size: 15px;
+            font-weight: bold;
             cursor: pointer;
             background-color: #1a365d;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             margin: 0 5px;
+            transition: background 0.2s;
         }
         .navbar button:hover {
             background-color: #2a528a;
         }
 
         /* =========================================
-           1. شاشة الـ Master Data (التوسيط والديناميكية)
+           توسيع الحاوية وإلغاء أشرطة التمرير (No Scrollbars)
            ========================================= */
         .master-data-container {
             display: flex;
-            flex-wrap: wrap; /* للنزول للسطر التالي في الشاشات الصغيرة */
-            justify-content: center; /* توسيط الكروت */
-            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
             width: 100%;
-            max-width: 1200px;
+            max-width: 1400px; /* حاوية عريضة تتسع للمحتوى */
             margin: 0 auto;
         }
 
         .card {
             background: white;
-            flex: 1;
-            min-width: 320px;
-            max-width: 500px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 20px;
+            flex: 1 1 480px; /* السماح للكارت بالتمدد والانتشار */
+            min-width: 380px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            padding: 25px;
+            overflow: visible !important; /* إلغاء التمرير الداخلي تماماً */
         }
 
         .card h3 {
             color: #1a365d;
-            border-bottom: 2px solid #28a745; /* الخط الأخضر */
+            border-bottom: 2px solid #28a745;
             padding-bottom: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-size: 20px;
         }
 
         .input-group {
             display: flex;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .input-group input {
             flex: 1;
-            padding: 8px;
+            padding: 10px 14px;
             border: 1px solid #ccc;
-            border-radius: 4px;
+            border-radius: 6px;
+            font-size: 15px;
         }
 
         .input-group button {
             background-color: #28a745;
             color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
             cursor: pointer;
         }
 
+        /* الجدول بدون أشرطة تمرير أفقية أو رأسية */
         .data-table {
-            width: 100%;
+            width: 100% !important;
             border-collapse: collapse;
+            table-layout: auto;
         }
 
         .data-table th {
             background-color: #1a365d;
             color: white;
-            padding: 10px;
-            text-align: left;
+            padding: 12px;
+            text-align: center;
+            font-size: 15px;
         }
 
         .data-table td {
-            padding: 10px;
+            padding: 12px;
             border-bottom: 1px solid #eee;
             text-align: center;
+            font-size: 15px;
+            white-space: nowrap;
         }
 
         /* =========================================
-           2. شاشة التقارير (تصغير الحجم و 70 سجل)
+           إعدادات التقرير والطباعة (Portrait & 70 Records)
            ========================================= */
         .report-container {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            display: none; /* مخفية في البداية */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: none;
         }
 
-        /* تكبير اسم الشريك */
+        /* تكبير اسم الشريك والعنوان */
         .report-title {
-            font-size: 24px; 
+            font-size: 26px; 
             font-weight: bold;
             text-align: center;
             color: #1a365d;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1a365d;
+            padding-bottom: 10px;
         }
 
         .report-table {
@@ -152,39 +150,31 @@
             border-bottom: 3px solid #1a365d; 
         }
 
-        /* تصغير المسافات عشان يشيل 70 سجل */
+        /* مقاسات مضغوطة لتتسع لـ 70 سجلاً في صفحة واحدة طولي */
         .report-table th, .report-table td {
-            padding: 4px 8px; /* مسافات داخلية صغيرة */
-            font-size: 13px; /* حجم خط مناسب للطباعة الكثيفة */
-            line-height: 1.2;
-            border: 1px solid #ddd;
+            padding: 3px 6px; 
+            font-size: 11px; 
+            line-height: 1.1;
+            border: 1px solid #ccc;
             text-align: center;
         }
 
         .report-table th {
-            background-color: #fdf5e6; /* لون مقارب للصورة */
+            background-color: #fdf5e6;
             color: #1a365d;
             font-weight: bold;
         }
 
-        .no-data {
-            padding: 15px !important;
-            font-size: 14px !important;
-            color: #666;
-        }
-
-        /* =========================================
-           3. إعدادات الطباعة (Portrait)
-           ========================================= */
+        /* إعدادات الطباعة الطولية */
         @media print {
             @page {
-                size: portrait; /* إجبار الطباعة بشكل طولي */
-                margin: 1cm;
+                size: portrait;
+                margin: 0.8cm;
             }
             body {
                 background-color: white;
+                padding: 0;
             }
-            /* إخفاء الزراير والقوائم وقت الطباعة */
             .no-print {
                 display: none !important;
             }
@@ -192,6 +182,8 @@
                 box-shadow: none;
                 margin: 0;
                 padding: 0;
+                width: 100%;
+                max-width: 100%;
             }
         }
     </style>
@@ -204,7 +196,7 @@
         <button onclick="showTab('report')">📄 Reports</button>
     </div>
 
-    <!-- شاشة إدخال البيانات -->
+    <!-- شاشة إدارة البيانات -->
     <div id="master-view">
         <h2 style="color: #1a365d; margin-bottom: 20px; text-align: center;">⚙️ Master Data Management</h2>
         
@@ -263,8 +255,7 @@
 
     <!-- شاشة التقرير -->
     <div id="report-view" class="report-container">
-        <!-- زرار الطباعة -->
-        <button class="no-print" onclick="window.print()" style="float: right; padding: 5px 15px; background: #1a365d; color: white; border: none; cursor: pointer; border-radius: 4px;">🖨️ Print</button>
+        <button class="no-print" onclick="window.print()" style="float: right; padding: 6px 16px; background: #1a365d; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold;">🖨️ Print Report</button>
         
         <div class="report-title">
             Partner Report: Adeeb (2026-09-10 to 2026-09-10) 🚘
@@ -273,24 +264,23 @@
         <table class="report-table">
             <thead>
                 <tr>
+                    <th>#</th>
                     <th>Date</th>
-                    <th>Destination</th>
+                    <th>From</th>
+                    <th>To</th>
                     <th>Car Type</th>
                     <th>Type</th>
                     <th>Amount</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- صف يظهر عند عدم وجود بيانات -->
                 <tr>
-                    <td colspan="5" class="no-data">لا توجد بيانات لهذه الفترة</td>
+                    <td colspan="7" style="padding: 15px; font-size: 13px;">لا توجد بيانات لهذه الفترة</td>
                 </tr>
-                <!-- لبرمجة 70 سجل لاحقاً، الـ <tr> سيتكرر هنا ولن يأخذ مساحة كبيرة بفضل الـ CSS -->
             </tbody>
         </table>
     </div>
 
-    <!-- كود جافاسكريبت بسيط للتبديل بين الشاشات -->
     <script>
         function showTab(tabName) {
             if (tabName === 'master') {
@@ -301,569 +291,6 @@
                 document.getElementById('report-view').style.display = 'block';
             }
         }
-    </script>
-</body>
-</html>
-            color: #333;
-            padding: 20px;
-        }
-
-        /* شريط التنقل العلوي */
-        .navbar {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .navbar button {
-            padding: 12px 24px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            background-color: #1a365d;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-
-        .navbar button:hover, .navbar button.active {
-            background-color: #28a745;
-        }
-
-        /* الحاوية الرئيسية العامة */
-        .main-container {
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* تصميم الكروت */
-        .cards-flex {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 25px;
-            width: 100%;
-        }
-
-        .card {
-            background: white;
-            flex: 1 1 480px;
-            min-width: 380px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-            padding: 25px;
-            overflow: visible !important;
-        }
-
-        .card h3 {
-            color: #1a365d;
-            border-bottom: 2px solid #28a745;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* النماذج ومُدخلات البيانات */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .form-control {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .form-control label {
-            font-size: 13px;
-            font-weight: bold;
-            color: #1a365d;
-        }
-
-        input, select {
-            padding: 10px 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-            width: 100%;
-        }
-
-        button.btn-add {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 22px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        button.btn-add:hover {
-            background-color: #218838;
-        }
-
-        /* الجداول بدون أشرطة تمرير */
-        .data-table {
-            width: 100% !important;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        .data-table th {
-            background-color: #1a365d;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .data-table td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-
-        .btn-delete {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        /* شاشة التقرير والطباعة */
-        .report-container {
-            max-width: 950px;
-            margin: 0 auto;
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .report-header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #1a365d;
-            padding-bottom: 15px;
-        }
-
-        .report-partner-name {
-            font-size: 28px;
-            font-weight: bold;
-            color: #1a365d;
-            margin-bottom: 5px;
-        }
-
-        .report-date-range {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .report-table {
-            width: 100%;
-            border-collapse: collapse;
-            border-bottom: 3px solid #1a365d;
-        }
-
-        .report-table th, .report-table td {
-            padding: 4px 6px;
-            font-size: 11px;
-            line-height: 1.1;
-            border: 1px solid #ccc;
-            text-align: center;
-        }
-
-        .report-table th {
-            background-color: #fdf5e6;
-            color: #1a365d;
-            font-weight: bold;
-        }
-
-        .report-summary {
-            margin-top: 15px;
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            font-size: 14px;
-            color: #1a365d;
-        }
-
-        /* إعدادات الطباعة (Portrait) */
-        @media print {
-            @page {
-                size: portrait;
-                margin: 0.8cm;
-            }
-            body {
-                background-color: white;
-                padding: 0;
-            }
-            .no-print {
-                display: none !important;
-            }
-            .report-container {
-                box-shadow: none;
-                margin: 0;
-                padding: 0;
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- القائمة الرئيسية للتبديل -->
-    <div class="navbar no-print">
-        <button id="btn-master" class="active" onclick="switchView('master')">⚙️ البيانات الأساسية (Master Data)</button>
-        <button id="btn-entry" onclick="switchView('entry')">🚗 تسجيل مشوار جديد (New Trip)</button>
-        <button id="btn-report" onclick="switchView('report')">📄 عرض التقارير (Reports)</button>
-    </div>
-
-    <div class="main-container">
-        
-        <!-- 1. شاشة البيانات الأساسية (Master Data) -->
-        <div id="view-master">
-            <h2 style="color: #1a365d; margin-bottom: 20px; text-align: center;">⚙️ إدارة العملاء والشركاء</h2>
-            <div class="cards-flex">
-                
-                <!-- كارت العملاء -->
-                <div class="card">
-                    <h3>👥 العملاء (Clients)</h3>
-                    <div class="input-group">
-                        <input type="text" id="client-input" placeholder="اسم العميل جديد...">
-                        <button class="btn-add" onclick="addClient()">إضافة</button>
-                    </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>اسم العميل</th>
-                                <th>إجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clients-list"></tbody>
-                    </table>
-                </div>
-
-                <!-- كارت الشركاء -->
-                <div class="card">
-                    <h3>🤝 الشركاء (Partners)</h3>
-                    <div class="input-group">
-                        <input type="text" id="partner-input" placeholder="اسم الشريك جديد...">
-                        <button class="btn-add" onclick="addPartner()">إضافة</button>
-                    </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>اسم الشريك</th>
-                                <th>إجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="partners-list"></tbody>
-                    </table>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- 2. شاشة تسجيل البيانات والمشاوير -->
-        <div id="view-entry" style="display: none;">
-            <div class="card" style="max-width: 900px; margin: 0 auto;">
-                <h3>🚗 تسجيل مشوار / رحلة جديدة</h3>
-                <div class="form-grid">
-                    <div class="form-control">
-                        <label>التاريخ</label>
-                        <input type="date" id="trip-date">
-                    </div>
-                    <div class="form-control">
-                        <label>الشريك (السائق)</label>
-                        <select id="trip-partner"></select>
-                    </div>
-                    <div class="form-control">
-                        <label>العميل</label>
-                        <select id="trip-client"></select>
-                    </div>
-                    <div class="form-control">
-                        <label>من (القيام)</label>
-                        <input type="text" id="trip-from" placeholder="مثال: لامايا">
-                    </div>
-                    <div class="form-control">
-                        <label>إلى (الوصول)</label>
-                        <input type="text" id="trip-to" placeholder="مثال: المالكية">
-                    </div>
-                    <div class="form-control">
-                        <label>نوع السيارة</label>
-                        <input type="text" id="trip-car" placeholder="ليموزين / ميكروباص">
-                    </div>
-                    <div class="form-control">
-                        <label>المبلغ (المصروفات)</label>
-                        <input type="number" id="trip-amount" placeholder="0.00">
-                    </div>
-                </div>
-                <button class="btn-add" style="width: 100%; padding: 12px; font-size: 16px;" onclick="addTrip()">حفظ المشوار</button>
-
-                <h3 style="margin-top: 30px;">📋 آخر المشاوير المسجلة</h3>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>التاريخ</th>
-                            <th>الشريك</th>
-                            <th>العميل</th>
-                            <th>الخط</th>
-                            <th>المبلغ</th>
-                            <th>حذف</th>
-                        </tr>
-                    </thead>
-                    <tbody id="trips-log-list"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 3. شاشة التقارير والطباعة -->
-        <div id="view-report" style="display: none;">
-            <!-- فلاتر التقرير -->
-            <div class="card no-print" style="max-width: 950px; margin: 0 auto 20px auto;">
-                <h3>🔍 تصفية التقرير</h3>
-                <div class="form-grid">
-                    <div class="form-control">
-                        <label>اختر الشريك</label>
-                        <select id="report-filter-partner"></select>
-                    </div>
-                    <div class="form-control">
-                        <label>من تاريخ</label>
-                        <input type="date" id="report-filter-start">
-                    </div>
-                    <div class="form-control">
-                        <label>إلى تاريخ</label>
-                        <input type="date" id="report-filter-end">
-                    </div>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-add" style="flex: 1;" onclick="generateReport()">عرض التقرير</button>
-                    <button class="btn-add" style="background-color: #1a365d;" onclick="window.print()">🖨️ طباعة التقرير</button>
-                </div>
-            </div>
-
-            <!-- التقرير القابل للطباعة -->
-            <div class="report-container">
-                <div class="report-header">
-                    <div class="report-partner-name" id="report-partner-title">Partner Report: -</div>
-                    <div class="report-date-range" id="report-date-title">الفترة: من - إلى -</div>
-                </div>
-
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>التاريخ</th>
-                            <th>من</th>
-                            <th>إلى</th>
-                            <th>نوع السيارة</th>
-                            <th>العميل</th>
-                            <th>المبلغ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="report-rows">
-                        <tr><td colspan="7" style="padding: 15px;">اختر الشريك واضغط "عرض التقرير"</td></tr>
-                    </tbody>
-                </table>
-
-                <div class="report-summary">
-                    <div>إجمالي عدد المشاوير: <span id="report-total-count">0</span></div>
-                    <div>إجمالي المستحق: <span id="report-total-amount">0</span> جنيه</div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- برمجة التطبيق بالكامل (JavaScript) -->
-    <script>
-        // تحميل البيانات من LocalStorage أو تعيين افتراضيات
-        let clients = JSON.parse(localStorage.getItem('sf_clients')) || ['Europa Clinic', 'Samy Airport'];
-        let partners = JSON.parse(localStorage.getItem('sf_partners')) || ['Adel', 'Husain', 'Esmaiel', 'Adeeb', 'مرزوق'];
-        let trips = JSON.parse(localStorage.getItem('sf_trips')) || [];
-
-        // ضبط التاريخ التلقائي لليوم
-        document.getElementById('trip-date').valueAsDate = new Date();
-        document.getElementById('report-filter-start').valueAsDate = new Date();
-        document.getElementById('report-filter-end').valueAsDate = new Date();
-
-        // التبديل بين الشاشات
-        function switchView(viewName) {
-            document.getElementById('view-master').style.display = viewName === 'master' ? 'block' : 'none';
-            document.getElementById('view-entry').style.display = viewName === 'entry' ? 'block' : 'none';
-            document.getElementById('view-report').style.display = viewName === 'report' ? 'block' : 'none';
-
-            document.querySelectorAll('.navbar button').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-${viewName}`).classList.add('active');
-
-            if(viewName === 'entry' || viewName === 'report') updateDropdowns();
-        }
-
-        // تحديث القوائم المنسدلة
-        function updateDropdowns() {
-            const partnerSelects = [document.getElementById('trip-partner'), document.getElementById('report-filter-partner')];
-            const clientSelect = document.getElementById('trip-client');
-
-            partnerSelects.forEach(select => {
-                select.innerHTML = partners.map(p => `<option value="${p}">${p}</option>`).join('');
-            });
-
-            clientSelect.innerHTML = clients.map(c => `<option value="${c}">${c}</option>`).join('');
-        }
-
-        // إدارة العملاء
-        function renderClients() {
-            document.getElementById('clients-list').innerHTML = clients.map((c, index) => `
-                <tr>
-                    <td>${c}</td>
-                    <td><button class="btn-delete" onclick="deleteClient(${index})">حذف</button></td>
-                </tr>
-            `).join('');
-            localStorage.setItem('sf_clients', JSON.stringify(clients));
-        }
-
-        function addClient() {
-            const val = document.getElementById('client-input').value.trim();
-            if(val) {
-                clients.push(val);
-                document.getElementById('client-input').value = '';
-                renderClients();
-            }
-        }
-
-        function deleteClient(index) {
-            clients.splice(index, 1);
-            renderClients();
-        }
-
-        // إدارة الشركاء
-        function renderPartners() {
-            document.getElementById('partners-list').innerHTML = partners.map((p, index) => `
-                <tr>
-                    <td>${p}</td>
-                    <td><button class="btn-delete" onclick="deletePartner(${index})">حذف</button></td>
-                </tr>
-            `).join('');
-            localStorage.setItem('sf_partners', JSON.stringify(partners));
-        }
-
-        function addPartner() {
-            const val = document.getElementById('partner-input').value.trim();
-            if(val) {
-                partners.push(val);
-                document.getElementById('partner-input').value = '';
-                renderPartners();
-            }
-        }
-
-        function deletePartner(index) {
-            partners.splice(index, 1);
-            renderPartners();
-        }
-
-        // تسجيل وإدارة المشاوير
-        function addTrip() {
-            const trip = {
-                id: Date.now(),
-                date: document.getElementById('trip-date').value,
-                partner: document.getElementById('trip-partner').value,
-                client: document.getElementById('trip-client').value,
-                from: document.getElementById('trip-from').value || '-',
-                to: document.getElementById('trip-to').value || '-',
-                car: document.getElementById('trip-car').value || 'ليموزين',
-                amount: parseFloat(document.getElementById('trip-amount').value) || 0
-            };
-
-            trips.push(trip);
-            localStorage.setItem('sf_trips', JSON.stringify(trips));
-            renderTripsLog();
-            
-            // إعادة تعيين بعض الحقول
-            document.getElementById('trip-from').value = '';
-            document.getElementById('trip-to').value = '';
-            document.getElementById('trip-amount').value = '';
-            alert('تم تسجيل المشوار بنجاح');
-        }
-
-        function renderTripsLog() {
-            const recent = trips.slice(-10).reverse(); // عرض آخر 10 مشاوير
-            document.getElementById('trips-log-list').innerHTML = recent.map(t => `
-                <tr>
-                    <td>${t.date}</td>
-                    <td>${t.partner}</td>
-                    <td>${t.client}</td>
-                    <td>${t.from} ⬅️ ${t.to}</td>
-                    <td>${t.amount}</td>
-                    <td><button class="btn-delete" onclick="deleteTrip(${t.id})">حذف</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function deleteTrip(id) {
-            trips = trips.filter(t => t.id !== id);
-            localStorage.setItem('sf_trips', JSON.stringify(trips));
-            renderTripsLog();
-        }
-
-        // توليد التقرير
-        function generateReport() {
-            const selectedPartner = document.getElementById('report-filter-partner').value;
-            const startDate = document.getElementById('report-filter-start').value;
-            const endDate = document.getElementById('report-filter-end').value;
-
-            const filtered = trips.filter(t => {
-                return t.partner === selectedPartner && t.date >= startDate && t.date <= endDate;
-            });
-
-            document.getElementById('report-partner-title').innerText = `Partner Report: ${selectedPartner}`;
-            document.getElementById('report-date-title').innerText = `الفترة من: (${startDate}) إلى: (${endDate})`;
-
-            const rowsHtml = filtered.map((t, idx) => `
-                <tr>
-                    <td>${idx + 1}</td>
-                    <td>${t.date}</td>
-                    <td>${t.from}</td>
-                    <td>${t.to}</td>
-                    <td>${t.car}</td>
-                    <td>${t.client}</td>
-                    <td>${t.amount}</td>
-                </tr>
-            `).join('');
-
-            document.getElementById('report-rows').innerHTML = rowsHtml || `<tr><td colspan="7" style="padding: 15px;">لا توجد بيانات مسجلة لهذا الشريك في هذه الفترة</td></tr>`;
-            
-            const totalSum = filtered.reduce((sum, t) => sum + t.amount, 0);
-            document.getElementById('report-total-count').innerText = filtered.length;
-            document.getElementById('report-total-amount').innerText = totalSum.toLocaleString();
-        }
-
-        // التشغيل المبدئي عند فتح الصفحة
-        renderClients();
-        renderPartners();
-        renderTripsLog();
     </script>
 </body>
 </html>
