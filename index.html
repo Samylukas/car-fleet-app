@@ -138,7 +138,6 @@
             <div class="header-flex">
                 <h2 class="section-title" style="border:none; margin:0; padding:0;">📝 Add New Trip</h2>
                 
-                <!-- شريط التنقل الجديد (Navigation Bar) -->
                 <div class="record-nav">
                     <button class="btn btn-green" onclick="navNew()" title="Clear form for a new trip">🆕 New</button>
                     <button class="btn btn-outline" onclick="navFirst()" title="Oldest Record">⏪ First</button>
@@ -151,20 +150,21 @@
             <div class="grid-form">
                 <div class="form-group">
                     <label>Client:</label>
-                    <input type="text" id="tripClient" list="clientList" placeholder="Type or select client...">
+                    <input type="text" id="tripClient" list="clientList" placeholder="Type or select client..." autocomplete="off">
                     <datalist id="clientList"></datalist>
                 </div>
                 <div class="form-group">
                     <label>Driver:</label>
-                    <input type="text" id="tripDriver" list="driverList" placeholder="Type or select driver...">
+                    <input type="text" id="tripDriver" list="driverList" placeholder="Type or select driver..." autocomplete="off">
                     <datalist id="driverList"></datalist>
                 </div>
                 <div class="form-group">
                     <label>Trip Name:</label>
-                    <input type="text" id="tripName" list="tripList" placeholder="e.g. Airport Transfer...">
+                    <input type="text" id="tripName" list="tripList" placeholder="e.g. Airport Transfer..." autocomplete="off">
                     <datalist id="tripList"></datalist>
                 </div>
-                <div class="form-group"><label>Date:</label><input type="date" id="tripDate"></div>
+                <!-- تغيير الحقل ليدعم التاريخ والوقت -->
+                <div class="form-group"><label>Date & Time:</label><input type="datetime-local" id="tripDate"></div>
             </div>
 
             <div style="margin-top: 25px;">
@@ -204,7 +204,7 @@
             <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px; margin-bottom:15px;">🕒 Recent Trips</h3>
             <div class="table-responsive">
                 <table class="recent-table" id="recentTripsTable">
-                    <thead><tr><th>Date</th><th>Client</th><th>Driver</th><th>Trip</th><th>Revenue</th><th>Fee</th></tr></thead>
+                    <thead><tr><th>Date & Time</th><th>Client</th><th>Driver</th><th>Trip</th><th>Revenue</th><th>Fee</th></tr></thead>
                     <tbody><tr><td colspan="6" style="text-align:center; color:#7f8c8d;">Loading recent trips...</td></tr></tbody>
                 </table>
             </div>
@@ -219,7 +219,8 @@
                 <div class="form-group"><label>Type:</label><select id="finType"><option value="Expense" style="color:red;">Expense</option><option value="Revenue" style="color:green;">Revenue</option></select></div>
                 <div class="form-group"><label>Category:</label><input type="text" id="finCategory" list="catList"><datalist id="catList"><option value="Car Maintenance"><option value="Fuel / Gas"><option value="Admin Expenses"></datalist></div>
                 <div class="form-group"><label>Amount (EGP):</label><input type="number" id="finAmount"></div>
-                <div class="form-group"><label>Date:</label><input type="date" id="finDate"></div>
+                <!-- تعديل حقل التاريخ هنا أيضاً -->
+                <div class="form-group"><label>Date & Time:</label><input type="datetime-local" id="finDate"></div>
                 <div class="form-group" style="grid-column: span 2;"><label>Notes:</label><input type="text" id="finNotes"></div>
             </div>
             <button class="btn btn-blue" style="width:100%; margin-top:20px;" onclick="saveFinance()">Submit Transaction 💾</button>
@@ -238,7 +239,11 @@
                         <option value="driver">Driver Statement (Expenses)</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Target Name:</label><select id="reportTarget"></select></div>
+                <div class="form-group">
+                    <label>Target Name:</label>
+                    <select id="reportTarget"></select>
+                </div>
+                <!-- التقارير تظل باليوم فقط -->
                 <div class="form-group"><label>From Date:</label><input type="date" id="repFrom"></div>
                 <div class="form-group"><label>To Date:</label><input type="date" id="repTo"></div>
             </div>
@@ -250,8 +255,8 @@
             
             <div class="table-responsive" id="reportPrintArea">
                 <table id="reportsTable">
-                    <thead><tr><th>Date</th><th>Description</th><th>Amount (EGP)</th></tr></thead>
-                    <tbody><tr><td colspan="3" style="color:#7f8c8d; text-align:center; padding:20px;">Data will appear here after searching...</td></tr></tbody>
+                    <thead><tr><th>Date & Time</th><th>Description</th><th>Amount (EGP)</th></tr></thead>
+                    <tbody><tr><td colspan="3" style="text-align:center; color:#7f8c8d; padding:20px;">Data will appear here after searching...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -276,13 +281,20 @@
     let loggedInUser = '';
 
     let clientsDB = [], driversDB = [], tripsDB = [], recentTripsDB = [];
-    let currentRecordIndex = -1; // مؤشر للتقليب في المشاوير
+    let currentRecordIndex = -1;
 
-    const today = new Date().toISOString().slice(0, 10);
-    document.getElementById('tripDate').value = today;
-    document.getElementById('finDate').value = today;
-    document.getElementById('repFrom').value = today;
-    document.getElementById('repTo').value = today;
+    // الحصول على التاريخ والوقت المحلي بدقة لصيغة datetime-local
+    function getCurrentLocalDateTime() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        return now.toISOString().slice(0, 16);
+    }
+
+    const todayDateOnly = new Date().toISOString().slice(0, 10);
+    document.getElementById('tripDate').value = getCurrentLocalDateTime();
+    document.getElementById('finDate').value = getCurrentLocalDateTime();
+    document.getElementById('repFrom').value = todayDateOnly;
+    document.getElementById('repTo').value = todayDateOnly;
 
     window.addEventListener('load', () => {
         fetch(GOOGLE_SCRIPT_URL + "?action=getInitialData", { redirect: 'follow' })
@@ -309,26 +321,25 @@
         }, 2200);
     });
 
-    // --- وظائف شريط التنقل (Navigation) ---
     function loadTripIntoForm(index) {
         if(recentTripsDB.length === 0) return toast('No records available', 'error');
         if(index < 0) index = 0;
         if(index >= recentTripsDB.length) index = recentTripsDB.length - 1;
         
         currentRecordIndex = index;
-        const trip = recentTripsDB[index]; // array[0] هو الأحدث
+        const trip = recentTripsDB[index]; 
         
-        document.getElementById('tripDate').value = trip.date;
+        // تعبئة البيانات
+        document.getElementById('tripDate').value = trip.date.includes('T') ? trip.date.slice(0,16) : trip.date + "T00:00"; 
         document.getElementById('tripClient').value = trip.client;
         document.getElementById('tripDriver').value = trip.driver;
         document.getElementById('tripName').value = trip.trip;
         
-        // تفريغ وتعبئة المبالغ بالجنيه
         document.getElementById('revEGP').value = trip.revenue || 0;
         document.getElementById('revUSD').value = 0; document.getElementById('revEUR').value = 0; document.getElementById('revGBP').value = 0;
         document.getElementById('tipEGP').value = 0; document.getElementById('tipUSD').value = 0; document.getElementById('tipEUR').value = 0; document.getElementById('tipGBP').value = 0;
         document.getElementById('tripDriverFee').value = trip.fee || 0;
-        document.getElementById('tripNotes').value = ""; // ملاحظات غير محفوظة في recents حاليا
+        document.getElementById('tripNotes').value = ""; 
 
         calcTotals();
         toast(`Loaded record ${index + 1} of ${recentTripsDB.length}`, 'success');
@@ -340,22 +351,21 @@
         document.getElementById('revEGP').value = '0'; document.getElementById('revUSD').value = '0'; document.getElementById('revEUR').value = '0'; document.getElementById('revGBP').value = '0';
         document.getElementById('tipEGP').value = '0'; document.getElementById('tipUSD').value = '0'; document.getElementById('tipEUR').value = '0'; document.getElementById('tipGBP').value = '0';
         document.getElementById('tripDriverFee').value = ''; document.getElementById('tripNotes').value = '';
-        document.getElementById('tripDate').value = today;
+        document.getElementById('tripDate').value = getCurrentLocalDateTime();
         calcTotals();
         toast('Form cleared for new trip ✨', 'info');
     }
 
-    function navFirst() { loadTripIntoForm(recentTripsDB.length - 1); } // الأقدم (آخر عنصر في المصفوفة)
-    function navLast() { loadTripIntoForm(0); } // الأحدث (أول عنصر)
+    function navFirst() { loadTripIntoForm(recentTripsDB.length - 1); } 
+    function navLast() { loadTripIntoForm(0); } 
     function navPrev() { 
-        if(currentRecordIndex === -1) loadTripIntoForm(0); // لو كان جديد هات الأحدث
-        else loadTripIntoForm(currentRecordIndex + 1); // الروح للأقدم
+        if(currentRecordIndex === -1) loadTripIntoForm(0); 
+        else loadTripIntoForm(currentRecordIndex + 1); 
     }
     function navNext() {
         if(currentRecordIndex <= 0) return toast('Already at newest record', 'info');
-        loadTripIntoForm(currentRecordIndex - 1); // الروح للأحدث
+        loadTripIntoForm(currentRecordIndex - 1); 
     }
-    // ----------------------------------------
 
     function renderDatalists() {
         document.getElementById('clientList').innerHTML = clientsDB.map(i => `<option value="${i}">`).join('');
@@ -368,7 +378,10 @@
         const tbody = document.querySelector('#recentTripsTable tbody');
         if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#7f8c8d;">No recent trips</td></tr>'; return; }
         tbody.innerHTML = '';
-        recentTripsDB.forEach(t => { tbody.innerHTML += `<tr><td>${t.date}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td></tr>`; });
+        recentTripsDB.forEach(t => { 
+            let displayDate = t.date.replace('T', ' ').slice(0, 16);
+            tbody.innerHTML += `<tr><td>${displayDate}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td></tr>`; 
+        });
     }
 
     function toggleReportTarget() {
@@ -438,7 +451,8 @@
                     if (data.data.length === 0) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#7f8c8d; padding:20px;">No data found for this period.</td></tr>'; return; }
                     data.data.forEach(row => {
                         const amt = parseFloat(row.amount) || 0; total += amt;
-                        tbody.innerHTML += `<tr><td>${row.date}</td><td>${row.desc}</td><td style="font-weight:bold;">${amt.toFixed(2)}</td></tr>`;
+                        let displayDate = row.date.replace('T', ' ').slice(0, 16);
+                        tbody.innerHTML += `<tr><td>${displayDate}</td><td>${row.desc}</td><td style="font-weight:bold;">${amt.toFixed(2)}</td></tr>`;
                     });
                     tbody.innerHTML += `<tr class="total-row"><td colspan="2" style="text-align:right; color:#1e3c72;">Total Balance:</td><td style="color:#27ae60;">${total.toFixed(2)}</td></tr>`;
                     toast('✅ Reports loaded!', 'success');
@@ -450,7 +464,8 @@
         const client = document.getElementById('tripClient').value.trim();
         const driver = document.getElementById('tripDriver').value.trim();
         const tripName = document.getElementById('tripName').value.trim();
-        const tDate = document.getElementById('tripDate').value;
+        // تنسيق التاريخ والوقت المرسل
+        const tDate = document.getElementById('tripDate').value.replace('T', ' ');
         const tRev = parseFloat(document.getElementById('totalRevEGP').textContent) || 0;
         const tFee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
         
@@ -473,13 +488,14 @@
             if(recentTripsDB.length > 10) recentTripsDB.pop();
             renderRecentTrips();
 
-            navNew(); // تفريغ النموذج لمشوار جديد
+            navNew(); 
         })
         .catch(err => { toast('❌ Error.', 'error'); btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; });
     }
 
     function saveFinance() {
-        const payload = { record_type: "finance", fin_type: document.getElementById('finType').value, category: document.getElementById('finCategory').value, amount: parseFloat(document.getElementById('finAmount').value), date: document.getElementById('finDate').value, notes: document.getElementById('finNotes').value, added_by: loggedInUser };
+        const tDate = document.getElementById('finDate').value.replace('T', ' ');
+        const payload = { record_type: "finance", fin_type: document.getElementById('finType').value, category: document.getElementById('finCategory').value, amount: parseFloat(document.getElementById('finAmount').value), date: tDate, notes: document.getElementById('finNotes').value, added_by: loggedInUser };
         const btn = event.target; btn.innerText = "⏳ Saving..."; btn.disabled = true;
         
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
