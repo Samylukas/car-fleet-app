@@ -90,7 +90,6 @@
         .master-card { background: #f9fbfd; border: 1px solid #e1e8ed; padding: 15px; border-radius: 10px; width: 100%; overflow: hidden; }
         .master-card h3 { color: #1e3c72; margin-bottom: 15px; border-bottom: 2px solid #27ae60; padding-bottom: 5px; font-size: 1.1rem; }
 
-        /* Report Formatting */
         .report-print-container { background: #fff; padding: 10px; border-radius: 8px; direction: rtl; width: 100%; overflow-x: auto; } 
         .report-print-container table { font-size: 0.75rem; border: 1px solid #1e3c72; width: 100%; border-collapse: collapse; margin-top: 10px; white-space: normal; }
         .report-print-container table th { background: #fdf5e6 !important; color: #1e3c72 !important; padding: 5px; border: 1px solid #1e3c72; font-weight: bold; position: static !important; } 
@@ -387,9 +386,10 @@
             }
         }, 2000); 
 
-        document.getElementById('tripDate').value = getCurrentLocalDateTime();
-        document.getElementById('finDate').value = getCurrentLocalDateTime();
-        document.getElementById('mntDate').value = getCurrentLocalDateTime();
+        clearForm();
+        clearFinanceForm();
+        clearMaintenanceForm();
+
         document.getElementById('repFrom').value = new Date().toISOString().slice(0, 10);
         document.getElementById('repTo').value = new Date().toISOString().slice(0, 10);
         
@@ -479,7 +479,7 @@
         document.getElementById('revEGP').value = '0'; document.getElementById('revUSD').value = '0'; document.getElementById('revEUR').value = '0'; document.getElementById('revGBP').value = '0';
         document.getElementById('tipEGP').value = '0'; document.getElementById('tipUSD').value = '0'; document.getElementById('tipEUR').value = '0'; document.getElementById('tipGBP').value = '0';
         document.getElementById('tripDriverFee').value = ''; document.getElementById('tripNotes').value = '';
-        document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals(); toast('Form cleared 🧹', 'info');
+        document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals();
     }
 
     function loadTripIntoForm(index) {
@@ -499,7 +499,7 @@
     function navLast() { loadTripIntoForm(recentTripsDB.length - 1); } 
     function navPrev() { if(currentRecordIndex === -1) loadTripIntoForm(recentTripsDB.length - 1); else if(currentRecordIndex > 0) loadTripIntoForm(currentRecordIndex - 1); else toast('Already at oldest record', 'info'); }
     function navNext() { if(currentRecordIndex === -1 || currentRecordIndex === recentTripsDB.length - 1) toast('Already at newest record', 'info'); else loadTripIntoForm(currentRecordIndex + 1); }
-    function navNew() { clearForm(); }
+    function navNew() { clearForm(); toast('Form cleared 🧹', 'info'); }
 
     function renderRecentTrips() {
         const tbody = document.querySelector('#recentTripsTable tbody');
@@ -517,7 +517,7 @@
         document.getElementById('saveFinanceBtn').innerText = "Submit Transaction 💾"; document.getElementById('saveFinanceBtn').classList.replace('btn-blue', 'btn-green');
         document.getElementById('finType').value = 'Expense'; document.getElementById('finCategory').value = '';
         document.getElementById('finAmount').value = ''; document.getElementById('finNotes').value = '';
-        document.getElementById('finDate').value = getCurrentLocalDateTime(); toast('Form cleared 🧹', 'info');
+        document.getElementById('finDate').value = getCurrentLocalDateTime();
     }
 
     function loadFinanceIntoForm(index) {
@@ -554,7 +554,7 @@
         document.getElementById('saveMaintenanceBtn').innerText = "Submit Maintenance 💾"; document.getElementById('saveMaintenanceBtn').classList.replace('btn-blue', 'btn-green');
         document.getElementById('mntType').value = ''; document.getElementById('mntAmount').value = '';
         document.getElementById('mntLocation').value = ''; document.getElementById('mntOdometer').value = ''; document.getElementById('mntNotes').value = '';
-        document.getElementById('mntDate').value = getCurrentLocalDateTime(); toast('Form cleared 🧹', 'info');
+        document.getElementById('mntDate').value = getCurrentLocalDateTime();
     }
 
     function loadMaintenanceIntoForm(index) {
