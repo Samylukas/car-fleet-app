@@ -12,6 +12,7 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; overflow-x: hidden; scroll-behavior: smooth; }
 
+        /* Splash Screen */
         #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.5s ease, visibility 0.5s ease; }
         @keyframes driveForward {
             0% { transform: scale(0.1) translateY(-100px); opacity: 0; }
@@ -23,6 +24,7 @@
         .spinner { width: 40px; height: 40px; border: 4px solid rgba(30, 60, 114, 0.1); border-top-color: #f39c12; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* UI Elements */
         #loginOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,60,114,0.95), rgba(42,82,152,0.95)); display: flex; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.5s ease; }
         .login-card { background: #ffffff; padding: 35px 25px; border-radius: 16px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .login-card h2 { color: #1e3c72; margin-bottom: 8px; font-size: 1.6rem; }
@@ -81,7 +83,7 @@
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid #eee; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; background: #fff; text-align: center; white-space: nowrap; }
         th, td { padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.85rem; }
-        th { background: #1e3c72; color: white; position: sticky; top: 0; font-weight: 600; }
+        th { background: #f39c12; color: white; position: sticky; top: 0; font-weight: 600; }
         .total-row { background: #eafaf1; font-weight: bold; font-size: 1rem; text-align: left;}
         .total-row td { text-align: left; }
         .recent-table th { background: #f39c12; color: #fff; }
@@ -150,7 +152,6 @@
                 <div class="record-nav">
                     <button class="btn btn-green" onclick="navNew()">🆕 New</button>
                     <button class="btn btn-gray" onclick="clearForm()">🧹 Clear</button>
-                    <button class="btn btn-red" onclick="cancelCurrentTrip()">❌ Cancel</button>
                     <button class="btn btn-outline" onclick="navFirst()">⏪ First</button>
                     <button class="btn btn-outline" onclick="navPrev()">◀️ Prev</button>
                     <button class="btn btn-outline" onclick="navNext()">Next ▶️</button>
@@ -335,7 +336,6 @@
         return now.toISOString().slice(0, 16);
     }
 
-    // إخفاء الـ Splash Screen بعد ثانيتين بالضبط
     window.addEventListener('load', () => {
         setTimeout(() => {
             const splash = document.getElementById('splashScreen');
@@ -364,7 +364,11 @@
                     document.getElementById('loginBtn').innerText = "Login 🚀"; document.getElementById('loginBtn').disabled = false;
 
                     clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
+                    
                     recentTripsDB = data.recent || [];
+                    // فرز المصفوفة زمنياً من الأقدم للأحدث
+                    recentTripsDB.sort((a, b) => a.date.localeCompare(b.date));
+                    
                     updateDropdownsAndTables(); renderRecentTrips();
                 }
             }).catch(err => { console.log('Error fetching initial data'); });
@@ -381,9 +385,9 @@
         document.getElementById('driverList').innerHTML = driversDB.map(i => `<option value="${i}">`).join('');
         document.getElementById('tripList').innerHTML   = tripsDB.map(i => `<option value="${i.name}">`).join('');
 
-        document.getElementById('mClientTable').querySelector('tbody').innerHTML = clientsDB.map((c, i) => `<tr><td style="text-align:left;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('client', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Clients', '${c}', ${i})">🗑️</button></td></tr>`).join('');
-        document.getElementById('mDriverTable').querySelector('tbody').innerHTML = driversDB.map((d, i) => `<tr><td style="text-align:left;">${d}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('driver', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Drivers', '${d}', ${i})">🗑️</button></td></tr>`).join('');
-        document.getElementById('mTripTable').querySelector('tbody').innerHTML = tripsDB.map((t, i) => `<tr><td style="text-align:left;">${t.name}</td><td>${t.price}</td><td>${t.driverRate}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('trip', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i})">🗑️</button></td></tr>`).join('');
+        document.getElementById('mClientTable').querySelector('tbody').innerHTML = clientsDB.map((c, i) => `<tr><td style="text-align:left;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('client', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Clients', '${c}', ${i}, this)">🗑️</button></td></tr>`).join('');
+        document.getElementById('mDriverTable').querySelector('tbody').innerHTML = driversDB.map((d, i) => `<tr><td style="text-align:left;">${d}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('driver', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Drivers', '${d}', ${i}, this)">🗑️</button></td></tr>`).join('');
+        document.getElementById('mTripTable').querySelector('tbody').innerHTML = tripsDB.map((t, i) => `<tr><td style="text-align:left;">${t.name}</td><td>${t.price}</td><td>${t.driverRate}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('trip', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i}, this)">🗑️</button></td></tr>`).join('');
         
         toggleReportTarget();
     }
@@ -453,11 +457,19 @@
         calcTotals(); window.scrollTo(0,0); toast(`Loaded record to edit`, 'success');
     }
 
+    // منطق الأزرار متوافق مع الترتيب الجديد (الأقدم أولاً)
+    function navFirst() { loadTripIntoForm(0); } 
+    function navLast() { loadTripIntoForm(recentTripsDB.length - 1); } 
+    function navPrev() { 
+        if(currentRecordIndex === -1) loadTripIntoForm(recentTripsDB.length - 1); 
+        else if(currentRecordIndex > 0) loadTripIntoForm(currentRecordIndex - 1); 
+        else toast('Already at oldest record', 'info'); 
+    }
+    function navNext() { 
+        if(currentRecordIndex === -1 || currentRecordIndex === recentTripsDB.length - 1) toast('Already at newest record', 'info'); 
+        else loadTripIntoForm(currentRecordIndex + 1); 
+    }
     function navNew() { clearForm(); }
-    function navFirst() { loadTripIntoForm(recentTripsDB.length - 1); } 
-    function navLast() { loadTripIntoForm(0); } 
-    function navPrev() { if(currentRecordIndex === -1) loadTripIntoForm(0); else loadTripIntoForm(currentRecordIndex + 1); }
-    function navNext() { if(currentRecordIndex <= 0) return toast('Already at newest record', 'info'); loadTripIntoForm(currentRecordIndex - 1); }
 
     function renderRecentTrips() {
         const tbody = document.querySelector('#recentTripsTable tbody');
@@ -615,7 +627,6 @@
         }
     }
 
-    // 🌟 الإضافة التلقائية للبيانات الماستر الجديدة 🌟
     function saveTrip() {
         const client = document.getElementById('tripClientSelect').value.trim();
         const driver = document.getElementById('tripDriverSelect').value.trim();
@@ -655,9 +666,13 @@
                     if(idx > -1) recentTripsDB[idx] = { id: editingTripId, date: tDate, client: client, driver: driver, trip: tripName, revenue: tRev, fee: tFee, notes: notes };
                 } else {
                     const tempId = "TRIP-" + Math.floor(Math.random() * 10000);
-                    recentTripsDB.unshift({ id: tempId, date: tDate, client: client, driver: driver, trip: tripName, revenue: tRev, fee: tFee, notes: notes });
-                    if(recentTripsDB.length > 15) recentTripsDB.pop();
+                    recentTripsDB.push({ id: tempId, date: tDate, client: client, driver: driver, trip: tripName, revenue: tRev, fee: tFee, notes: notes });
                 }
+                
+                // إعادة الفرز بعد الحفظ للحفاظ على الترتيب الزمني للأقدم للأحدث
+                recentTripsDB.sort((a, b) => a.date.localeCompare(b.date));
+                if(recentTripsDB.length > 15) recentTripsDB.shift(); // يحذف الأقدم
+
                 renderRecentTrips(); 
                 clearForm(); 
             } catch(e) {
