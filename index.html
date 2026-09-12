@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samy Fleet Pro 2026</title>
+    <title>Samy Fleet Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,7 +13,7 @@
         body { background-color: #f4f7f6; color: #333; overflow-x: hidden; scroll-behavior: smooth; }
 
         /* =========================================
-           Splash Screen Animation (العربية من الخلفية)
+           Splash Screen Animation
            ========================================= */
         #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.5s ease, visibility 0.5s ease; }
         
@@ -122,7 +122,7 @@
     <button class="scroll-btn" onclick="window.scrollTo(0, document.body.scrollHeight)">⬇️</button>
 </div>
 
-<!-- شاشة البداية مع الأنيميشن الجديد -->
+<!-- شاشة البداية مع الأنيميشن -->
 <div id="splashScreen">
     <div class="splash-logo">🚘</div>
     <div class="splash-title">Samy Fleet Pro</div>
@@ -213,9 +213,10 @@
         <div class="card" style="margin-top: 20px;">
             <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px; margin-bottom:15px;">🕒 Recent Trips</h3>
             <div class="table-responsive">
-                <table class="recent-table" id="recentTripsTable">
-                    <thead><tr><th>Date & Time</th><th>Client</th><th>Partner</th><th>Trip</th><th>Revenue</th><th>Fee</th><th>Action</th></tr></thead>
-                    <tbody><tr><td colspan="7" style="text-align:center; color:#7f8c8d;">Loading recent trips...</td></tr></tbody>
+                <table class="recent-table" id="recentTripsTable" style="width:100%;">
+                    <!-- تم إضافة عمود # هنا -->
+                    <thead><tr><th>#</th><th>Date & Time</th><th>Client</th><th>Partner</th><th>Trip</th><th>Revenue</th><th>Fee</th><th>Action</th></tr></thead>
+                    <tbody><tr><td colspan="8" style="text-align:center; color:#7f8c8d;">Loading recent trips...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -233,7 +234,7 @@
                         <button id="addClientBtn" class="btn btn-green" onclick="addMasterItem('client', this)">Add</button>
                     </div>
                     <div class="table-responsive" style="max-height:250px;">
-                        <table id="mClientTable"><thead><tr><th>Client Name</th><th>Action</th></tr></thead><tbody></tbody></table>
+                        <table id="mClientTable" style="width:100%;"><thead><tr><th>Client Name</th><th>Action</th></tr></thead><tbody></tbody></table>
                     </div>
                 </div>
 
@@ -244,7 +245,7 @@
                         <button id="addDriverBtn" class="btn btn-green" onclick="addMasterItem('driver', this)">Add</button>
                     </div>
                     <div class="table-responsive" style="max-height:250px;">
-                        <table id="mDriverTable"><thead><tr><th>Partner Name</th><th>Action</th></tr></thead><tbody></tbody></table>
+                        <table id="mDriverTable" style="width:100%;"><thead><tr><th>Partner Name</th><th>Action</th></tr></thead><tbody></tbody></table>
                     </div>
                 </div>
 
@@ -257,7 +258,7 @@
                         <button id="addTripMasterBtn" class="btn btn-green" style="padding:8px;" onclick="addMasterItem('trip', this)">Add / Update</button>
                     </div>
                     <div class="table-responsive" style="max-height:250px;">
-                        <table id="mTripTable"><thead><tr><th>Trip</th><th>Client Price</th><th>Partner Rate</th><th>Action</th></tr></thead><tbody></tbody></table>
+                        <table id="mTripTable" style="width:100%;"><thead><tr><th>Trip</th><th>Client Price</th><th>Partner Rate</th><th>Action</th></tr></thead><tbody></tbody></table>
                     </div>
                 </div>
             </div>
@@ -345,7 +346,7 @@
         return now.toISOString().slice(0, 16);
     }
 
-    // إخفاء الـ Splash Screen بعد ثانيتين بالضبط بشكل صارم ومستقل
+    // إخفاء الـ Splash Screen بعد ثانيتين بالضبط
     window.addEventListener('load', () => {
         setTimeout(() => {
             const splash = document.getElementById('splashScreen');
@@ -358,9 +359,9 @@
                         login.style.visibility = 'visible';
                         login.style.opacity = '1';
                     }
-                }, 500); // 0.5s for fade out effect
+                }, 500); 
             }
-        }, 2000); // 2 seconds strict timeout
+        }, 2000); 
 
         document.getElementById('tripDate').value = getCurrentLocalDateTime();
         document.getElementById('finDate').value = getCurrentLocalDateTime();
@@ -474,11 +475,12 @@
 
     function renderRecentTrips() {
         const tbody = document.querySelector('#recentTripsTable tbody');
-        if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#7f8c8d;">No recent trips</td></tr>'; return; }
+        if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#7f8c8d;">No recent trips</td></tr>'; return; }
         tbody.innerHTML = '';
         recentTripsDB.forEach((t, index) => { 
             let displayDate = t.date.replace('T', ' ').slice(0, 16);
-            tbody.innerHTML += `<tr><td style="direction:ltr;">${displayDate}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem; margin-right:5px;" onclick="loadTripIntoForm(${index})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="cancelTripIndex(${index})">🗑️</button></td></tr>`; 
+            // تم إضافة عمود المسلسل (index + 1) هنا
+            tbody.innerHTML += `<tr><td>${index + 1}</td><td style="direction:ltr;">${displayDate}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem; margin-right:5px;" onclick="loadTripIntoForm(${index})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="cancelTripIndex(${index})">🗑️</button></td></tr>`; 
         });
     }
 
