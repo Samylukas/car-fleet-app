@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Samy Fleet Pro</title>
+    <title>Samy Fleet Pro 2026</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,13 +12,26 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; overflow-x: hidden; scroll-behavior: smooth; }
 
-        #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.6s ease, visibility 0.6s ease; }
-        .splash-logo { font-size: 4rem; margin-bottom: 10px; }
-        .splash-title { font-size: 2.2rem; font-weight: bold; margin-bottom: 5px; }
-        .spinner { width: 45px; height: 45px; border: 4px solid rgba(30, 60, 114, 0.1); border-top-color: #f39c12; border-radius: 50%; animation: spin 1s linear infinite; }
+        /* =========================================
+           Splash Screen Animation (العربية من الخلفية)
+           ========================================= */
+        #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.5s ease, visibility 0.5s ease; }
+        
+        @keyframes driveForward {
+            0% { transform: scale(0.1) translateY(-100px); opacity: 0; }
+            80% { transform: scale(1.1) translateY(10px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        
+        .splash-logo { font-size: 5rem; margin-bottom: 10px; animation: driveForward 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .splash-title { font-size: 2.2rem; font-weight: bold; margin-bottom: 15px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(30, 60, 114, 0.1); border-top-color: #f39c12; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        #loginOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,60,114,0.95), rgba(42,82,152,0.95)); display: flex; justify-content: center; align-items: center; z-index: 99999; }
+        /* =========================================
+           Main Layout & Elements
+           ========================================= */
+        #loginOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,60,114,0.95), rgba(42,82,152,0.95)); display: flex; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.5s ease; }
         .login-card { background: #ffffff; padding: 35px 25px; border-radius: 16px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .login-card h2 { color: #1e3c72; margin-bottom: 8px; font-size: 1.6rem; }
         
@@ -75,7 +88,6 @@
         #toastStack { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
         .toast { color: white; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         
-        /* التعديل الجذري للمرونة وعدم خروج الجداول عن الإطار */
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid #eee; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; background: #fff; text-align: center; white-space: nowrap; }
         th, td { padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.85rem; }
@@ -110,6 +122,7 @@
     <button class="scroll-btn" onclick="window.scrollTo(0, document.body.scrollHeight)">⬇️</button>
 </div>
 
+<!-- شاشة البداية مع الأنيميشن الجديد -->
 <div id="splashScreen">
     <div class="splash-logo">🚘</div>
     <div class="splash-title">Samy Fleet Pro</div>
@@ -155,7 +168,6 @@
                 </div>
             </div>
 
-            <!-- تم تحويل القوائم إلى حقول بحث ذكية (Datalist) -->
             <div class="grid-form">
                 <div class="form-group">
                     <label>Client:</label>
@@ -333,7 +345,23 @@
         return now.toISOString().slice(0, 16);
     }
 
+    // إخفاء الـ Splash Screen بعد ثانيتين بالضبط بشكل صارم ومستقل
     window.addEventListener('load', () => {
+        setTimeout(() => {
+            const splash = document.getElementById('splashScreen');
+            const login = document.getElementById('loginOverlay');
+            if (splash) {
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    if (login) {
+                        login.style.visibility = 'visible';
+                        login.style.opacity = '1';
+                    }
+                }, 500); // 0.5s for fade out effect
+            }
+        }, 2000); // 2 seconds strict timeout
+
         document.getElementById('tripDate').value = getCurrentLocalDateTime();
         document.getElementById('finDate').value = getCurrentLocalDateTime();
         document.getElementById('repFrom').value = new Date().toISOString().slice(0, 10);
@@ -352,9 +380,7 @@
                     recentTripsDB = data.recent || [];
                     updateDropdownsAndTables(); renderRecentTrips();
                 }
-            }).catch(err => { toast('⚠️ Connection issue.', 'warn'); });
-
-        setTimeout(() => { document.getElementById('splashScreen').style.opacity = '0'; setTimeout(() => { document.getElementById('splashScreen').style.display = 'none'; document.getElementById('loginOverlay').style.visibility = 'visible'; document.getElementById('loginOverlay').style.opacity = '1'; }, 600); }, 2200);
+            }).catch(err => { console.log('Error fetching initial data'); });
     });
 
     function loadMasterEdit(type, index) {
@@ -364,7 +390,6 @@
     }
 
     function updateDropdownsAndTables() {
-        // تعبئة الـ Datalist بدلاً من الـ Select
         document.getElementById('clientList').innerHTML = clientsDB.map(i => `<option value="${i}">`).join('');
         document.getElementById('driverList').innerHTML = driversDB.map(i => `<option value="${i}">`).join('');
         document.getElementById('tripList').innerHTML   = tripsDB.map(i => `<option value="${i.name}">`).join('');
@@ -409,7 +434,7 @@
         if(sheetName === 'Trip_Types') tripsDB.splice(idx, 1);
         updateDropdownsAndTables();
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }) })
-        .then(() => toast('✅ Deleted', 'warn')).catch(() => toast('❌ Error', 'error'););
+        .then(() => toast('✅ Deleted', 'warn')).catch(() => toast('❌ Error', 'error'));
     }
 
     function onTripSelected() {
@@ -605,7 +630,6 @@
         
         if (!client || !driver || !tripName) return toast('⚠️ Please fill Client, Partner, and Trip Type!', 'error');
 
-        // منع الحفظ العشوائي لو الاسم مش في الجداول
         if (!clientsDB.includes(client)) return toast('⚠️ Client not found in Data Masters!', 'error');
         if (!driversDB.includes(driver)) return toast('⚠️ Partner not found in Data Masters!', 'error');
         if (!tripsDB.find(t => t.name === tripName)) return toast('⚠️ Trip Type not found in Data Masters!', 'error');
