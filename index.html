@@ -386,10 +386,7 @@
             }
         }, 2000); 
 
-        clearForm();
-        clearFinanceForm();
-        clearMaintenanceForm();
-
+        clearForm(); clearFinanceForm(); clearMaintenanceForm();
         document.getElementById('repFrom').value = new Date().toISOString().slice(0, 10);
         document.getElementById('repTo').value = new Date().toISOString().slice(0, 10);
         
@@ -398,19 +395,29 @@
             .then(data => {
                 if (data.status === 'success') {
                     const userSelect = document.getElementById('loginUser');
-                    data.users.forEach(u => { userSelect.innerHTML += `<option value="${u.username}">${u.username.toUpperCase()}</option>`; });
-                    if(data.users.length > 0) { userSelect.value = data.users[0].username; setTimeout(() => { document.getElementById('loginPass').focus(); }, 700); }
-                    document.getElementById('loginBtn').innerText = "Login 🚀"; document.getElementById('loginBtn').disabled = false;
+                    userSelect.innerHTML = '';
+                    if(data.users && data.users.length > 0) {
+                        data.users.forEach(u => { userSelect.innerHTML += `<option value="${u.username}">${u.username.toUpperCase()}</option>`; });
+                    } else {
+                        userSelect.innerHTML = `<option value="SAMY">SAMY</option>`;
+                    }
+                    userSelect.value = "SAMY";
+                    document.getElementById('loginBtn').innerText = "Login 🚀"; 
+                    document.getElementById('loginBtn').disabled = false;
 
                     clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
-                    
                     recentTripsDB = data.recent || []; recentTripsDB.sort((a, b) => a.date.localeCompare(b.date));
                     financesDB = data.finances || []; financesDB.sort((a, b) => a.date.localeCompare(b.date));
                     maintenanceDB = data.maintenance || []; maintenanceDB.sort((a, b) => a.date.localeCompare(b.date));
 
                     updateDropdownsAndTables(); renderRecentTrips(); renderFinances(); renderMaintenance();
                 }
-            }).catch(err => { console.log('Error fetching initial data'); });
+            }).catch(err => { 
+                const userSelect = document.getElementById('loginUser');
+                userSelect.innerHTML = `<option value="SAMY">SAMY</option>`;
+                document.getElementById('loginBtn').innerText = "Login 🚀"; 
+                document.getElementById('loginBtn').disabled = false;
+            });
     });
 
     function loadMasterEdit(type, index) {
@@ -511,7 +518,6 @@
         });
     }
 
-    // ================== Finance Logic ==================
     function clearFinanceForm() {
         editingFinanceId = null;
         document.getElementById('saveFinanceBtn').innerText = "Submit Transaction 💾"; document.getElementById('saveFinanceBtn').classList.replace('btn-blue', 'btn-green');
@@ -548,7 +554,6 @@
         .then(() => { financesDB.splice(index, 1); renderFinances(); toast('✅ تم الحذف بنجاح', 'warn'); }).catch(err => { toast('❌ خطأ', 'error'); btn.innerText = "🗑️"; btn.disabled = false; });
     }
 
-    // ================== Maintenance Logic ==================
     function clearMaintenanceForm() {
         editingMaintenanceId = null;
         document.getElementById('saveMaintenanceBtn').innerText = "Submit Maintenance 💾"; document.getElementById('saveMaintenanceBtn').classList.replace('btn-blue', 'btn-green');
@@ -584,7 +589,6 @@
         .then(() => { maintenanceDB.splice(index, 1); renderMaintenance(); toast('✅ تم الحذف بنجاح', 'warn'); }).catch(err => { toast('❌ خطأ', 'error'); btn.innerText = "🗑️"; btn.disabled = false; });
     }
 
-    // ================== Trip Delete ==================
     function cancelTripIndex(index) {
         if(!confirm('هل أنت متأكد من حذف هذا المشوار نهائياً من قاعدة البيانات؟')) return;
         const tripToDelete = recentTripsDB[index];
@@ -594,7 +598,6 @@
         .catch(err => { toast('❌ حدث خطأ', 'error'); btn.innerText = "🗑️"; btn.disabled = false; });
     }
 
-    // ================== Reports Logic ==================
     function toggleReportTarget() {
         const type = document.getElementById('reportType').value;
         const targetContainer = document.getElementById('targetContainer');
@@ -752,7 +755,6 @@
         }
     }
 
-    // ================== الحفظ الشامل (Save Logic) ==================
     function saveTrip() {
         const client = document.getElementById('tripClientSelect').value.trim();
         const driver = document.getElementById('tripDriverSelect').value.trim();
