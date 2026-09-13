@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Samy Fleet Pro 2026</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
@@ -57,7 +58,7 @@
         html[dir="rtl"] .pass-toggle-btn { right: auto; left: 10px; }
 
         .btn { border: none; padding: 10px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;}
-        .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } 
+        .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } .btn-purple { background: #8e44ad; }
         .btn-whatsapp { background: #25D366; color: white; }
         .btn-gray { background: #7f8c8d; } .btn-outline { background: #fff; color: #1e3c72; border: 1px solid #1e3c72; }
 
@@ -86,7 +87,10 @@
         .net-profit-card { background: #1e3c72; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .net-profit-card h2 { font-size: 2rem; margin: 10px 0; color: #f1c40f; }
 
-        /* Pure Native Print Engine Styles (Pharmacy Project Hack) */
+        /* The Mobile Long-Press Modal Hack */
+        #printModal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999999; display: none; flex-direction: column; padding: 15px; overflow-y: auto; }
+        .print-modal-bar { display: flex; justify-content: space-between; align-items:center; gap: 10px; margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 8px; }
+
         @media print {
             body * { visibility: hidden !important; }
             #reportPrintArea, #reportPrintArea * { visibility: visible !important; }
@@ -106,6 +110,17 @@
 </head>
 <body>
 <div id="toastStack"></div>
+
+<!-- Mobile Modal for Long-Press Save -->
+<div id="printModal">
+    <div class="print-modal-bar">
+        <h4 style="color:#1e3c72; margin:0;" data-tr="lbl_mobile_rep">📱 Mobile Report</h4>
+        <button class="btn btn-red" onclick="document.getElementById('printModal').style.display='none'">❌ Close / إغلاق</button>
+    </div>
+    <div id="printModalContent" style="background:#fff; padding:10px; border-radius:8px; width:100%; text-align:center;">
+        <!-- Image will be injected here -->
+    </div>
+</div>
 
 <div class="scroll-btn-group">
     <button class="scroll-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">⏫</button>
@@ -137,8 +152,6 @@
             <button class="btn btn-red" onclick="logout()" data-tr="logout">Logout 🚪</button>
         </div>
     </div>
-
-    <!-- No Dashboard Cards -->
 
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="showTab('addTripTab', this)" data-tr="tab_add">📝 Add Trip</button>
@@ -337,13 +350,13 @@
             
             <div class="btn-grid-container">
                 <button id="searchBtn" class="btn btn-blue" onclick="fetchReports()" data-tr="btn_search">Search 🔍</button>
-                <button class="btn btn-green" onclick="exportToExcel()">Excel 📊</button>
-                <!-- Native Pure Print (Pharmacy Hack) -->
-                <button class="btn btn-red" onclick="exportToPDF()" data-tr="btn_print">Print / Save PDF 🖨️</button>
+                <button class="btn btn-green" onclick="exportToExcel()" data-tr="btn_excel">PC Excel 📊</button>
+                <button class="btn btn-dark" onclick="exportToWindowsPDF()" data-tr="btn_print">PC Print 🖨️</button>
+                <button class="btn btn-purple" onclick="exportToMobileImage()" data-tr="btn_pdf_mobile">Mobile Report 📱</button>
                 <button class="btn btn-whatsapp" onclick="shareReportText()">WhatsApp Text 💬</button>
             </div>
             
-            <div id="reportPrintArea" class="report-print-container" style="margin-top:20px;">
+            <div id="reportPrintArea" class="report-print-container" style="margin-top:20px; background:#fff; padding:15px;">
                 <h3 id="printReportTitle" class="report-title-header"></h3>
                 <div class="table-responsive"><table id="reportsTable"><thead></thead><tbody></tbody></table></div>
                 <div id="netProfitSummary" style="display:none;"></div>
@@ -369,8 +382,8 @@
 
     let currentLang = 'en';
     const dict = {
-        'en': { username:"Username:", password:"Password:", logout:"Logout", dash_rev:"Monthly Profit (EGP)", dash_trips:"Monthly Trips", dash_top:"Top Partner", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_print:"Print / PDF 🖨️", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
-        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", dash_rev:"أرباح الشهر (EGP)", dash_trips:"عدد مشاوير الشهر", dash_top:"نجم الشهر (شريك)", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_print:"طباعة / PDF 🖨️", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
+        'en': { username:"Username:", password:"Password:", logout:"Logout", dash_rev:"Monthly Profit (EGP)", dash_trips:"Monthly Trips", dash_top:"Top Partner", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_excel:"PC Excel 📊", btn_print:"PC Print 🖨️", btn_pdf_mobile:"Mobile Report 📱", lbl_mobile_rep:"📱 Mobile Report", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
+        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", dash_rev:"أرباح الشهر (EGP)", dash_trips:"عدد مشاوير الشهر", dash_top:"نجم الشهر (شريك)", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_excel:"إكسيل للكمبيوتر 📊", btn_print:"طباعة للكمبيوتر 🖨️", btn_pdf_mobile:"تقرير الموبايل 📱", lbl_mobile_rep:"📱 تقرير الموبايل", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
     };
 
     function toggleLang() {
@@ -391,7 +404,6 @@
     function getCurrentLocalDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); }
     function generateID(prefix) { return prefix + "-" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000); }
     
-    // Robust Online/Offline Check
     function updateOnlineStatus() {
         const badge = document.getElementById('networkStatus');
         if (navigator.onLine) {
@@ -406,7 +418,7 @@
     }
     window.addEventListener('online', () => { updateOnlineStatus(); processSyncQueue(); });
     window.addEventListener('offline', updateOnlineStatus);
-    setInterval(updateOnlineStatus, 2000); // Forces UI update every 2 seconds
+    setInterval(updateOnlineStatus, 2000); 
 
     window.addEventListener('load', () => {
         document.documentElement.dir = 'ltr';
@@ -493,7 +505,6 @@
         renderRecentTrips(); renderFinances(); renderMaintenance();
     }
 
-    // Bulletproof Sync Engine
     function processSyncQueue() {
         if (isSyncing || syncQueue.length === 0) { updateOnlineStatus(); return; }
         if (!navigator.onLine) { updateOnlineStatus(); return; }
@@ -503,7 +514,6 @@
         const payload = syncQueue[0];
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         .then(() => { 
-            // Remove from queue ONLY if succeeded
             syncQueue.shift(); 
             localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue)); 
             isSyncing = false; 
@@ -511,7 +521,7 @@
         })
         .catch(() => { 
             isSyncing = false; 
-            updateOnlineStatus(); // Keep in queue
+            updateOnlineStatus(); 
         });
     }
 
@@ -679,13 +689,45 @@
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
-    // THE PURE PRINT FUNCTION (Used in Pharmacy Project) - Zero Async Bloat
-    function exportToPDF() {
-        try {
-            window.print();
-        } catch (e) {
-            alert("Print failed: " + e.message);
+
+    // ================== THE ULTIMATE MOBILE HACK ==================
+    // Since APK blocks downloads and window.print(), we show the report as an IMAGE!
+    function exportToMobileImage() {
+        const element = document.getElementById('reportPrintArea');
+        if (!element || element.innerHTML.indexOf('table') === -1) {
+            return toast('⚠️ Please search and generate report first!', 'warn');
         }
+        
+        toast('⏳ Generating Report Image... Please wait.', 'info');
+
+        // Give it a tiny delay to render
+        setTimeout(() => {
+            html2canvas(element, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const modalContent = document.getElementById('printModalContent');
+                
+                // Construct the image inside the modal with instructions
+                let instruction = currentLang === 'ar' ? '💡 اضغط مطولاً على الصورة لحفظها أو مشاركتها' : '💡 Long press the image to save or share';
+                modalContent.innerHTML = `<p style="color:#e74c3c; font-weight:bold; font-size:1.1rem; margin-bottom:10px;">${instruction}</p>
+                                          <img src="${imgData}" style="width:100%; border:2px solid #ccc; border-radius:8px;">`;
+                
+                // Show modal
+                document.getElementById('printModal').style.display = 'flex';
+                toast('✅ Report Image Ready!', 'success');
+            }).catch(err => {
+                toast('❌ Generation Error: ' + err.message, 'error');
+            });
+        }, 500);
+    }
+
+
+    // Standard Windows Print
+    function exportToWindowsPDF() {
+        const element = document.getElementById('reportPrintArea');
+        if (!element || element.innerHTML.indexOf('table') === -1) {
+            return toast('⚠️ Please search and generate report first!', 'warn');
+        }
+        window.print();
     }
 
     // WhatsApp Text Share Action
@@ -852,7 +894,7 @@
         let tot = 0;
         
         if (type === 'finance') {
-            thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_cat}</th><th>${dL.rep_amt}</th></tr>`;
+            document.querySelector('#reportsTable thead').innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_cat}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { 
                 tot += (r.type === 'Revenue' ? parseFloat(r.amount) : -parseFloat(r.amount)); 
                 tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${r.date.slice(0, 16)}</td><td>${r.type}</td><td>${r.category}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; 
@@ -860,7 +902,7 @@
             tbody.innerHTML += `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_fin} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else if (type === 'maintenance') {
-            thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_loc}</th><th>${dL.rep_amt}</th></tr>`;
+            document.querySelector('#reportsTable thead').innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_loc}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { 
                 tot += parseFloat(r.amount); 
                 tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${r.date.slice(0, 16)}</td><td>${r.type}</td><td>${r.location}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; 
@@ -868,7 +910,7 @@
             tbody.innerHTML += `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_mnt} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else {
-            thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.th_desc}</th><th>${dL.rep_amt}</th></tr>`;
+            document.querySelector('#reportsTable thead').innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.th_desc}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { 
                 tot += parseFloat(r.amt); 
                 tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${r.date.slice(0, 16)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td></tr>`; 
