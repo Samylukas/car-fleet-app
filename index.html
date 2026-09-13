@@ -42,7 +42,7 @@
         .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; width: 100%; }
         @media (max-width: 600px) { .grid-form { grid-template-columns: 1fr; } }
         
-        /* تكبير خانات المصروفات بشكل خاص */
+        /* Large inputs for Finance & Maintenance */
         .large-inputs .form-group input, .large-inputs .form-group select { padding: 16px; font-size: 1.1rem; }
 
         .form-group { display: flex; flex-direction: column; text-align: left; width: 100%; overflow: hidden; }
@@ -130,7 +130,7 @@
     <div class="header-bar">
         <div style="display:flex; align-items:center; gap:10px;">
             <span id="userInfo">👤 Welcome</span>
-            <div id="networkStatus" class="network-badge network-online">🟢 Online</div>
+            <div id="networkStatus" class="network-badge network-online" onclick="forceAppSync()">🟢 Online</div>
         </div>
         <div style="display:flex; gap:10px;">
             <button class="btn btn-outline" onclick="toggleLang()">🌐 AR/EN</button>
@@ -138,7 +138,7 @@
         </div>
     </div>
 
-    <!-- Removed Dashboard as requested -->
+    <!-- No Dashboard Cards -->
 
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="showTab('addTripTab', this)" data-tr="tab_add">📝 Add Trip</button>
@@ -263,7 +263,6 @@
     <div id="financeTab" class="tab-content admin-only">
         <div class="card">
             <h2 class="section-title" data-tr="tab_fin">💵 General Finance</h2>
-            <!-- Finance form styled with larger inputs -->
             <div class="grid-form large-inputs" style="grid-template-columns: 1fr;">
                 <div class="form-group"><label data-tr="rep_type">Type:</label><select id="finType"><option value="Expense" style="color:red;">Expense</option><option value="Revenue" style="color:green;">Revenue</option></select></div>
                 <div class="form-group"><label data-tr="rep_cat">Category / Item:</label><input type="text" id="finCategory" placeholder="e.g. Office Supplies..."></div>
@@ -339,7 +338,7 @@
             <div class="btn-grid-container">
                 <button id="searchBtn" class="btn btn-blue" onclick="fetchReports()" data-tr="btn_search">Search 🔍</button>
                 <button class="btn btn-green" onclick="exportToExcel()">Excel 📊</button>
-                <!-- Native Print Button (Pharmacy Style) -->
+                <!-- Native Pure Print (Pharmacy Hack) -->
                 <button class="btn btn-red" onclick="exportToPDF()" data-tr="btn_print">Print / Save PDF 🖨️</button>
                 <button class="btn btn-whatsapp" onclick="shareReportText()">WhatsApp Text 💬</button>
             </div>
@@ -392,25 +391,27 @@
     function getCurrentLocalDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); }
     function generateID(prefix) { return prefix + "-" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000); }
     
-    function updateOnlineStatusDisplay() {
+    // Robust Online/Offline Check
+    function updateOnlineStatus() {
         const badge = document.getElementById('networkStatus');
         if (navigator.onLine) {
-            badge.className = 'network-badge network-online';
-            badge.innerHTML = '🟢 Online';
+            if (badge.innerHTML !== '🟢 Online' && !isSyncing) {
+                badge.className = 'network-badge network-online';
+                badge.innerHTML = '🟢 Online';
+            }
         } else {
             badge.className = 'network-badge network-offline';
             badge.innerHTML = '🔴 Offline';
         }
     }
-    window.addEventListener('online', () => { updateOnlineStatusDisplay(); processSyncQueue(); });
-    window.addEventListener('offline', updateOnlineStatusDisplay);
-
-    function forceAppSync() { localStorage.removeItem('fleet_data_cache'); location.reload(); }
+    window.addEventListener('online', () => { updateOnlineStatus(); processSyncQueue(); });
+    window.addEventListener('offline', updateOnlineStatus);
+    setInterval(updateOnlineStatus, 2000); // Forces UI update every 2 seconds
 
     window.addEventListener('load', () => {
         document.documentElement.dir = 'ltr';
         document.documentElement.lang = 'en';
-        updateOnlineStatusDisplay();
+        updateOnlineStatus();
 
         const session = localStorage.getItem('samy_logged_in_user');
         setTimeout(() => {
@@ -494,15 +495,15 @@
 
     // Bulletproof Sync Engine
     function processSyncQueue() {
-        if (isSyncing || syncQueue.length === 0) { updateOnlineStatusDisplay(); return; }
-        if (!navigator.onLine) { updateOnlineStatusDisplay(); return; }
+        if (isSyncing || syncQueue.length === 0) { updateOnlineStatus(); return; }
+        if (!navigator.onLine) { updateOnlineStatus(); return; }
         isSyncing = true; 
         document.getElementById('networkStatus').innerHTML = '🔄 Syncing...';
         
         const payload = syncQueue[0];
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         .then(() => { 
-            // Only remove from queue if fetch completely succeeded without network error
+            // Remove from queue ONLY if succeeded
             syncQueue.shift(); 
             localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue)); 
             isSyncing = false; 
@@ -510,7 +511,7 @@
         })
         .catch(() => { 
             isSyncing = false; 
-            updateOnlineStatusDisplay(); // Keep in queue if failed
+            updateOnlineStatus(); // Keep in queue
         });
     }
 
@@ -678,14 +679,13 @@
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
-    // Pure Print Engine
+    // THE PURE PRINT FUNCTION (Used in Pharmacy Project) - Zero Async Bloat
     function exportToPDF() {
-        const table = document.getElementById('reportsTable');
-        const summary = document.getElementById('netProfitSummary');
-        if ((!table || table.rows.length <= 1) && summary.style.display === 'none') {
-            return toast('⚠️ Please search and generate report first!', 'warn');
+        try {
+            window.print();
+        } catch (e) {
+            alert("Print failed: " + e.message);
         }
-        window.print();
     }
 
     // WhatsApp Text Share Action
