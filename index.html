@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Samy Fleet Pro 2026</title>
+    <!-- مكتبة الإكسيل فقط -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
@@ -54,7 +55,7 @@
         html[dir="rtl"] .pass-toggle-btn { right: auto; left: 10px; }
 
         .btn { border: none; padding: 10px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;}
-        .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } .btn-purple { background: #8e44ad; } .btn-dark { background: #2c3e50; }
+        .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } .btn-purple { background: #8e44ad; }
         .btn-whatsapp { background: #25D366; color: white; }
         .btn-gray { background: #7f8c8d; } .btn-outline { background: #fff; color: #1e3c72; border: 1px solid #1e3c72; }
 
@@ -83,7 +84,7 @@
         .net-profit-card { background: #1e3c72; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .net-profit-card h2 { font-size: 2rem; margin: 10px 0; color: #f1c40f; }
 
-        /* للطباعة العادية */
+        /* The Pure Native Print Engine (Pharmacy Style) */
         @media print {
             body * { visibility: hidden !important; }
             #reportPrintArea, #reportPrintArea * { visibility: visible !important; }
@@ -332,9 +333,10 @@
             
             <div class="btn-grid-container">
                 <button id="searchBtn" class="btn btn-blue" onclick="fetchReports()" data-tr="btn_search">Search 🔍</button>
-                <button class="btn btn-green" onclick="exportToExcel()">Excel 📊</button>
-                <!-- ZRRAR EL PRINT EL GEDEED -->
-                <button class="btn btn-red" onclick="exportToPDF()" data-tr="btn_print">Print / Save PDF 🖨️</button>
+                <button class="btn btn-green" onclick="exportToExcel()" data-tr="btn_excel">PC Excel 📊</button>
+                <button class="btn btn-red" onclick="exportToWindowsPDF()" data-tr="btn_print">Print / PDF 🖨️</button>
+                <!-- ZRRAR EL HOROOB LE CHROME -->
+                <button class="btn btn-purple" onclick="openInChrome()">🌐 Open in Browser (For Mobile Downloads)</button>
                 <button class="btn btn-whatsapp" onclick="shareReportText()">WhatsApp Text 💬</button>
             </div>
             
@@ -352,7 +354,7 @@
 </div>
 
 <script>
-    // لو غيرت اللينك في جوجل شيت، حط اللينك الجديد هنا بين العلامتين التنصيص
+    // اللينك الصريح بتاعك من الصورة الأخيرة 
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH8WrOZiqBqwYVo5NGc_Rg0EMS_m7LoB2bi1n6-NSYg3P7_uVLRzzq4dJAuJ28SPsMww/exec"; 
     
     let loggedInUser = ''; let userRole = '';
@@ -365,8 +367,8 @@
 
     let currentLang = 'en';
     const dict = {
-        'en': { username:"Username:", password:"Password:", logout:"Logout", dash_rev:"Monthly Profit (EGP)", dash_trips:"Monthly Trips", dash_top:"Top Partner", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_print:"Print / PDF 🖨️", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
-        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", dash_rev:"أرباح الشهر (EGP)", dash_trips:"عدد مشاوير الشهر", dash_top:"نجم الشهر (شريك)", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_print:"طباعة / PDF 🖨️", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
+        'en': { username:"Username:", password:"Password:", logout:"Logout", dash_rev:"Monthly Profit (EGP)", dash_trips:"Monthly Trips", dash_top:"Top Partner", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_excel:"Excel 📊", btn_print:"Print / PDF 🖨️", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
+        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", dash_rev:"أرباح الشهر (EGP)", dash_trips:"عدد مشاوير الشهر", dash_top:"نجم الشهر (شريك)", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_excel:"إكسيل 📊", btn_print:"طباعة / PDF 🖨️", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
     };
 
     function toggleLang() {
@@ -387,6 +389,7 @@
     function getCurrentLocalDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); }
     function generateID(prefix) { return prefix + "-" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000); }
     
+    // ================= REAL NETWORK PING =================
     function updateOnlineStatus() {
         fetch("https://www.google.com/favicon.ico?t=" + new Date().getTime(), { mode: 'no-cors', cache: 'no-store' })
         .then(() => {
@@ -571,6 +574,8 @@
         localStorage.setItem('fleet_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB}));
         
         renderRecentTrips(); clearForm();
+        
+        // بتبعت البارامتر الصح backend لل edit
         addToSyncQueue({ record_type: editingTripId ? "edit_trip" : "trip", trip_id: targetId, client_name: client, driver_name: driverName, vehicle_type: vType, trip_name: tripName, date: tDate, notes: notes, revenue: rev, driver_fee: fee });
         toast(`✅ Saved!`, 'success');
     }
@@ -675,59 +680,36 @@
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
 
-    // ================== THE HIDDEN IFRAME PRINT HACK (PHARMACY STYLE) ==================
-    function exportToPDF() {
-        const table = document.getElementById('reportsTable');
-        const summary = document.getElementById('netProfitSummary');
-        if ((!table || table.rows.length <= 1) && summary.style.display === 'none') {
-            return toast('⚠️ Please search and generate report first!', 'warn');
-        }
-
-        let iframe = document.getElementById('printFrame');
-        if (!iframe) {
-            iframe = document.createElement('iframe');
-            iframe.id = 'printFrame';
-            iframe.style.position = 'absolute';
-            iframe.style.top = '-10000px'; 
-            document.body.appendChild(iframe);
-        }
+    // ================== THE BROWSER ESCAPE HACK ==================
+    function openInChrome() {
+        toast('⏳ جاري الفتح في المتصفح للتحميل...', 'info');
         
-        const doc = iframe.contentWindow.document;
-        const titleText = document.getElementById('printReportTitle').innerHTML;
-        const dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+        setTimeout(() => {
+            const currentUrl = window.location.href;
+            const cleanUrl = currentUrl.replace(/^https?:\/\//, '');
+            
+            const intentUrl = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end`;
+            
+            try {
+                window.location.href = intentUrl;
+            } catch (e) {
+                console.log("Intent failed");
+            }
+            
+            setTimeout(() => {
+                window.open(currentUrl, '_system') || window.open(currentUrl, '_blank');
+            }, 1000);
+            
+        }, 500);
+    }
 
-        doc.open();
-        doc.write(`
-            <html dir="${dir}">
-            <head>
-                <title>Fleet Report</title>
-                <style>
-                    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; padding: 20px; color: #000; background: #fff; }
-                    .header { text-align: center; color: #1e3c72; margin-bottom: 20px; border-bottom: 2px solid #f39c12; padding-bottom: 10px; font-size: 22px; font-weight: bold; }
-                    table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 20px; page-break-inside: auto; }
-                    tr { page-break-inside: avoid; page-break-after: auto; }
-                    th, td { border: 1px solid #000; padding: 10px; text-align: center; }
-                    th { background-color: #1e3c72 !important; color: white !important; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    .total-row td { background-color: #f39c12 !important; color: white !important; font-weight: bold; font-size: 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    .summary-box { border: 2px solid #1e3c72; padding: 15px; text-align: center; border-radius: 8px; font-weight: bold; margin-top: 20px; page-break-inside: avoid; }
-                </style>
-            </head>
-            <body>
-                <div class="header">${titleText}</div>
-                ${table.outerHTML}
-                ${summary.style.display !== 'none' ? '<div class="summary-box">' + summary.innerHTML + '</div>' : ''}
-                <script>
-                    window.onload = function() { 
-                        setTimeout(function() { 
-                            window.focus(); 
-                            window.print(); 
-                        }, 500); 
-                    };
-                <\/script>
-            </body>
-            </html>
-        `);
-        doc.close();
+    // Standard Windows/Mobile Print (الطباعة الصريحة المباشرة)
+    function exportToWindowsPDF() {
+        try {
+            window.print();
+        } catch (e) {
+            alert("Print failed: " + e.message);
+        }
     }
 
     // WhatsApp Text Share Action
@@ -795,7 +777,7 @@
             lbl.innerText = dL.trip;
             tripsDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`);
         } else if (type === 'finance' || type === 'maintenance' || type === 'net_profit') {
-            targetContainer.style.display = 'none'; // Hide Target for these
+            targetContainer.style.display = 'none'; 
         } else {
             lbl.innerText = dL.target;
         }
