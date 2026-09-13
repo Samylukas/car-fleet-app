@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Samy Fleet Pro 2026</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
@@ -52,8 +51,6 @@
         .form-group { display: flex; flex-direction: column; text-align: left; width: 100%; overflow: hidden; }
         html[dir="rtl"] .form-group { text-align: right; }
         .form-group label { font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #2c3e50; }
-        
-        /* Clean Dropdown Fix - Removes Scrollbar Bug */
         .form-group input, .form-group select { padding: 11px; border: 1px solid #dcdde1; border-radius: 8px; font-size: 0.95rem; outline: none; background: #f8f9fa; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         .pass-wrapper { position: relative; width: 100%; }
@@ -343,7 +340,7 @@
                 <button id="searchBtn" class="btn btn-blue" onclick="fetchReports()" data-tr="btn_search">Search 🔍</button>
                 <button class="btn btn-green" onclick="exportToExcel()">Excel 📊</button>
                 <button class="btn btn-red" onclick="exportToWindowsPDF()">Windows Print 🖨️</button>
-                <button class="btn btn-purple" onclick="exportToMobilePDF()">Mobile Capture 📱</button>
+                <button class="btn btn-purple" onclick="shareReport()">Share / Save 📲</button>
             </div>
             
             <div id="reportPrintArea" class="report-print-container" style="margin-top:20px;">
@@ -369,7 +366,6 @@
     let isSyncing = false;
     let editingMasterIndex = { client: -1, driver: -1, trip: -1 };
 
-    // Default Language: English
     let currentLang = 'en';
     const dict = {
         'en': { username:"Username:", password:"Password:", logout:"Logout", dash_rev:"Monthly Profit (EGP)", dash_trips:"Monthly Trips", dash_top:"Top Partner", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_print:"Print/PDF 📄", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", th_num:"#", th_desc:"Description / Trip", th_tot:"Total Balance" },
@@ -476,7 +472,6 @@
             mBody.innerHTML = tripsDB.map((t, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${t.name}</td><td>${t.lp||0}/${t.lr||0}</td><td>${t.mp||0}/${t.mr||0}</td><td>${t.cp||0}/${t.cr||0}</td><td>${t.bp||0}/${t.br||0}</td><td><button class="btn btn-blue" onclick="loadMasterEdit('trip', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
         }
         
-        // Auto Populate Targets
         toggleReportTarget();
         renderRecentTrips(); renderFinances(); renderMaintenance(); updateDashboard();
     }
@@ -671,22 +666,36 @@
         window.print();
     }
 
-    // Mobile Capture Action
-    function exportToMobilePDF() {
-        const element = document.getElementById('reportPrintArea');
-        if (!element || element.innerHTML.indexOf('table') === -1) {
+    // Native Web Share Action for Mobile (Opens WhatsApp, Drive, Files)
+    function shareReport() {
+        const title = document.getElementById('printReportTitle').innerText;
+        const table = document.getElementById('reportsTable');
+        if (!table || table.rows.length <= 1) {
             return toast('⚠️ Please search and generate report first!', 'warn');
         }
-        toast('📸 Capturing Mobile Report...', 'info');
-        html2canvas(element, { scale: 2 }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'Report_' + Date.now() + '.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            toast('✅ Report Image Saved!', 'success');
-        }).catch(err => {
-            toast('❌ Capture Error: ' + err.message, 'error');
-        });
+
+        let reportText = `🚘 ${title}\n\n`;
+        for (let i = 0; i < table.rows.length; i++) {
+            let cells = table.rows[i].cells;
+            let rowTxt = [];
+            for (let j = 0; j < cells.length; j++) {
+                rowTxt.push(cells[j].innerText.trim());
+            }
+            reportText += rowTxt.join(' | ') + '\n';
+        }
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'Samy Fleet Report',
+                text: reportText
+            }).then(() => {
+                toast('✅ Shared Successfully!', 'success');
+            }).catch(() => {
+                window.open(`https://wa.me/?text=${encodeURIComponent(reportText)}`, '_blank');
+            });
+        } else {
+            window.open(`https://wa.me/?text=${encodeURIComponent(reportText)}`, '_blank');
+        }
     }
 
     // Excel Export Action
