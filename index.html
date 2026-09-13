@@ -12,7 +12,6 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; overflow-x: hidden; scroll-behavior: smooth; }
 
-        /* Splash Screen */
         #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.5s ease, visibility 0.5s ease; }
         @keyframes driveForward { 0% { transform: scale(0.1) translateY(-100px); opacity: 0; } 80% { transform: scale(1.1) translateY(10px); opacity: 1; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
         .splash-logo { font-size: 5rem; margin-bottom: 10px; animation: driveForward 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
@@ -20,7 +19,6 @@
         .spinner { width: 40px; height: 40px; border: 4px solid rgba(30, 60, 114, 0.1); border-top-color: #f39c12; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Activation Screen */
         #activationOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, #1e3c72, #2a5298); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999999; display: none; }
         .activation-card { background: #fff; padding: 40px 30px; border-radius: 16px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
         .activation-card h2 { color: #e74c3c; margin-bottom: 15px; font-size: 1.8rem; }
@@ -28,7 +26,6 @@
         .activation-card input { width: 100%; padding: 12px; border: 2px solid #bdc3c7; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; outline: none; transition: 0.3s; }
         .activation-card input:focus { border-color: #27ae60; box-shadow: 0 0 8px rgba(39, 174, 96, 0.3); }
 
-        /* Login Screen */
         #loginOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,60,114,0.95), rgba(42,82,152,0.95)); display: flex; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.5s ease; visibility: hidden; opacity: 0; }
         .login-card { background: #ffffff; padding: 35px 25px; border-radius: 16px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .login-card h2 { color: #1e3c72; margin-bottom: 8px; font-size: 1.6rem; }
@@ -37,8 +34,7 @@
         .header-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .header-bar span { font-weight: bold; color: #1e3c72; font-size: 1.1rem; }
         
-        /* Network & Sync Badges */
-        .network-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-top: 5px; transition: 0.3s; }
+        .network-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-top: 5px; transition: 0.3s; cursor: pointer; }
         .network-online { background: #eafaf1; color: #27ae60; border: 1px solid #27ae60; }
         .network-sync { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .network-offline { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
@@ -82,9 +78,8 @@
         .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } 
         .btn-gray { background: #7f8c8d; } .btn-outline { background: #fff; color: #1e3c72; border: 1px solid #1e3c72; }
 
-        /* Page Up & Down Buttons */
         .scroll-btn-group { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
-        .scroll-btn { width: 50px; height: 50px; border-radius: 50%; background: #f39c12; color: white; border: 2px solid #fff; font-size: 1.5rem; cursor: pointer; opacity: 0.85; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.2s; display: flex; align-items: center; justify-content: center; }
+        .scroll-btn { width: 45px; height: 45px; border-radius: 50%; background: #f39c12; color: white; border: 2px solid #fff; font-size: 1.2rem; cursor: pointer; opacity: 0.85; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.2s; display: flex; align-items: center; justify-content: center; }
         .scroll-btn:hover { transform: scale(1.1); opacity: 1; }
 
         #toastStack { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
@@ -149,7 +144,11 @@
 
 <div class="app-container" id="mainApp" style="display:none;">
     <div class="header-bar">
-        <div><span id="userInfo">👤 Welcome</span><div id="networkStatus" class="network-badge network-online">🟢 Online</div></div>
+        <div>
+            <span id="userInfo">👤 Welcome</span>
+            <!-- زر التحديث الإجباري السحري -->
+            <div id="networkStatus" class="network-badge network-online" onclick="forceAppSync()" title="اضغط لتحديث البيانات إجبارياً">🟢 Online</div>
+        </div>
         <button class="btn btn-red" onclick="logout()">Logout 🚪</button>
     </div>
 
@@ -382,7 +381,7 @@
 </div>
 
 <script>
-    // === 🌟 الرابط الخاص بك 🌟 ===
+    // === 🌟 الرابط الموثوق لجوجل سكريبت 🌟 ===
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH8WrOZiqBqwYVo5NGc_Rg0EMS_m7LoB2bi1n6-NSYg3P7_uVLRzzq4dJAuJ28SPsMww/exec"; 
     
     let RATES = { USD: 50, EUR: 55, GBP: 65, EGP: 1 };
@@ -409,6 +408,13 @@
 
     function generateID(prefix) {
         return prefix + "-" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000);
+    }
+
+    // ================= زر تحديث الكاش الإجباري =================
+    function forceAppSync() {
+        toast('🔄 جاري تحديث البيانات وإصلاح الكاش...', 'info');
+        localStorage.removeItem('fleet_data_cache');
+        setTimeout(() => { location.reload(); }, 800);
     }
 
     // ================= نظام التفعيل والـ 30 يوم =================
@@ -444,7 +450,6 @@
         } else { toast('❌ كود التفعيل غير صحيح', 'error'); }
     }
 
-    // ================= نظام الجلسة وتخطي الدخول =================
     function checkSession() {
         const session = localStorage.getItem('samy_logged_in_user');
         if (session) {
@@ -459,31 +464,43 @@
         return false;
     }
 
-    // ================= Offline & Sync Logic =================
+    // ================= Load & Sync Logic =================
     function saveLocalCache() {
         const data = { status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB };
         localStorage.setItem('fleet_data_cache', JSON.stringify(data));
     }
 
     function loadDataToUI(data) {
-        usersDB = data.users || [];
-        const userSelect = document.getElementById('loginUser');
-        const currentVal = userSelect.value;
-        userSelect.innerHTML = '';
-        if(usersDB.length > 0) {
-            usersDB.forEach(u => { userSelect.innerHTML += `<option value="${u.username}">${u.username.toUpperCase()}</option>`; });
-            userSelect.value = currentVal || usersDB[0].username;
-        } else { 
-            userSelect.innerHTML = `<option value="SAMY">SAMY</option>`; 
-            userSelect.value = "SAMY";
-        }
-        
-        clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
-        recentTripsDB = data.recent || []; recentTripsDB.sort((a, b) => a.date.localeCompare(b.date));
-        financesDB = data.finances || []; financesDB.sort((a, b) => a.date.localeCompare(b.date));
-        maintenanceDB = data.maintenance || []; maintenanceDB.sort((a, b) => a.date.localeCompare(b.date));
+        try {
+            usersDB = data.users || [];
+            const userSelect = document.getElementById('loginUser');
+            if(userSelect) {
+                const currentVal = userSelect.value;
+                userSelect.innerHTML = '';
+                if(usersDB.length > 0) {
+                    usersDB.forEach(u => { userSelect.innerHTML += `<option value="${u.username}">${u.username.toUpperCase()}</option>`; });
+                    userSelect.value = currentVal || usersDB[0].username;
+                } else { 
+                    userSelect.innerHTML = `<option value="SAMY">SAMY</option>`; 
+                    userSelect.value = "SAMY";
+                }
+            }
 
-        updateDropdownsAndTables(); renderRecentTrips(); renderFinances(); renderMaintenance();
+            clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
+            
+            recentTripsDB = Array.isArray(data.recent) ? data.recent : []; 
+            recentTripsDB.sort((a, b) => String(a.date||"").localeCompare(String(b.date||"")));
+            
+            financesDB = Array.isArray(data.finances) ? data.finances : []; 
+            financesDB.sort((a, b) => String(a.date||"").localeCompare(String(b.date||"")));
+            
+            maintenanceDB = Array.isArray(data.maintenance) ? data.maintenance : []; 
+            maintenanceDB.sort((a, b) => String(a.date||"").localeCompare(String(b.date||"")));
+
+            updateDropdownsAndTables(); renderRecentTrips(); renderFinances(); renderMaintenance();
+        } catch(e) {
+            console.error("UI Render Error:", e);
+        }
     }
 
     function addToSyncQueue(payload) {
@@ -528,7 +545,6 @@
     // ================= Initialization =================
     window.addEventListener('load', () => {
         if (!checkTrialStatus()) return;
-
         const isLoggedIn = checkSession();
 
         setTimeout(() => {
@@ -548,20 +564,22 @@
         document.getElementById('repFrom').value = new Date().toISOString().slice(0, 10);
         document.getElementById('repTo').value = new Date().toISOString().slice(0, 10);
 
-        // 1. Boot from Cache instantly
+        // 1. Boot from Safe Cache
         let cached = localStorage.getItem('fleet_data_cache');
         if (cached) { 
             try { 
                 const pData = JSON.parse(cached);
                 loadDataToUI(pData); 
-            } catch(e) {} 
+            } catch(e) {
+                localStorage.removeItem('fleet_data_cache');
+            } 
         } else {
             usersDB = [{username: "SAMY", password: "852", role: "Admin"}];
             const userSelect = document.getElementById('loginUser');
             if(userSelect && userSelect.children.length === 0) userSelect.innerHTML = `<option value="SAMY">SAMY</option>`;
         }
         
-        // 2. Fetch fresh data in background
+        // 2. Fetch fresh data
         fetch(GOOGLE_SCRIPT_URL + "?action=getInitialData", { redirect: 'follow' })
             .then(res => res.json())
             .then(data => {
@@ -570,7 +588,12 @@
                     loadDataToUI(data);
                     processSyncQueue();
                 }
-            }).catch(err => { console.log("Offline mode - using local cache."); });
+            }).catch(err => { 
+                console.log("Fetch Error / Offline", err);
+                if(recentTripsDB.length === 0) renderRecentTrips();
+                if(financesDB.length === 0) renderFinances();
+                if(maintenanceDB.length === 0) renderMaintenance();
+            });
     });
 
     window.addEventListener('online', processSyncQueue);
@@ -685,7 +708,7 @@
         currentRecordIndex = index; const trip = recentTripsDB[index]; 
         editingTripId = trip.id;
         document.getElementById('saveTripBtn').innerText = "Update Trip (تعديل السجل) 🔄"; document.getElementById('saveTripBtn').classList.replace('btn-green', 'btn-blue');
-        document.getElementById('tripDate').value = trip.date.includes('T') ? trip.date.slice(0,16) : trip.date.replace(' ', 'T').slice(0,16); 
+        document.getElementById('tripDate').value = (trip.date||"").includes('T') ? trip.date.slice(0,16) : (trip.date||"").replace(' ', 'T').slice(0,16); 
         document.getElementById('tripClientSelect').value = trip.client || ''; document.getElementById('tripDriverSelect').value = trip.driver || ''; document.getElementById('tripNameSelect').value = trip.trip || '';
         document.getElementById('revEGP').value = trip.revenue || 0; document.getElementById('tripDriverFee').value = trip.fee || 0;
         document.getElementById('revUSD').value = 0; document.getElementById('revEUR').value = 0; document.getElementById('revGBP').value = 0; document.getElementById('tripNotes').value = trip.notes || ""; 
@@ -703,7 +726,7 @@
         if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#7f8c8d;">No trips yet</td></tr>'; return; }
         tbody.innerHTML = '';
         recentTripsDB.forEach((t, index) => { 
-            let displayDate = t.date.replace('T', ' ').slice(0, 16);
+            let displayDate = (t.date||"").replace('T', ' ').slice(0, 16);
             tbody.innerHTML += `<tr><td>${index + 1}</td><td style="direction:ltr;">${displayDate}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem; margin-right:5px;" onclick="loadTripIntoForm(${index})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="cancelTripIndex(${index})">🗑️</button></td></tr>`; 
         });
     }
@@ -743,7 +766,7 @@
             recentTripsDB.push({ id: targetId, date: tDate, client: client, driver: driver, trip: tripName, revenue: tRev, fee: tFee, notes: notes });
         }
         
-        recentTripsDB.sort((a, b) => a.date.localeCompare(b.date));
+        recentTripsDB.sort((a, b) => String(a.date||"").localeCompare(String(b.date||"")));
         renderRecentTrips(); saveLocalCache(); clearForm(); toast('✅ Saved Successfully!', 'success');
         
         addToSyncQueue({ record_type: recordType, trip_id: targetId, client_name: client, driver_name: driver, trip_name: tripName, date: tDate, notes: notes, revenue: tRev, driver_fee: tFee });
@@ -769,7 +792,7 @@
     function loadFinanceIntoForm(index) {
         const f = financesDB[index]; editingFinanceId = f.id;
         document.getElementById('saveFinanceBtn').innerText = "Update Transaction 🔄"; document.getElementById('saveFinanceBtn').classList.replace('btn-green', 'btn-blue');
-        document.getElementById('finDate').value = f.date.includes('T') ? f.date.slice(0,16) : f.date.replace(' ', 'T').slice(0,16);
+        document.getElementById('finDate').value = (f.date||"").includes('T') ? f.date.slice(0,16) : (f.date||"").replace(' ', 'T').slice(0,16);
         document.getElementById('finType').value = f.type; document.getElementById('finCategory').value = f.category;
         document.getElementById('finAmount').value = f.amount; document.getElementById('finNotes').value = f.notes;
         window.scrollTo({top: 0, behavior: 'smooth'}); toast(`Loaded record to edit`, 'success');
@@ -780,7 +803,7 @@
         if(financesDB.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#7f8c8d;">No transactions yet</td></tr>'; return; }
         tbody.innerHTML = '';
         financesDB.forEach((f, index) => { 
-            let displayDate = f.date.replace('T', ' ').slice(0, 16);
+            let displayDate = (f.date||"").replace('T', ' ').slice(0, 16);
             let color = f.type === 'Revenue' ? '#27ae60' : '#e74c3c';
             tbody.innerHTML += `<tr><td>${index + 1}</td><td style="direction:ltr;">${displayDate}</td><td style="color:${color}; font-weight:bold;">${f.type}</td><td>${f.category}</td><td style="font-weight:bold;">${f.amount}</td><td>${f.notes}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem; margin-right:5px;" onclick="loadFinanceIntoForm(${index})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteFinance(${index})">🗑️</button></td></tr>`; 
         });
@@ -803,7 +826,7 @@
             if(idx > -1) financesDB[idx] = { id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes };
         } else { financesDB.push({ id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes }); }
         
-        financesDB.sort((a, b) => a.date.localeCompare(b.date));
+        financesDB.sort((a, b) => String(a.date||"").localeCompare(String(b.date||"")));
         renderFinances(); saveLocalCache(); clearFinanceForm(); toast('✅ Saved!', 'success'); 
 
         addToSyncQueue({ record_type: recordType, fin_id: targetId, fin_type: tType, category: cat, amount: amt, date: tDate, notes: notes, added_by: loggedInUser });
@@ -829,7 +852,7 @@
     function loadMaintenanceIntoForm(index) {
         const m = maintenanceDB[index]; editingMaintenanceId = m.id;
         document.getElementById('saveMaintenanceBtn').innerText = "Update Maintenance 🔄"; document.getElementById('saveMaintenanceBtn').classList.replace('btn-green', 'btn-blue');
-        document.getElementById('mntDate').value = m.date.includes('T') ? m.date.slice(0,16) : m.date.replace(' ', 'T').slice(0,16);
+        document.getElementById('mntDate').value = (m.date||"").includes('T') ? m.date.slice(0,16) : (m.date||"").replace(' ', 'T').slice(0,16);
         document.getElementById('mntType').value = m.type; document.getElementById('mntAmount').value = m.amount;
         document.getElementById('mntLocation').value = m.location; document.getElementById('mntOdometer').value = m.odometer; document.getElementById('mntNotes').value = m.notes;
         window.scrollTo({top: 0, behavior: 'smooth'}); toast(`Loaded record to edit`, 'success');
@@ -840,7 +863,7 @@
         if(maintenanceDB.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#7f8c8d;">No records yet</td></tr>'; return; }
         tbody.innerHTML = '';
         maintenanceDB.forEach((m, index) => { 
-            let displayDate = m.date.replace('T', ' ').slice(0, 16);
+            let displayDate = (m.date||"").replace('T', ' ').slice(0, 16);
             tbody.innerHTML += `<tr><td>${index + 1}</td><td style="direction:ltr;">${displayDate}</td><td>${m.type}</td><td style="font-weight:bold; color:#e74c3c;">${m.amount}</td><td>${m.location}</td><td>${m.odometer}</td><td>${m.notes}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.75rem; margin-right:5px;" onclick="loadMaintenanceIntoForm(${index})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteMaintenance(${index})">🗑️</button></td></tr>`; 
         });
     }
@@ -863,7 +886,7 @@
             if(idx > -1) maintenanceDB[idx] = { id: targetId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes };
         } else { maintenanceDB.push({ id: targetId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes }); }
 
-        maintenanceDB.sort((a, b) => a.date.localeCompare(b.date));
+        maintenanceDB.sort((a, b) => String(a.date||"").localeCompare(String(b.date||"")));
         renderMaintenance(); saveLocalCache(); clearMaintenanceForm(); toast('✅ Maintenance Saved!', 'success');
 
         addToSyncQueue({ record_type: recordType, mnt_id: targetId, type: type, amount: amt, location: loc, odometer: odo, date: mDate, notes: notes, added_by: loggedInUser });
@@ -927,7 +950,7 @@
                 btn.innerText = "Search 🔍"; btn.disabled = false;
                 if (data.status === 'success') {
                     if(type !== 'clients_agg' && type !== 'partners_agg') {
-                        data.data.sort((a, b) => a.date.localeCompare(b.date));
+                        data.data.sort((a, b) => String(a.date||"").localeCompare(String(b.date||"")));
                     }
                     renderDynamicReport(type, target, fromDate, toDate, data.data); toast('✅ Reports loaded!', 'success'); 
                 } else { toast('❌ Error', 'error'); }
