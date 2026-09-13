@@ -12,6 +12,7 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; overflow-x: hidden; scroll-behavior: smooth; }
 
+        /* Splash Screen */
         #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.5s ease, visibility 0.5s ease; }
         @keyframes driveForward { 0% { transform: scale(0.1) translateY(-100px); opacity: 0; } 80% { transform: scale(1.1) translateY(10px); opacity: 1; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
         .splash-logo { font-size: 5rem; margin-bottom: 10px; animation: driveForward 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
@@ -19,6 +20,7 @@
         .spinner { width: 40px; height: 40px; border: 4px solid rgba(30, 60, 114, 0.1); border-top-color: #f39c12; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* Activation Screen */
         #activationOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, #1e3c72, #2a5298); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999999; display: none; }
         .activation-card { background: #fff; padding: 40px 30px; border-radius: 16px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
         .activation-card h2 { color: #e74c3c; margin-bottom: 15px; font-size: 1.8rem; }
@@ -26,6 +28,7 @@
         .activation-card input { width: 100%; padding: 12px; border: 2px solid #bdc3c7; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; outline: none; transition: 0.3s; }
         .activation-card input:focus { border-color: #27ae60; box-shadow: 0 0 8px rgba(39, 174, 96, 0.3); }
 
+        /* Login Screen */
         #loginOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,60,114,0.95), rgba(42,82,152,0.95)); display: flex; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.5s ease; visibility: hidden; opacity: 0; }
         .login-card { background: #ffffff; padding: 35px 25px; border-radius: 16px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .login-card h2 { color: #1e3c72; margin-bottom: 8px; font-size: 1.6rem; }
@@ -79,7 +82,7 @@
         .btn-gray { background: #7f8c8d; } .btn-outline { background: #fff; color: #1e3c72; border: 1px solid #1e3c72; }
 
         .scroll-btn-group { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
-        .scroll-btn { width: 45px; height: 45px; border-radius: 50%; background: #f39c12; color: white; border: 2px solid #fff; font-size: 1.2rem; cursor: pointer; opacity: 0.85; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.2s; display: flex; align-items: center; justify-content: center; }
+        .scroll-btn { width: 50px; height: 50px; border-radius: 50%; background: #f39c12; color: white; border: 2px solid #fff; font-size: 1.5rem; cursor: pointer; opacity: 0.85; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.2s; display: flex; align-items: center; justify-content: center; }
         .scroll-btn:hover { transform: scale(1.1); opacity: 1; }
 
         #toastStack { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
@@ -136,7 +139,8 @@
 <div id="loginOverlay">
     <div class="login-card">
         <h2>Login</h2><p>Secured Fleet Management</p>
-        <div class="form-group"><label>Username:</label><select id="loginUser" style="text-align:center; font-weight: bold;"></select></div>
+        <!-- الديفولت هنا على SAMY -->
+        <div class="form-group"><label>Username:</label><select id="loginUser" style="text-align:center; font-weight: bold;"><option value="SAMY" selected>SAMY</option></select></div>
         <div class="form-group" style="margin-top:15px; margin-bottom: 25px;"><label>Password:</label><div class="pass-wrapper"><input type="password" id="loginPass" placeholder="Enter password..." style="text-align:center; letter-spacing: 2px;" onkeypress="if(event.key === 'Enter') login()"><button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility()">👁️</button></div></div>
         <button id="loginBtn" class="btn btn-blue" style="width:100%;" onclick="login()">Login 🚀</button>
     </div>
@@ -447,6 +451,7 @@
             toast('✅ تم تفعيل البرنامج بنجاح!', 'success');
             document.getElementById('loginOverlay').style.visibility = 'visible';
             document.getElementById('loginOverlay').style.opacity = '1';
+            document.getElementById('loginPass').focus();
         } else { toast('❌ كود التفعيل غير صحيح', 'error'); }
     }
 
@@ -475,11 +480,12 @@
             usersDB = data.users || [];
             const userSelect = document.getElementById('loginUser');
             if(userSelect) {
-                const currentVal = userSelect.value;
                 userSelect.innerHTML = '';
                 if(usersDB.length > 0) {
                     usersDB.forEach(u => { userSelect.innerHTML += `<option value="${u.username}">${u.username.toUpperCase()}</option>`; });
-                    userSelect.value = currentVal || usersDB[0].username;
+                    // Default to SAMY if exists
+                    const hasSamy = usersDB.find(u => u.username.toLowerCase() === 'samy');
+                    userSelect.value = hasSamy ? hasSamy.username : usersDB[0].username;
                 } else { 
                     userSelect.innerHTML = `<option value="SAMY">SAMY</option>`; 
                     userSelect.value = "SAMY";
@@ -553,7 +559,12 @@
                 splash.style.opacity = '0'; 
                 setTimeout(() => { 
                     splash.style.display = 'none'; 
-                    if (!isLoggedIn && login) { login.style.visibility = 'visible'; login.style.opacity = '1'; } 
+                    if (!isLoggedIn && login) { 
+                        login.style.visibility = 'visible'; 
+                        login.style.opacity = '1'; 
+                        // Auto Focus Password here
+                        document.getElementById('loginPass').focus();
+                    } 
                 }, 500); 
             }
         }, 1200); 
@@ -900,7 +911,7 @@
         addToSyncQueue({ record_type: "delete_maintenance", mnt_id: item.id });
     }
 
-    // ================== Reports Logic ==================
+    // ================== Reports Logic (Offline 0.001s) ==================
     function toggleReportTarget() {
         const type = document.getElementById('reportType').value;
         const targetContainer = document.getElementById('targetContainer');
@@ -935,9 +946,8 @@
     }
 
     function fetchReports() {
-        if(!navigator.onLine) return toast('⚠️ Reports require an active internet connection', 'error');
         const type = document.getElementById('reportType').value;
-        const target = document.getElementById('reportTarget').value;
+        const target = document.getElementById('reportTarget').value.toLowerCase();
         const fromDate = document.getElementById('repFrom').value;
         const toDate = document.getElementById('repTo').value;
         
@@ -945,16 +955,56 @@
 
         const btn = document.getElementById('searchBtn'); btn.innerText = "⏳ Searching..."; btn.disabled = true;
 
-        fetch(`${GOOGLE_SCRIPT_URL}?action=getReports&type=${type}&target=${encodeURIComponent(target)}&from=${fromDate}&to=${toDate}`, { redirect: 'follow' })
-            .then(res => res.json()).then(data => {
-                btn.innerText = "Search 🔍"; btn.disabled = false;
-                if (data.status === 'success') {
-                    if(type !== 'clients_agg' && type !== 'partners_agg') {
-                        data.data.sort((a, b) => String(a.date||"").localeCompare(String(b.date||"")));
+        setTimeout(() => {
+            let results = [];
+            
+            if (type === 'finance') {
+                financesDB.forEach(f => {
+                    const dOnly = (f.date||"").split(' ')[0];
+                    if (dOnly >= fromDate && dOnly <= toDate) results.push({ date: f.date, type: f.type, category: f.category, amount: f.amount, notes: f.notes });
+                });
+            } else if (type === 'maintenance') {
+                maintenanceDB.forEach(m => {
+                    const dOnly = (m.date||"").split(' ')[0];
+                    if (dOnly >= fromDate && dOnly <= toDate) results.push({ date: m.date, type: m.type, amount: m.amount, location: m.location, odometer: m.odometer, notes: m.notes });
+                });
+            } else {
+                recentTripsDB.forEach(t => {
+                    const dOnly = (t.date||"").split(' ')[0];
+                    if (dOnly >= fromDate && dOnly <= toDate) {
+                        const cName = (t.client||"").trim();
+                        const pName = (t.driver||"").trim();
+                        const tName = (t.trip||"").trim();
+                        const rev = parseFloat(t.revenue) || 0;
+                        const fee = parseFloat(t.fee) || 0;
+
+                        if (type === 'client' && cName.toLowerCase() === target) results.push({ date: t.date, desc: tName, amount: rev });
+                        else if (type === 'driver' && pName.toLowerCase() === target) results.push({ date: t.date, desc: tName, amount: fee });
+                        else if (type === 'trip_detailed' && tName.toLowerCase() === target) results.push({ date: t.date, desc: cName, amount: rev });
+                        else if (type === 'trips') results.push({ date: t.date, trip: tName, client: cName, partner: pName, amount: rev });
+                        else if (type === 'clients_agg') results.push({ name: cName, amount: rev });
+                        else if (type === 'partners_agg') results.push({ name: pName, amount: fee });
                     }
-                    renderDynamicReport(type, target, fromDate, toDate, data.data); toast('✅ Reports loaded!', 'success'); 
-                } else { toast('❌ Error', 'error'); }
-            }).catch(err => { btn.innerText = "Search 🔍"; btn.disabled = false; toast('❌ Network error', 'error'); });
+                });
+
+                if (type === 'clients_agg' || type === 'partners_agg') {
+                    let grouped = {};
+                    results.forEach(r => {
+                        if (!grouped[r.name]) grouped[r.name] = { count: 0, amount: 0 };
+                        grouped[r.name].count += 1; grouped[r.name].amount += r.amount;
+                    });
+                    results = Object.keys(grouped).filter(k=>k).map(k => ({ name: k, count: grouped[k].count, amount: grouped[k].amount }));
+                }
+            }
+
+            if(type !== 'clients_agg' && type !== 'partners_agg') {
+                results.sort((a, b) => String(a.date||"").localeCompare(String(b.date||"")));
+            }
+            
+            renderDynamicReport(type, target, fromDate, toDate, results); 
+            toast('✅ Reports loaded instantly!', 'success');
+            btn.innerText = "Search 🔍"; btn.disabled = false;
+        }, 100);
     }
 
     function renderDynamicReport(type, target, fromDate, toDate, dataArr) {
@@ -968,9 +1018,10 @@
         chartContainer.style.display = 'none';
         
         let titleText = "";
-        if(type === 'client') titleText = `Client Report: ${target}`;
-        else if(type === 'driver') titleText = `Partner Report: ${target}`;
-        else if(type === 'trip_detailed') titleText = `Trip Report: ${target}`;
+        const cNameCap = target.charAt(0).toUpperCase() + target.slice(1);
+        if(type === 'client') titleText = `Client Report: ${cNameCap}`;
+        else if(type === 'driver') titleText = `Partner Report: ${cNameCap}`;
+        else if(type === 'trip_detailed') titleText = `Trip Report: ${cNameCap}`;
         else if(type === 'trips') titleText = `Trips Analysis Report`;
         else if(type === 'clients_agg') titleText = `Clients Aggregated Report`;
         else if(type === 'partners_agg') titleText = `Partners Aggregated Report`;
@@ -991,7 +1042,8 @@
             thead.innerHTML = '<tr><th>#</th><th>Date & Time</th><th>Description</th><th>Amount (EGP)</th></tr>';
             dataArr.forEach((row, i) => {
                 const amt = parseFloat(row.amount) || 0; total += amt;
-                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${row.date}</td><td><div style="unicode-bidi: isolate; direction: auto;">${row.desc}</div></td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
+                let dDisplay = (row.date||"").replace('T',' ').slice(0, 16);
+                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${dDisplay}</td><td><div style="unicode-bidi: isolate; direction: auto;">${row.desc}</div></td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
             });
             tbody.innerHTML += `<tr class="total-row"><td colspan="3" style="text-align:left; direction:ltr; padding-left:15px;">Total Balance / الإجمالي :</td><td style="color:#1e3c72; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
         }
@@ -1000,7 +1052,8 @@
             let tripCounts = {};
             dataArr.forEach((row, i) => {
                 const amt = parseFloat(row.amount) || 0; total += amt;
-                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${row.date}</td><td><div style="unicode-bidi: isolate; direction: auto;">${row.trip}</div></td><td>${row.client}</td><td>${row.partner}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
+                let dDisplay = (row.date||"").replace('T',' ').slice(0, 16);
+                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${dDisplay}</td><td><div style="unicode-bidi: isolate; direction: auto;">${row.trip}</div></td><td>${row.client}</td><td>${row.partner}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
                 tripCounts[row.trip] = (tripCounts[row.trip] || 0) + 1;
             });
             tbody.innerHTML += `<tr class="total-row"><td colspan="5" style="text-align:left; direction:ltr; padding-left:15px;">Total Revenue / الإجمالي :</td><td style="color:#1e3c72; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
@@ -1024,7 +1077,8 @@
                 const amt = parseFloat(row.amount) || 0; 
                 if(row.type === 'Revenue') revTotal += amt; else expTotal += amt;
                 let c = row.type === 'Revenue' ? '#27ae60' : '#e74c3c';
-                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${row.date}</td><td style="color:${c}; font-weight:bold;">${row.type}</td><td>${row.category}</td><td>${row.notes}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
+                let dDisplay = (row.date||"").replace('T',' ').slice(0, 16);
+                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${dDisplay}</td><td style="color:${c}; font-weight:bold;">${row.type}</td><td>${row.category}</td><td>${row.notes}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
             });
             tbody.innerHTML += `<tr class="total-row"><td colspan="5" style="text-align:left; direction:ltr; padding-left:15px; color:#27ae60;">Total Revenues / إجمالي الإيرادات :</td><td style="color:#27ae60; font-weight:bold; direction:ltr; text-align:right;">${revTotal.toFixed(2)}</td></tr>`;
             tbody.innerHTML += `<tr class="total-row"><td colspan="5" style="text-align:left; direction:ltr; padding-left:15px; color:#e74c3c;">Total Expenses / إجمالي المصروفات :</td><td style="color:#e74c3c; font-weight:bold; direction:ltr; text-align:right;">${expTotal.toFixed(2)}</td></tr>`;
@@ -1034,7 +1088,8 @@
             thead.innerHTML = '<tr><th>#</th><th>Date & Time</th><th>Type</th><th>Location</th><th>Odometer</th><th>Notes</th><th>Amount (EGP)</th></tr>';
             dataArr.forEach((row, i) => {
                 const amt = parseFloat(row.amount) || 0; total += amt;
-                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${row.date}</td><td>${row.type}</td><td>${row.location}</td><td>${row.odometer}</td><td>${row.notes}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
+                let dDisplay = (row.date||"").replace('T',' ').slice(0, 16);
+                tbody.innerHTML += `<tr><td>${i+1}</td><td style="direction:ltr; text-align:right;">${dDisplay}</td><td>${row.type}</td><td>${row.location}</td><td>${row.odometer}</td><td>${row.notes}</td><td style="font-weight:bold; direction:ltr; text-align:right;">${amt.toFixed(2)}</td></tr>`;
             });
             tbody.innerHTML += `<tr class="total-row"><td colspan="6" style="text-align:left; direction:ltr; padding-left:15px;">Total Maintenance Cost / إجمالي تكلفة الصيانة :</td><td style="color:#e74c3c; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
         }
