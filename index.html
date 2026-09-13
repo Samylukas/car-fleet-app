@@ -12,6 +12,7 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; overflow-x: hidden; scroll-behavior: smooth; }
 
+        /* Splash Screen */
         #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.5s ease, visibility 0.5s ease; }
         @keyframes driveForward { 0% { transform: scale(0.1) translateY(-100px); opacity: 0; } 80% { transform: scale(1.1) translateY(10px); opacity: 1; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
         .splash-logo { font-size: 5rem; margin-bottom: 10px; animation: driveForward 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
@@ -19,7 +20,16 @@
         .spinner { width: 40px; height: 40px; border: 4px solid rgba(30, 60, 114, 0.1); border-top-color: #f39c12; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        #loginOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,60,114,0.95), rgba(42,82,152,0.95)); display: flex; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.5s ease; }
+        /* Activation Screen */
+        #activationOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, #1e3c72, #2a5298); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999999; display: none; }
+        .activation-card { background: #fff; padding: 40px 30px; border-radius: 16px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .activation-card h2 { color: #e74c3c; margin-bottom: 15px; font-size: 1.8rem; }
+        .activation-card p { margin-bottom: 25px; font-weight: bold; color: #34495e; font-size: 1rem; line-height: 1.5; }
+        .activation-card input { width: 100%; padding: 12px; border: 2px solid #bdc3c7; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; outline: none; transition: 0.3s; }
+        .activation-card input:focus { border-color: #27ae60; box-shadow: 0 0 8px rgba(39, 174, 96, 0.3); }
+
+        /* Login Screen */
+        #loginOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,60,114,0.95), rgba(42,82,152,0.95)); display: flex; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.5s ease; visibility: hidden; opacity: 0; }
         .login-card { background: #ffffff; padding: 35px 25px; border-radius: 16px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .login-card h2 { color: #1e3c72; margin-bottom: 8px; font-size: 1.6rem; }
         
@@ -68,6 +78,7 @@
         .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } 
         .btn-gray { background: #7f8c8d; } .btn-outline { background: #fff; color: #1e3c72; border: 1px solid #1e3c72; }
 
+        /* Page Up & Down Buttons */
         .scroll-btn-group { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
         .scroll-btn { width: 50px; height: 50px; border-radius: 50%; background: #f39c12; color: white; border: 2px solid #fff; font-size: 1.5rem; cursor: pointer; opacity: 0.85; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.2s; display: flex; align-items: center; justify-content: center; }
         .scroll-btn:hover { transform: scale(1.1); opacity: 1; }
@@ -90,6 +101,7 @@
         .master-card { background: #f9fbfd; border: 1px solid #e1e8ed; padding: 15px; border-radius: 10px; width: 100%; overflow: hidden; }
         .master-card h3 { color: #1e3c72; margin-bottom: 15px; border-bottom: 2px solid #27ae60; padding-bottom: 5px; font-size: 1.1rem; }
 
+        /* Report Formatting */
         .report-print-container { background: #fff; padding: 10px; border-radius: 8px; direction: rtl; width: 100%; overflow-x: auto; } 
         .report-print-container table { font-size: 0.75rem; border: 1px solid #1e3c72; width: 100%; border-collapse: collapse; margin-top: 10px; white-space: normal; }
         .report-print-container table th { background: #fdf5e6 !important; color: #1e3c72 !important; padding: 5px; border: 1px solid #1e3c72; font-weight: bold; position: static !important; } 
@@ -107,13 +119,23 @@
     <button class="scroll-btn" onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="Page Down">⏬</button>
 </div>
 
+<!-- Activation System Overlay -->
+<div id="activationOverlay">
+    <div class="activation-card">
+        <h2>⚠️ انتهت الفترة التجريبية</h2>
+        <p>لقد انتهت فترة الـ 30 يوماً المجانية. يرجى إدخال كود التفعيل الخاص بالبرنامج للاستمرار.</p>
+        <input type="text" id="activationCodeInput" placeholder="أدخل كود التفعيل هنا..." autocomplete="off">
+        <button onclick="verifyActivation()" class="btn btn-green" style="width: 100%; font-size: 1.1rem; padding: 12px;">تفعيل البرنامج 🔓</button>
+    </div>
+</div>
+
 <div id="splashScreen">
     <div class="splash-logo">🚘</div>
     <div class="splash-title">Samy Fleet Pro</div>
     <div class="spinner"></div>
 </div>
 
-<div id="loginOverlay" style="visibility: hidden; opacity: 0; direction: ltr;">
+<div id="loginOverlay">
     <div class="login-card">
         <h2>Login</h2><p>Secured Fleet Management</p>
         <div class="form-group"><label>Username:</label><select id="loginUser" style="text-align:center; font-weight: bold;"></select></div>
@@ -357,7 +379,9 @@
 </div>
 
 <script>
+    // === الرابط الخاص بك مدمج وجاهز ===
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH8WrOZiqBqwYVo5NGc_Rg0EMS_m7LoB2bi1n6-NSYg3P7_uVLRzzq4dJAuJ28SPsMww/exec"; 
+    
     let RATES = { USD: 50, EUR: 55, GBP: 65, EGP: 1 };
     let loggedInUser = '';
 
@@ -373,7 +397,45 @@
         return now.toISOString().slice(0, 16);
     }
 
+    // ================= نظام التفعيل والـ 30 يوم =================
+    function checkTrialStatus() {
+        const isActivated = localStorage.getItem('samy_fleet_activated');
+        if (isActivated === 'true') return true;
+
+        let installDate = localStorage.getItem('samy_fleet_install_date');
+        if (!installDate) {
+            installDate = Date.now();
+            localStorage.setItem('samy_fleet_install_date', installDate);
+        }
+
+        const daysPassed = (Date.now() - parseInt(installDate)) / (1000 * 60 * 60 * 24);
+        
+        if (daysPassed >= 30) {
+            document.getElementById('splashScreen').style.display = 'none';
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('activationOverlay').style.display = 'flex';
+            return false;
+        }
+        return true;
+    }
+
+    function verifyActivation() {
+        const code = document.getElementById('activationCodeInput').value.trim().toUpperCase();
+        if (code === 'ABS') {
+            localStorage.setItem('samy_fleet_activated', 'true');
+            document.getElementById('activationOverlay').style.display = 'none';
+            toast('✅ تم تفعيل البرنامج بنجاح!', 'success');
+            document.getElementById('loginOverlay').style.visibility = 'visible';
+            document.getElementById('loginOverlay').style.opacity = '1';
+        } else {
+            toast('❌ كود التفعيل غير صحيح', 'error');
+        }
+    }
+
     window.addEventListener('load', () => {
+        // إذا فشل اختبار التفعيل، أوقف كل شيء هنا
+        if (!checkTrialStatus()) return;
+
         setTimeout(() => {
             const splash = document.getElementById('splashScreen');
             const login = document.getElementById('loginOverlay');
@@ -390,17 +452,25 @@
         document.getElementById('repFrom').value = new Date().toISOString().slice(0, 10);
         document.getElementById('repTo').value = new Date().toISOString().slice(0, 10);
         
+        const unlockTimeout = setTimeout(() => {
+            const userSelect = document.getElementById('loginUser');
+            if (userSelect && userSelect.children.length === 0) {
+                userSelect.innerHTML = `<option value="SAMY">SAMY</option>`;
+                document.getElementById('loginBtn').innerText = "Login 🚀";
+                document.getElementById('loginBtn').disabled = false;
+            }
+        }, 3000);
+
         fetch(GOOGLE_SCRIPT_URL + "?action=getInitialData", { redirect: 'follow' })
             .then(res => res.json())
             .then(data => {
+                clearTimeout(unlockTimeout);
                 if (data.status === 'success') {
                     const userSelect = document.getElementById('loginUser');
                     userSelect.innerHTML = '';
                     if(data.users && data.users.length > 0) {
                         data.users.forEach(u => { userSelect.innerHTML += `<option value="${u.username}">${u.username.toUpperCase()}</option>`; });
-                    } else {
-                        userSelect.innerHTML = `<option value="SAMY">SAMY</option>`;
-                    }
+                    } else { userSelect.innerHTML = `<option value="SAMY">SAMY</option>`; }
                     userSelect.value = "SAMY";
                     document.getElementById('loginBtn').innerText = "Login 🚀"; 
                     document.getElementById('loginBtn').disabled = false;
@@ -413,6 +483,7 @@
                     updateDropdownsAndTables(); renderRecentTrips(); renderFinances(); renderMaintenance();
                 }
             }).catch(err => { 
+                clearTimeout(unlockTimeout);
                 const userSelect = document.getElementById('loginUser');
                 userSelect.innerHTML = `<option value="SAMY">SAMY</option>`;
                 document.getElementById('loginBtn').innerText = "Login 🚀"; 
