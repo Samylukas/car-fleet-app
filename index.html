@@ -83,6 +83,22 @@
         .net-profit-card { background: #1e3c72; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .net-profit-card h2 { font-size: 2rem; margin: 10px 0; color: #f1c40f; }
 
+        /* للطباعة العادية */
+        @media print {
+            body * { visibility: hidden !important; }
+            #reportPrintArea, #reportPrintArea * { visibility: visible !important; }
+            #reportPrintArea { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .scroll-btn-group, .nav-tabs, .header-bar, .action-buttons, .grid-form, #toastStack, .btn-grid-container { display: none !important; }
+            
+            #reportPrintArea table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px; font-size: 11pt; }
+            #reportPrintArea th { background-color: #1e3c72 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 10px; border: 1.5px solid #1e3c72 !important; font-weight: bold; }
+            #reportPrintArea td { padding: 8px; border: 1px solid #333 !important; text-align: center; color: #000; font-weight: 500; }
+            #reportPrintArea .total-row td { background-color: #f39c12 !important; color: white !important; font-weight: bold; font-size: 13pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .report-title-header { color: #1e3c72 !important; font-size: 16pt !important; text-align: center; margin-bottom: 15px; border-bottom: 3px solid #f39c12 !important; padding-bottom: 8px; display: block !important; }
+            .net-profit-card { border: 2px solid #1e3c72 !important; background: #fff !important; color: #000 !important; }
+            .net-profit-card h2 { color: #000 !important; font-weight: bold; }
+            @page { margin: 1cm; size: A4 portrait; }
+        }
     </style>
 </head>
 <body>
@@ -336,6 +352,7 @@
 </div>
 
 <script>
+    // لو غيرت اللينك في جوجل شيت، حط اللينك الجديد هنا بين العلامتين التنصيص
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH8WrOZiqBqwYVo5NGc_Rg0EMS_m7LoB2bi1n6-NSYg3P7_uVLRzzq4dJAuJ28SPsMww/exec"; 
     
     let loggedInUser = ''; let userRole = '';
@@ -370,7 +387,6 @@
     function getCurrentLocalDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); }
     function generateID(prefix) { return prefix + "-" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000); }
     
-    // ================= REAL NETWORK PING =================
     function updateOnlineStatus() {
         fetch("https://www.google.com/favicon.ico?t=" + new Date().getTime(), { mode: 'no-cors', cache: 'no-store' })
         .then(() => {
@@ -387,6 +403,7 @@
             badge.innerHTML = '🔴 Offline';
         });
     }
+    
     setInterval(updateOnlineStatus, 3000);
 
     window.addEventListener('load', () => {
@@ -659,7 +676,6 @@
 
 
     // ================== THE HIDDEN IFRAME PRINT HACK (PHARMACY STYLE) ==================
-    // This creates an invisible window containing ONLY the table, forcing the Android print spooler to open
     function exportToPDF() {
         const table = document.getElementById('reportsTable');
         const summary = document.getElementById('netProfitSummary');
@@ -667,13 +683,12 @@
             return toast('⚠️ Please search and generate report first!', 'warn');
         }
 
-        // Create or get the hidden iframe
         let iframe = document.getElementById('printFrame');
         if (!iframe) {
             iframe = document.createElement('iframe');
             iframe.id = 'printFrame';
             iframe.style.position = 'absolute';
-            iframe.style.top = '-10000px'; // Hide it off-screen completely
+            iframe.style.top = '-10000px'; 
             document.body.appendChild(iframe);
         }
         
