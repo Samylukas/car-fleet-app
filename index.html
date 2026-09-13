@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Samy Fleet Pro 2026</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -94,35 +95,21 @@
         .report-title-header { text-align: center; color: #1e3c72; margin-bottom: 15px; font-size: 1.4rem; display: none; border-bottom: 3px solid #f39c12; padding-bottom: 8px; font-weight: bold; }
         #chartContainer { max-width: 100%; margin: 15px auto; height: 300px; display: none; }
 
-        /* Fullscreen Modal Print Viewer for Mobile Safety */
+        /* Fullscreen Modal View */
         #printModal { position: fixed; inset: 0; background: #fff; z-index: 9999999; display: none; flex-direction: column; padding: 15px; overflow-y: auto; }
         .print-modal-bar { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; background: #1e3c72; padding: 10px; border-radius: 8px; }
-
-        @media print {
-            body { background: #fff !important; }
-            body * { visibility: hidden !important; }
-            #printModalContent, #printModalContent * { visibility: visible !important; }
-            #printModalContent { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; padding: 0 !important; margin: 0 !important; }
-            .print-modal-bar, .scroll-btn-group, #toastStack { display: none !important; }
-            
-            #printModalContent table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px; font-size: 11pt; }
-            #printModalContent th { background-color: #1e3c72 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 10px; border: 1.5px solid #1e3c72 !important; font-weight: bold; }
-            #printModalContent td { padding: 8px; border: 1px solid #333 !important; text-align: center; color: #000; font-weight: 500; }
-            #printModalContent .total-row td { background-color: #f39c12 !important; color: white !important; font-weight: bold; font-size: 13pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            @page { margin: 1cm; size: A4 portrait; }
-        }
     </style>
 </head>
 <body>
 <div id="toastStack"></div>
 
-<!-- Modal Viewer to guarantee print execution -->
+<!-- Modal Viewer -->
 <div id="printModal">
     <div class="print-modal-bar">
-        <button class="btn btn-green" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
-        <button class="btn btn-red" onclick="closePrintModal()">❌ إغلاق</button>
+        <button class="btn btn-green" onclick="downloadModalAsImage()">💾 Save Report / حفظ التقرير</button>
+        <button class="btn btn-red" onclick="closePrintModal()">❌ Close / إغلاق</button>
     </div>
-    <div id="printModalContent" style="width:100%;"></div>
+    <div id="printModalContent" style="width:100%; background:#fff; padding:15px;"></div>
 </div>
 
 <div class="scroll-btn-group">
@@ -132,10 +119,10 @@
 
 <div id="activationOverlay">
     <div class="activation-card">
-        <h2>⚠️ انتهت الفترة التجريبية</h2>
-        <p>لقد انتهت فترة الـ 30 يوماً المجانية. يرجى إدخال كود التفعيل الخاص بالبرنامج للاستمرار.</p>
-        <input type="text" id="activationCodeInput" placeholder="أدخل كود التفعيل..." autocomplete="off">
-        <button onclick="verifyActivation()" class="btn btn-green" style="width: 100%; font-size: 1.1rem; padding: 12px;">تفعيل 🔓</button>
+        <h2>⚠️ Period Expired</h2>
+        <p>Your trial period has ended. Please enter activation key.</p>
+        <input type="text" id="activationCodeInput" placeholder="Activation Code..." autocomplete="off">
+        <button onclick="verifyActivation()" class="btn btn-green" style="width: 100%; font-size: 1.1rem; padding: 12px;">Activate 🔓</button>
     </div>
 </div>
 
@@ -168,9 +155,9 @@
 
     <!-- Dashboard -->
     <div id="quickDashboard" class="dashboard-grid admin-only">
-        <div class="dash-card"><h4 data-tr="dash_rev">💰 أرباح الشهر (EGP)</h4><h2 id="dashRev">0.00</h2></div>
-        <div class="dash-card"><h4 data-tr="dash_trips">🚘 مشاوير الشهر</h4><h2 id="dashTrips">0</h2></div>
-        <div class="dash-card"><h4 data-tr="dash_top">🏆 نجم الشهر</h4><h2 id="dashTopDriver">-</h2></div>
+        <div class="dash-card"><h4 data-tr="dash_rev">💰 Monthly Profit (EGP)</h4><h2 id="dashRev">0.00</h2></div>
+        <div class="dash-card"><h4 data-tr="dash_trips">🚘 Monthly Trips</h4><h2 id="dashTrips">0</h2></div>
+        <div class="dash-card"><h4 data-tr="dash_top">🏆 Top Partner</h4><h2 id="dashTopDriver">-</h2></div>
     </div>
 
     <div class="nav-tabs">
@@ -400,8 +387,8 @@
     let isSyncing = false; let reportChartInstance = null;
     let editingMasterIndex = { client: -1, driver: -1, trip: -1 };
 
-    // Translation System
-    let currentLang = 'ar';
+    // Default Language: English
+    let currentLang = 'en';
     const dict = {
         'en': { username:"Username:", password:"Password:", logout:"Logout", dash_rev:"Monthly Profit (EGP)", dash_trips:"Monthly Trips", dash_top:"Top Partner", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_print:"Print/PDF 📄", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_analysis:"Trips Analysis Chart", opt_c_agg:"Clients Aggregated", opt_p_agg:"Partners Aggregated", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", th_num:"#", th_desc:"Description / Trip", th_tot:"Total Balance" },
         'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", dash_rev:"أرباح الشهر (EGP)", dash_trips:"عدد مشاوير الشهر", dash_top:"نجم الشهر (شريك)", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_print:"طباعة/PDF 📄", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_analysis:"تحليل المشاوير", opt_c_agg:"إجمالي العملاء", opt_p_agg:"إجمالي الشركاء", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
@@ -427,7 +414,10 @@
     function forceAppSync() { localStorage.removeItem('fleet_data_cache'); location.reload(); }
 
     window.addEventListener('load', () => {
-        toggleLang(); toggleLang(); 
+        // Enforce English Default
+        document.documentElement.dir = 'ltr';
+        document.documentElement.lang = 'en';
+
         const session = localStorage.getItem('samy_logged_in_user');
         setTimeout(() => {
             document.getElementById('splashScreen').style.opacity = '0'; 
@@ -477,7 +467,7 @@
             const userObj = matchedUser || { username: 'SAMY', role: 'Admin' };
             localStorage.setItem('samy_logged_in_user', JSON.stringify(userObj));
             location.reload();
-        } else { toast('❌ كلمة المرور غير صحيحة', 'error'); }
+        } else { toast('❌ Incorrect Password', 'error'); }
     }
     function logout() { localStorage.removeItem('samy_logged_in_user'); location.reload(); }
     function togglePasswordVisibility() { const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password'; }
@@ -604,7 +594,7 @@
         let driverObj = driversDB.find(d => d.name === t.driver);
         let phone = driverObj ? driverObj.phone : "";
         let cleanPhone = phone.replace(/\D/g,'');
-        let txt = `تفاصيل المشوار 🚘\nالتاريخ: ${t.date.slice(0,16)}\nالعميل: ${t.client}\nالسيارة: ${t.vehicle}\nالمشوار: ${t.trip}\nالحساب: ${t.fee} EGP`;
+        let txt = `Trip Details 🚘\nDate: ${t.date.slice(0,16)}\nClient: ${t.client}\nVehicle: ${t.vehicle}\nTrip: ${t.trip}\nAmount: ${t.fee} EGP`;
         if(cleanPhone) { window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(txt)}`, '_blank'); } 
         else { window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
     }
@@ -688,15 +678,30 @@
     }
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
 
-    // Guaranteed Print/PDF Modal Viewer
+    // Direct Screen View
     function exportToPDF() {
         const reportContent = document.getElementById('reportPrintArea').innerHTML;
         if (!reportContent || reportContent.indexOf('table') === -1) {
-            return toast('⚠️ يرجى البحث وإظهار التقرير أولاً!', 'warn');
+            return toast('⚠️ Please search and render report first!', 'warn');
         }
         
         document.getElementById('printModalContent').innerHTML = reportContent;
         document.getElementById('printModal').style.display = 'flex';
+    }
+
+    // Direct Image Download (Bypasses Native Print Blocking)
+    function downloadModalAsImage() {
+        const element = document.getElementById('printModalContent');
+        toast('⏳ Generating Document Image...', 'info');
+        html2canvas(element, { scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'Report_' + Date.now() + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            toast('✅ Report Saved to Phone!', 'success');
+        }).catch(err => {
+            toast('❌ Download Error: ' + err.message, 'error');
+        });
     }
 
     function closePrintModal() {
