@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Samy Fleet Pro 2026</title>
+    <!-- مكتبة الإكسيل فقط، تم إزالة مكتبات التصوير البدائية -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
@@ -83,31 +84,13 @@
         .net-profit-card { background: #1e3c72; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .net-profit-card h2 { font-size: 2rem; margin: 10px 0; color: #f1c40f; }
 
-        /* ================= SCREENSHOT MODE HACK ================= */
-        body.screenshot-mode { background: #fff !important; }
-        body.screenshot-mode .header-bar,
-        body.screenshot-mode .nav-tabs,
-        body.screenshot-mode .grid-form,
-        body.screenshot-mode .btn-grid-container,
-        body.screenshot-mode .scroll-btn-group,
-        body.screenshot-mode .section-title,
-        body.screenshot-mode #toastStack { display: none !important; }
-        body.screenshot-mode .app-container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
-        body.screenshot-mode .card { box-shadow: none !important; border: none !important; padding: 5px !important; margin: 0 !important; }
-        body.screenshot-mode .table-responsive { overflow-x: visible !important; border: none !important; }
-        body.screenshot-mode table { width: 100% !important; table-layout: fixed !important; font-size: 12px !important; }
-        body.screenshot-mode th, body.screenshot-mode td { white-space: normal !important; word-wrap: break-word !important; padding: 6px 2px !important; font-size: 11px !important; }
-        body.screenshot-mode .net-profit-card { border: 2px solid #1e3c72 !important; background: #fff !important; color: #000 !important; padding: 10px !important; }
-        body.screenshot-mode .net-profit-card h2 { color: #000 !important; }
-
-        #screenshotExitBanner { display: none; background: #e74c3c; color: #fff; text-align: center; padding: 15px; font-weight: bold; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 9999999; cursor: pointer; box-shadow: 0 -4px 10px rgba(0,0,0,0.2); }
-
-        /* Standard PC Print */
+        /* Standard Native Print */
         @media print {
             body * { visibility: hidden !important; }
             #reportPrintArea, #reportPrintArea * { visibility: visible !important; }
             #reportPrintArea { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
             .scroll-btn-group, .nav-tabs, .header-bar, .action-buttons, .grid-form, #toastStack, .btn-grid-container { display: none !important; }
+            
             #reportPrintArea table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px; font-size: 11pt; }
             #reportPrintArea th { background-color: #1e3c72 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 10px; border: 1.5px solid #1e3c72 !important; font-weight: bold; }
             #reportPrintArea td { padding: 8px; border: 1px solid #333 !important; text-align: center; color: #000; font-weight: 500; }
@@ -121,11 +104,6 @@
 </head>
 <body>
 <div id="toastStack"></div>
-
-<!-- Mobile Screenshot Exit Banner -->
-<div id="screenshotExitBanner" onclick="exitScreenshotMode()">
-    ❌ العودة للبرنامج (اضغط هنا بعد التقاط الشاشة) ❌
-</div>
 
 <div class="scroll-btn-group">
     <button class="scroll-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">⏫</button>
@@ -356,8 +334,9 @@
             <div class="btn-grid-container">
                 <button id="searchBtn" class="btn btn-blue" onclick="fetchReports()" data-tr="btn_search">Search 🔍</button>
                 <button class="btn btn-green" onclick="exportToExcel()" data-tr="btn_excel">PC Excel 📊</button>
-                <button class="btn btn-dark" onclick="exportToWindowsPDF()" data-tr="btn_print">PC Print 🖨️</button>
-                <button class="btn btn-purple" onclick="enterScreenshotMode()" data-tr="btn_pdf_mobile">Mobile Report 📱</button>
+                <button class="btn btn-dark" onclick="exportToWindowsPDF()" data-tr="btn_print">Print / PDF 🖨️</button>
+                <!-- ZRRAR EL HOROOB LE CHROME -->
+                <button class="btn btn-purple" onclick="openInChrome()">🌐 Open in Browser (For Mobile Downloads)</button>
                 <button class="btn btn-whatsapp" onclick="shareReportText()">WhatsApp Text 💬</button>
             </div>
             
@@ -387,8 +366,8 @@
 
     let currentLang = 'en';
     const dict = {
-        'en': { username:"Username:", password:"Password:", logout:"Logout", dash_rev:"Monthly Profit (EGP)", dash_trips:"Monthly Trips", dash_top:"Top Partner", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_excel:"PC Excel 📊", btn_print:"PC Print 🖨️", btn_pdf_mobile:"Mobile Report 📱", lbl_mobile_rep:"📱 Mobile Report", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
-        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", dash_rev:"أرباح الشهر (EGP)", dash_trips:"عدد مشاوير الشهر", dash_top:"نجم الشهر (شريك)", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_excel:"إكسيل للكمبيوتر 📊", btn_print:"طباعة للكمبيوتر 🖨️", btn_pdf_mobile:"تقرير الموبايل 📱", lbl_mobile_rep:"📱 تقرير الموبايل", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
+        'en': { username:"Username:", password:"Password:", logout:"Logout", dash_rev:"Monthly Profit (EGP)", dash_trips:"Monthly Trips", dash_top:"Top Partner", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_excel:"PC Excel 📊", btn_print:"Print / PDF 🖨️", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
+        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", dash_rev:"أرباح الشهر (EGP)", dash_trips:"عدد مشاوير الشهر", dash_top:"نجم الشهر (شريك)", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_excel:"إكسيل للكمبيوتر 📊", btn_print:"طباعة / PDF 🖨️", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
     };
 
     function toggleLang() {
@@ -426,7 +405,6 @@
             badge.innerHTML = '🔴 Offline';
         });
     }
-    
     setInterval(updateOnlineStatus, 3000);
 
     window.addEventListener('load', () => {
@@ -697,33 +675,39 @@
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
-    // ================== SCREENSHOT MODE HACK ==================
-    function enterScreenshotMode() {
-        const table = document.getElementById('reportsTable');
-        if (!table || table.rows.length <= 1) {
-            return toast('⚠️ Please search and generate report first!', 'warn');
-        }
-        
-        // Hide everything and format the report area perfectly for mobile
-        document.body.classList.add('screenshot-mode');
-        document.getElementById('screenshotExitBanner').style.display = 'block';
-        window.scrollTo({top: 0, behavior: 'auto'});
-        
-        toast('📸 خذ لقطة شاشة (Screenshot) الآن!', 'success');
-    }
 
-    function exitScreenshotMode() {
-        document.body.classList.remove('screenshot-mode');
-        document.getElementById('screenshotExitBanner').style.display = 'none';
+    // ================== THE BROWSER ESCAPE HACK ==================
+    function openInChrome() {
+        toast('⏳ جاري الفتح في المتصفح للتحميل...', 'info');
+        
+        setTimeout(() => {
+            const currentUrl = window.location.href;
+            const cleanUrl = currentUrl.replace(/^https?:\/\//, '');
+            
+            // Try to force Google Chrome via Android Intent
+            const intentUrl = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end`;
+            
+            try {
+                window.location.href = intentUrl;
+            } catch (e) {
+                console.log("Intent failed");
+            }
+            
+            // Fallback: Open normally in system browser if intent is blocked
+            setTimeout(() => {
+                window.open(currentUrl, '_system') || window.open(currentUrl, '_blank');
+            }, 1000);
+            
+        }, 500);
     }
 
     // Standard Windows Print
     function exportToWindowsPDF() {
-        const element = document.getElementById('reportPrintArea');
-        if (!element || element.innerHTML.indexOf('table') === -1) {
-            return toast('⚠️ Please search and generate report first!', 'warn');
+        try {
+            window.print();
+        } catch (e) {
+            alert("Print failed: " + e.message);
         }
-        window.print();
     }
 
     // WhatsApp Text Share Action
@@ -791,7 +775,7 @@
             lbl.innerText = dL.trip;
             tripsDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`);
         } else if (type === 'finance' || type === 'maintenance' || type === 'net_profit') {
-            targetContainer.style.display = 'none'; // Hide Target for these
+            targetContainer.style.display = 'none'; 
         } else {
             lbl.innerText = dL.target;
         }
