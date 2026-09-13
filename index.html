@@ -143,7 +143,7 @@
         <h2>Login</h2><p>Secured Fleet Management</p>
         <div class="form-group"><label>Username:</label><select id="loginUser" style="text-align:center; font-weight: bold;"></select></div>
         <div class="form-group" style="margin-top:15px; margin-bottom: 25px;"><label>Password:</label><div class="pass-wrapper"><input type="password" id="loginPass" placeholder="Enter password..." style="text-align:center; letter-spacing: 2px;" onkeypress="if(event.key === 'Enter') login()"><button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility()">👁️</button></div></div>
-        <button id="loginBtn" class="btn btn-blue" style="width:100%;" onclick="login()" disabled>⏳ Connecting...</button>
+        <button id="loginBtn" class="btn btn-blue" style="width:100%;" onclick="login()">Login 🚀</button>
     </div>
 </div>
 
@@ -382,13 +382,14 @@
 </div>
 
 <script>
-    // === 🌟 الرابط الخاص بك مدمج 🌟 ===
+    // === 🌟 الرابط الخاص بك 🌟 ===
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH8WrOZiqBqwYVo5NGc_Rg0EMS_m7LoB2bi1n6-NSYg3P7_uVLRzzq4dJAuJ28SPsMww/exec"; 
     
     let RATES = { USD: 50, EUR: 55, GBP: 65, EGP: 1 };
     let loggedInUser = '';
 
     // Data Storage
+    let usersDB = [];
     let clientsDB = [], driversDB = [], tripsDB = []; 
     let recentTripsDB = [], financesDB = [], maintenanceDB = [];
     let currentRecordIndex = -1;
@@ -443,29 +444,40 @@
         } else { toast('❌ كود التفعيل غير صحيح', 'error'); }
     }
 
+    // ================= نظام الجلسة وتخطي الدخول =================
+    function checkSession() {
+        const session = localStorage.getItem('samy_logged_in_user');
+        if (session) {
+            const matchedUser = JSON.parse(session);
+            loggedInUser = matchedUser.username;
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('userInfo').textContent = `👤 Welcome, ${matchedUser.username.toUpperCase()}`;
+            document.querySelectorAll('.admin-only').forEach(el => { el.style.display = matchedUser.role === 'Admin' ? '' : 'none'; });
+            return true;
+        }
+        return false;
+    }
+
     // ================= Offline & Sync Logic =================
     function saveLocalCache() {
-        const userSelect = document.getElementById('loginUser');
-        let currentUsers = [];
-        if(userSelect && userSelect.options.length > 0) { currentUsers = Array.from(userSelect.options).map(opt => ({username: opt.value})); } 
-        else { currentUsers = [{username: "SAMY"}]; }
-
-        const data = { status: 'success', users: currentUsers, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB };
+        const data = { status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB };
         localStorage.setItem('fleet_data_cache', JSON.stringify(data));
     }
 
     function loadDataToUI(data) {
+        usersDB = data.users || [];
         const userSelect = document.getElementById('loginUser');
         const currentVal = userSelect.value;
         userSelect.innerHTML = '';
-        if(data.users && data.users.length > 0) {
-            data.users.forEach(u => { userSelect.innerHTML += `<option value="${u.username}">${u.username.toUpperCase()}</option>`; });
-        } else { userSelect.innerHTML = `<option value="SAMY">SAMY</option>`; }
-        userSelect.value = currentVal || (data.users[0] ? data.users[0].username : "SAMY");
+        if(usersDB.length > 0) {
+            usersDB.forEach(u => { userSelect.innerHTML += `<option value="${u.username}">${u.username.toUpperCase()}</option>`; });
+            userSelect.value = currentVal || usersDB[0].username;
+        } else { 
+            userSelect.innerHTML = `<option value="SAMY">SAMY</option>`; 
+            userSelect.value = "SAMY";
+        }
         
-        document.getElementById('loginBtn').innerText = "Login 🚀"; 
-        document.getElementById('loginBtn').disabled = false;
-
         clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
         recentTripsDB = data.recent || []; recentTripsDB.sort((a, b) => a.date.localeCompare(b.date));
         financesDB = data.finances || []; financesDB.sort((a, b) => a.date.localeCompare(b.date));
@@ -513,14 +525,22 @@
         });
     }
 
-    // Initialization
+    // ================= Initialization =================
     window.addEventListener('load', () => {
         if (!checkTrialStatus()) return;
 
+        const isLoggedIn = checkSession();
+
         setTimeout(() => {
             const splash = document.getElementById('splashScreen'); const login = document.getElementById('loginOverlay');
-            if (splash) { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; if (login) { login.style.visibility = 'visible'; login.style.opacity = '1'; } }, 500); }
-        }, 2000); 
+            if (splash) { 
+                splash.style.opacity = '0'; 
+                setTimeout(() => { 
+                    splash.style.display = 'none'; 
+                    if (!isLoggedIn && login) { login.style.visibility = 'visible'; login.style.opacity = '1'; } 
+                }, 500); 
+            }
+        }, 1200); 
 
         document.getElementById('tripDate').value = getCurrentLocalDateTime();
         document.getElementById('finDate').value = getCurrentLocalDateTime();
@@ -530,11 +550,15 @@
 
         // 1. Boot from Cache instantly
         let cached = localStorage.getItem('fleet_data_cache');
-        if (cached) { try { loadDataToUI(JSON.parse(cached)); } catch(e) {} }
-        else {
+        if (cached) { 
+            try { 
+                const pData = JSON.parse(cached);
+                loadDataToUI(pData); 
+            } catch(e) {} 
+        } else {
+            usersDB = [{username: "SAMY", password: "852", role: "Admin"}];
             const userSelect = document.getElementById('loginUser');
             if(userSelect && userSelect.children.length === 0) userSelect.innerHTML = `<option value="SAMY">SAMY</option>`;
-            document.getElementById('loginBtn').innerText = "Login 🚀"; document.getElementById('loginBtn').disabled = false;
         }
         
         // 2. Fetch fresh data in background
@@ -555,6 +579,43 @@
         if(el) { el.innerHTML = '🔴 Offline'; el.className = 'network-badge network-offline'; }
     });
     setInterval(processSyncQueue, 15000);
+
+    // ================= Login =================
+    function login() {
+        const u = document.getElementById('loginUser').value.trim().toLowerCase();
+        const p = document.getElementById('loginPass').value.trim();
+        if(!u || !p) return;
+
+        const btn = document.getElementById('loginBtn'); btn.innerText = "Verifying..."; btn.disabled = true;
+
+        setTimeout(() => {
+            const matchedUser = usersDB.find(user => user.username.toLowerCase() === u && user.password === p);
+            
+            if (matchedUser || (u === 'samy' && p === '852')) {
+                const userObj = matchedUser || { username: 'SAMY', role: 'Admin' };
+                loggedInUser = userObj.username;
+                localStorage.setItem('samy_logged_in_user', JSON.stringify(userObj));
+                
+                document.getElementById('loginOverlay').style.display = 'none'; 
+                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('userInfo').textContent = `👤 Welcome, ${userObj.username.toUpperCase()}`;
+                document.querySelectorAll('.admin-only').forEach(el => { el.style.display = userObj.role === 'Admin' ? '' : 'none'; });
+                
+                toast('✅ Login Successful', 'success');
+            } else {
+                toast('❌ كلمة المرور غير صحيحة', 'error');
+                btn.innerText = "Login 🚀"; btn.disabled = false;
+            }
+        }, 300);
+    }
+
+    function logout() { 
+        localStorage.removeItem('samy_logged_in_user');
+        location.reload(); 
+    }
+
+    function togglePasswordVisibility() { const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password'; }
+    function showTab(tabId, btn) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btn.classList.add('active'); }
 
     // ================= Master Data Logic =================
     function loadMasterEdit(type, index) {
@@ -607,6 +668,7 @@
         addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB });
     }
 
+    // ================== Trips ==================
     function onTripSelected() {
         const selectedTripName = document.getElementById('tripNameSelect').value.trim();
         const matched = tripsDB.find(t => t.name === selectedTripName);
@@ -651,7 +713,6 @@
         });
     }
 
-    // ================== Trips ==================
     function saveTrip() {
         const client = document.getElementById('tripClientSelect').value.trim();
         const driver = document.getElementById('tripDriverSelect').value.trim();
@@ -701,7 +762,7 @@
         addToSyncQueue({ record_type: "delete_trip", trip_id: item.id });
     }
 
-    // ================== Finance Logic ==================
+    // ================== Finance ==================
     function clearFinanceForm() {
         editingFinanceId = null;
         document.getElementById('saveFinanceBtn').innerText = "Submit Transaction 💾"; document.getElementById('saveFinanceBtn').classList.replace('btn-blue', 'btn-green');
@@ -745,9 +806,7 @@
         if(editingFinanceId) {
             const idx = financesDB.findIndex(f => f.id === editingFinanceId);
             if(idx > -1) financesDB[idx] = { id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes };
-        } else {
-            financesDB.push({ id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes });
-        }
+        } else { financesDB.push({ id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes }); }
         
         financesDB.sort((a, b) => a.date.localeCompare(b.date));
         renderFinances(); saveLocalCache(); clearFinanceForm(); toast('✅ Saved!', 'success'); 
@@ -763,7 +822,7 @@
         addToSyncQueue({ record_type: "delete_finance", fin_id: item.id });
     }
 
-    // ================== Maintenance Logic ==================
+    // ================== Maintenance ==================
     function clearMaintenanceForm() {
         editingMaintenanceId = null;
         document.getElementById('saveMaintenanceBtn').innerText = "Submit Maintenance 💾"; document.getElementById('saveMaintenanceBtn').classList.replace('btn-blue', 'btn-green');
@@ -807,9 +866,7 @@
         if(editingMaintenanceId) {
             const idx = maintenanceDB.findIndex(m => m.id === editingMaintenanceId);
             if(idx > -1) maintenanceDB[idx] = { id: targetId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes };
-        } else {
-            maintenanceDB.push({ id: targetId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes });
-        }
+        } else { maintenanceDB.push({ id: targetId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes }); }
 
         maintenanceDB.sort((a, b) => a.date.localeCompare(b.date));
         renderMaintenance(); saveLocalCache(); clearMaintenanceForm(); toast('✅ Maintenance Saved!', 'success');
@@ -839,35 +896,6 @@
         else { targetContainer.style.display = 'none'; }
     }
 
-    function toast(msg, type='info') {
-        const stack = document.getElementById('toastStack'); const el = document.createElement('div'); el.className = 'toast';
-        el.style.backgroundColor = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : (type==='warn' ? '#e67e22' : '#1e3c72'));
-        el.innerHTML = msg; stack.appendChild(el); setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3500);
-    }
-
-    function togglePasswordVisibility() { const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password'; }
-
-    function login() {
-        const u = document.getElementById('loginUser').value, p = document.getElementById('loginPass').value.trim();
-        if(!u || !p) return;
-        const btn = document.getElementById('loginBtn'); btn.innerText = "Verifying..."; btn.disabled = true;
-
-        fetch(GOOGLE_SCRIPT_URL + "?action=verifyAccess&usr=" + encodeURIComponent(u) + "&pwd=" + encodeURIComponent(p), { redirect: 'follow' })
-            .then(res => res.text()).then(text => {
-                try {
-                    const data = JSON.parse(text);
-                    if (data.status === 'success') {
-                        loggedInUser = u; document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('mainApp').style.display = 'block';
-                        document.getElementById('userInfo').textContent = `👤 Welcome, ${u.toUpperCase()}`;
-                        document.querySelectorAll('.admin-only').forEach(el => { el.style.display = data.role === 'Admin' ? '' : 'none'; });
-                    } else { toast(`❌ ${data.message}`, 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; }
-                } catch(e) { toast('❌ Error', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; }
-            }).catch(err => { toast('❌ Blocked.', 'error'); btn.innerText = "Login 🚀"; btn.disabled = false; });
-    }
-
-    function logout() { location.reload(); }
-    function showTab(tabId, btn) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btn.classList.add('active'); }
-
     function calcTotals() {
         const totalRev = (parseFloat(document.getElementById('revEGP').value) || 0) + ((parseFloat(document.getElementById('revUSD').value) || 0) * RATES.USD) + ((parseFloat(document.getElementById('revEUR').value) || 0) * RATES.EUR) + ((parseFloat(document.getElementById('revGBP').value) || 0) * RATES.GBP);
         document.getElementById('totalRevEGP').textContent = totalRev.toFixed(2);
@@ -876,6 +904,12 @@
     }
     function updateRates() { RATES.USD = parseFloat(document.getElementById('rateUSD').value) || 50; RATES.EUR = parseFloat(document.getElementById('rateEUR').value) || 55; RATES.GBP = parseFloat(document.getElementById('rateGBP').value) || 65; calcTotals(); }
 
+    function toast(msg, type='info') {
+        const stack = document.getElementById('toastStack'); const el = document.createElement('div'); el.className = 'toast';
+        el.style.backgroundColor = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : (type==='warn' ? '#e67e22' : '#1e3c72'));
+        el.innerHTML = msg; stack.appendChild(el); setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3500);
+    }
+
     function drawChart(labels, dataArr, labelTitle, type) {
         const ctx = document.getElementById('reportChart').getContext('2d');
         if(reportChartInstance) reportChartInstance.destroy();
@@ -883,6 +917,7 @@
     }
 
     function fetchReports() {
+        if(!navigator.onLine) return toast('⚠️ Reports require an active internet connection', 'error');
         const type = document.getElementById('reportType').value;
         const target = document.getElementById('reportTarget').value;
         const fromDate = document.getElementById('repFrom').value;
