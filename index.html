@@ -36,8 +36,12 @@
         .app-container { max-width: 1200px; margin: 20px auto; background: transparent; padding: 0 15px; min-height: 90vh; padding-bottom: 80px; direction: ltr; }
         .header-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .header-bar span { font-weight: bold; color: #1e3c72; font-size: 1.1rem; }
-        .network-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-top: 5px; }
+        
+        /* Network & Sync Badges */
+        .network-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-top: 5px; transition: 0.3s; }
         .network-online { background: #eafaf1; color: #27ae60; border: 1px solid #27ae60; }
+        .network-sync { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .network-offline { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .nav-tabs::-webkit-scrollbar { display: none; }
@@ -101,7 +105,6 @@
         .master-card { background: #f9fbfd; border: 1px solid #e1e8ed; padding: 15px; border-radius: 10px; width: 100%; overflow: hidden; }
         .master-card h3 { color: #1e3c72; margin-bottom: 15px; border-bottom: 2px solid #27ae60; padding-bottom: 5px; font-size: 1.1rem; }
 
-        /* Report Formatting */
         .report-print-container { background: #fff; padding: 10px; border-radius: 8px; direction: rtl; width: 100%; overflow-x: auto; } 
         .report-print-container table { font-size: 0.75rem; border: 1px solid #1e3c72; width: 100%; border-collapse: collapse; margin-top: 10px; white-space: normal; }
         .report-print-container table th { background: #fdf5e6 !important; color: #1e3c72 !important; padding: 5px; border: 1px solid #1e3c72; font-weight: bold; position: static !important; } 
@@ -379,12 +382,13 @@
 </div>
 
 <script>
-    // === الرابط الخاص بك مدمج وجاهز ===
+    // === 🌟 الرابط الخاص بك مدمج 🌟 ===
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH8WrOZiqBqwYVo5NGc_Rg0EMS_m7LoB2bi1n6-NSYg3P7_uVLRzzq4dJAuJ28SPsMww/exec"; 
     
     let RATES = { USD: 50, EUR: 55, GBP: 65, EGP: 1 };
     let loggedInUser = '';
 
+    // Data Storage
     let clientsDB = [], driversDB = [], tripsDB = []; 
     let recentTripsDB = [], financesDB = [], maintenanceDB = [];
     let currentRecordIndex = -1;
@@ -392,9 +396,18 @@
     let reportChartInstance = null;
     let editingMasterIndex = { client: -1, driver: -1, trip: -1 };
 
+    // Offline Sync Storage
+    let syncQueue = JSON.parse(localStorage.getItem('fleet_sync_queue') || '[]');
+    let isSyncing = false;
+
+    // Helper functions
     function getCurrentLocalDateTime() {
         const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         return now.toISOString().slice(0, 16);
+    }
+
+    function generateID(prefix) {
+        return prefix + "-" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000);
     }
 
     // ================= نظام التفعيل والـ 30 يوم =================
@@ -427,70 +440,123 @@
             toast('✅ تم تفعيل البرنامج بنجاح!', 'success');
             document.getElementById('loginOverlay').style.visibility = 'visible';
             document.getElementById('loginOverlay').style.opacity = '1';
-        } else {
-            toast('❌ كود التفعيل غير صحيح', 'error');
-        }
+        } else { toast('❌ كود التفعيل غير صحيح', 'error'); }
     }
 
+    // ================= Offline & Sync Logic =================
+    function saveLocalCache() {
+        const userSelect = document.getElementById('loginUser');
+        let currentUsers = [];
+        if(userSelect && userSelect.options.length > 0) { currentUsers = Array.from(userSelect.options).map(opt => ({username: opt.value})); } 
+        else { currentUsers = [{username: "SAMY"}]; }
+
+        const data = { status: 'success', users: currentUsers, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB };
+        localStorage.setItem('fleet_data_cache', JSON.stringify(data));
+    }
+
+    function loadDataToUI(data) {
+        const userSelect = document.getElementById('loginUser');
+        const currentVal = userSelect.value;
+        userSelect.innerHTML = '';
+        if(data.users && data.users.length > 0) {
+            data.users.forEach(u => { userSelect.innerHTML += `<option value="${u.username}">${u.username.toUpperCase()}</option>`; });
+        } else { userSelect.innerHTML = `<option value="SAMY">SAMY</option>`; }
+        userSelect.value = currentVal || (data.users[0] ? data.users[0].username : "SAMY");
+        
+        document.getElementById('loginBtn').innerText = "Login 🚀"; 
+        document.getElementById('loginBtn').disabled = false;
+
+        clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
+        recentTripsDB = data.recent || []; recentTripsDB.sort((a, b) => a.date.localeCompare(b.date));
+        financesDB = data.finances || []; financesDB.sort((a, b) => a.date.localeCompare(b.date));
+        maintenanceDB = data.maintenance || []; maintenanceDB.sort((a, b) => a.date.localeCompare(b.date));
+
+        updateDropdownsAndTables(); renderRecentTrips(); renderFinances(); renderMaintenance();
+    }
+
+    function addToSyncQueue(payload) {
+        syncQueue.push(payload);
+        localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue));
+        processSyncQueue();
+    }
+
+    function processSyncQueue() {
+        if (isSyncing || syncQueue.length === 0) {
+            if(syncQueue.length === 0 && navigator.onLine) {
+                const el = document.getElementById('networkStatus');
+                if(el) { el.innerHTML = '🟢 Online & Synced'; el.className = 'network-badge network-online'; }
+            }
+            return;
+        }
+        if (!navigator.onLine) {
+            const el = document.getElementById('networkStatus');
+            if(el) { el.innerHTML = '⚠️ Offline (Pending Sync)'; el.className = 'network-badge network-offline'; }
+            return;
+        }
+
+        isSyncing = true;
+        const el = document.getElementById('networkStatus');
+        if(el) { el.innerHTML = '🔄 Syncing...'; el.className = 'network-badge network-sync'; }
+
+        let payload = syncQueue[0];
+        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        .then(() => {
+            syncQueue.shift();
+            localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue));
+            isSyncing = false;
+            processSyncQueue();
+        })
+        .catch(err => {
+            isSyncing = false;
+            const netEl = document.getElementById('networkStatus');
+            if(netEl) { netEl.innerHTML = '⚠️ Offline (Pending Sync)'; netEl.className = 'network-badge network-offline'; }
+        });
+    }
+
+    // Initialization
     window.addEventListener('load', () => {
-        // إذا فشل اختبار التفعيل، أوقف كل شيء هنا
         if (!checkTrialStatus()) return;
 
         setTimeout(() => {
-            const splash = document.getElementById('splashScreen');
-            const login = document.getElementById('loginOverlay');
-            if (splash) {
-                splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                    if (login) { login.style.visibility = 'visible'; login.style.opacity = '1'; }
-                }, 500); 
-            }
+            const splash = document.getElementById('splashScreen'); const login = document.getElementById('loginOverlay');
+            if (splash) { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; if (login) { login.style.visibility = 'visible'; login.style.opacity = '1'; } }, 500); }
         }, 2000); 
 
-        clearForm(); clearFinanceForm(); clearMaintenanceForm();
+        document.getElementById('tripDate').value = getCurrentLocalDateTime();
+        document.getElementById('finDate').value = getCurrentLocalDateTime();
+        document.getElementById('mntDate').value = getCurrentLocalDateTime();
         document.getElementById('repFrom').value = new Date().toISOString().slice(0, 10);
         document.getElementById('repTo').value = new Date().toISOString().slice(0, 10);
-        
-        const unlockTimeout = setTimeout(() => {
-            const userSelect = document.getElementById('loginUser');
-            if (userSelect && userSelect.children.length === 0) {
-                userSelect.innerHTML = `<option value="SAMY">SAMY</option>`;
-                document.getElementById('loginBtn').innerText = "Login 🚀";
-                document.getElementById('loginBtn').disabled = false;
-            }
-        }, 3000);
 
+        // 1. Boot from Cache instantly
+        let cached = localStorage.getItem('fleet_data_cache');
+        if (cached) { try { loadDataToUI(JSON.parse(cached)); } catch(e) {} }
+        else {
+            const userSelect = document.getElementById('loginUser');
+            if(userSelect && userSelect.children.length === 0) userSelect.innerHTML = `<option value="SAMY">SAMY</option>`;
+            document.getElementById('loginBtn').innerText = "Login 🚀"; document.getElementById('loginBtn').disabled = false;
+        }
+        
+        // 2. Fetch fresh data in background
         fetch(GOOGLE_SCRIPT_URL + "?action=getInitialData", { redirect: 'follow' })
             .then(res => res.json())
             .then(data => {
-                clearTimeout(unlockTimeout);
                 if (data.status === 'success') {
-                    const userSelect = document.getElementById('loginUser');
-                    userSelect.innerHTML = '';
-                    if(data.users && data.users.length > 0) {
-                        data.users.forEach(u => { userSelect.innerHTML += `<option value="${u.username}">${u.username.toUpperCase()}</option>`; });
-                    } else { userSelect.innerHTML = `<option value="SAMY">SAMY</option>`; }
-                    userSelect.value = "SAMY";
-                    document.getElementById('loginBtn').innerText = "Login 🚀"; 
-                    document.getElementById('loginBtn').disabled = false;
-
-                    clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
-                    recentTripsDB = data.recent || []; recentTripsDB.sort((a, b) => a.date.localeCompare(b.date));
-                    financesDB = data.finances || []; financesDB.sort((a, b) => a.date.localeCompare(b.date));
-                    maintenanceDB = data.maintenance || []; maintenanceDB.sort((a, b) => a.date.localeCompare(b.date));
-
-                    updateDropdownsAndTables(); renderRecentTrips(); renderFinances(); renderMaintenance();
+                    localStorage.setItem('fleet_data_cache', JSON.stringify(data));
+                    loadDataToUI(data);
+                    processSyncQueue();
                 }
-            }).catch(err => { 
-                clearTimeout(unlockTimeout);
-                const userSelect = document.getElementById('loginUser');
-                userSelect.innerHTML = `<option value="SAMY">SAMY</option>`;
-                document.getElementById('loginBtn').innerText = "Login 🚀"; 
-                document.getElementById('loginBtn').disabled = false;
-            });
+            }).catch(err => { console.log("Offline mode - using local cache."); });
     });
 
+    window.addEventListener('online', processSyncQueue);
+    window.addEventListener('offline', () => {
+        const el = document.getElementById('networkStatus');
+        if(el) { el.innerHTML = '🔴 Offline'; el.className = 'network-badge network-offline'; }
+    });
+    setInterval(processSyncQueue, 15000);
+
+    // ================= Master Data Logic =================
     function loadMasterEdit(type, index) {
         if(type === 'client') { document.getElementById('mClientName').value = clientsDB[index]; editingMasterIndex.client = index; document.getElementById('addClientBtn').innerText = "Update"; document.getElementById('addClientBtn').classList.replace('btn-green', 'btn-blue'); } 
         else if(type === 'driver') { document.getElementById('mDriverName').value = driversDB[index]; editingMasterIndex.driver = index; document.getElementById('addDriverBtn').innerText = "Update"; document.getElementById('addDriverBtn').classList.replace('btn-green', 'btn-blue'); } 
@@ -502,9 +568,9 @@
         document.getElementById('driverList').innerHTML = driversDB.map(i => `<option value="${i}">`).join('');
         document.getElementById('tripList').innerHTML   = tripsDB.map(i => `<option value="${i.name}">`).join('');
 
-        document.getElementById('mClientTable').querySelector('tbody').innerHTML = clientsDB.map((c, i) => `<tr><td style="text-align:left;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('client', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Clients', '${c}', ${i}, this)">🗑️</button></td></tr>`).join('');
-        document.getElementById('mDriverTable').querySelector('tbody').innerHTML = driversDB.map((d, i) => `<tr><td style="text-align:left;">${d}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('driver', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Drivers', '${d}', ${i}, this)">🗑️</button></td></tr>`).join('');
-        document.getElementById('mTripTable').querySelector('tbody').innerHTML = tripsDB.map((t, i) => `<tr><td style="text-align:left;">${t.name}</td><td>${t.price}</td><td>${t.driverRate}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('trip', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i}, this)">🗑️</button></td></tr>`).join('');
+        document.getElementById('mClientTable').querySelector('tbody').innerHTML = clientsDB.map((c, i) => `<tr><td style="text-align:left;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('client', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Clients', '${c}', ${i})">🗑️</button></td></tr>`).join('');
+        document.getElementById('mDriverTable').querySelector('tbody').innerHTML = driversDB.map((d, i) => `<tr><td style="text-align:left;">${d}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('driver', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Drivers', '${d}', ${i})">🗑️</button></td></tr>`).join('');
+        document.getElementById('mTripTable').querySelector('tbody').innerHTML = tripsDB.map((t, i) => `<tr><td style="text-align:left;">${t.name}</td><td>${t.price}</td><td>${t.driverRate}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px; font-size:0.8rem; margin-right:5px;" onclick="loadMasterEdit('trip', ${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px; font-size:0.8rem;" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i})">🗑️</button></td></tr>`).join('');
         toggleReportTarget();
     }
 
@@ -528,10 +594,8 @@
             document.getElementById('mTripName').value = ''; document.getElementById('mTripPrice').value = ''; document.getElementById('mDriverRate').value = '';
             editingMasterIndex.trip = -1; btn.innerText = "Add / Update"; btn.classList.replace('btn-blue', 'btn-green');
         }
-        updateDropdownsAndTables();
-        btn.disabled = true;
-        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }) })
-        .then(() => { btn.disabled = false; toast(`✅ Saved to system`, 'success'); }).catch(() => { btn.disabled = false; toast('❌ Sync Error', 'error'); });
+        updateDropdownsAndTables(); saveLocalCache(); toast(`✅ Saved to system`, 'success');
+        addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB });
     }
 
     function removeMasterItem(sheetName, name, idx) {
@@ -539,9 +603,8 @@
         if(sheetName === 'Clients') clientsDB.splice(idx, 1);
         if(sheetName === 'Drivers') driversDB.splice(idx, 1);
         if(sheetName === 'Trip_Types') tripsDB.splice(idx, 1);
-        updateDropdownsAndTables();
-        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }) })
-        .then(() => toast('✅ Deleted', 'warn')).catch(() => toast('❌ Error', 'error'));
+        updateDropdownsAndTables(); saveLocalCache(); toast('✅ Deleted', 'warn');
+        addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB });
     }
 
     function onTripSelected() {
@@ -555,7 +618,6 @@
         document.getElementById('saveTripBtn').innerText = "Save & Submit Trip 💾"; document.getElementById('saveTripBtn').classList.replace('btn-blue', 'btn-green');
         document.getElementById('tripClientSelect').value = ''; document.getElementById('tripDriverSelect').value = ''; document.getElementById('tripNameSelect').value = '';
         document.getElementById('revEGP').value = '0'; document.getElementById('revUSD').value = '0'; document.getElementById('revEUR').value = '0'; document.getElementById('revGBP').value = '0';
-        document.getElementById('tipEGP').value = '0'; document.getElementById('tipUSD').value = '0'; document.getElementById('tipEUR').value = '0'; document.getElementById('tipGBP').value = '0';
         document.getElementById('tripDriverFee').value = ''; document.getElementById('tripNotes').value = '';
         document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals();
     }
@@ -589,6 +651,57 @@
         });
     }
 
+    // ================== Trips ==================
+    function saveTrip() {
+        const client = document.getElementById('tripClientSelect').value.trim();
+        const driver = document.getElementById('tripDriverSelect').value.trim();
+        const tripName = document.getElementById('tripNameSelect').value.trim();
+        const tDate = document.getElementById('tripDate').value.replace('T', ' ');
+        const tRev = parseFloat(document.getElementById('totalRevEGP').textContent) || 0;
+        const tFee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
+        const notes = document.getElementById('tripNotes').value;
+        
+        if (!client || !driver || !tripName) return toast('⚠️ Please fill Client, Partner, and Trip Type!', 'warn');
+
+        let isMasterUpdated = false;
+        if (!clientsDB.includes(client)) { clientsDB.push(client); isMasterUpdated = true; }
+        if (!driversDB.includes(driver)) { driversDB.push(driver); isMasterUpdated = true; }
+        if (!tripsDB.find(t => t.name === tripName)) { tripsDB.push({name: tripName, price: tRev, driverRate: tFee}); isMasterUpdated = true; }
+
+        if (isMasterUpdated) {
+            updateDropdownsAndTables();
+            addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB });
+            toast('ℹ️ تم إضافة أسماء جديدة تلقائياً للنظام', 'info');
+        }
+
+        const isDuplicate = recentTripsDB.some(t => t.client === client && t.driver === driver && t.trip === tripName && t.date === tDate && parseFloat(t.revenue) === tRev && parseFloat(t.fee) === tFee && t.id !== editingTripId);
+        if(isDuplicate) return toast('⚠️ تم إدخال هذا المشوار مسبقاً بنفس البيانات!', 'error');
+
+        const recordType = editingTripId ? "edit_trip" : "trip";
+        let targetId = editingTripId || generateID("TRIP");
+
+        if (editingTripId) {
+            const idx = recentTripsDB.findIndex(t => t.id === editingTripId);
+            if(idx > -1) recentTripsDB[idx] = { id: targetId, date: tDate, client: client, driver: driver, trip: tripName, revenue: tRev, fee: tFee, notes: notes };
+        } else {
+            recentTripsDB.push({ id: targetId, date: tDate, client: client, driver: driver, trip: tripName, revenue: tRev, fee: tFee, notes: notes });
+        }
+        
+        recentTripsDB.sort((a, b) => a.date.localeCompare(b.date));
+        renderRecentTrips(); saveLocalCache(); clearForm(); toast('✅ Saved Successfully!', 'success');
+        
+        addToSyncQueue({ record_type: recordType, trip_id: targetId, client_name: client, driver_name: driver, trip_name: tripName, date: tDate, notes: notes, revenue: tRev, driver_fee: tFee });
+    }
+
+    function cancelTripIndex(index) {
+        if(!confirm('هل أنت متأكد من حذف هذا المشوار نهائياً؟')) return;
+        const item = recentTripsDB[index];
+        recentTripsDB.splice(index, 1);
+        renderRecentTrips(); saveLocalCache(); toast('✅ تم الحذف بنجاح', 'warn');
+        addToSyncQueue({ record_type: "delete_trip", trip_id: item.id });
+    }
+
+    // ================== Finance Logic ==================
     function clearFinanceForm() {
         editingFinanceId = null;
         document.getElementById('saveFinanceBtn').innerText = "Submit Transaction 💾"; document.getElementById('saveFinanceBtn').classList.replace('btn-blue', 'btn-green');
@@ -617,14 +730,40 @@
         });
     }
 
+    function saveFinance() {
+        const tDate = document.getElementById('finDate').value.replace('T', ' ');
+        const tType = document.getElementById('finType').value;
+        const cat = document.getElementById('finCategory').value;
+        const amt = parseFloat(document.getElementById('finAmount').value);
+        const notes = document.getElementById('finNotes').value;
+        
+        if(!amt || !cat) return toast('⚠️ Please fill Category and Amount', 'error');
+
+        const recordType = editingFinanceId ? "edit_finance" : "finance";
+        let targetId = editingFinanceId || generateID("FIN");
+
+        if(editingFinanceId) {
+            const idx = financesDB.findIndex(f => f.id === editingFinanceId);
+            if(idx > -1) financesDB[idx] = { id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes };
+        } else {
+            financesDB.push({ id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes });
+        }
+        
+        financesDB.sort((a, b) => a.date.localeCompare(b.date));
+        renderFinances(); saveLocalCache(); clearFinanceForm(); toast('✅ Saved!', 'success'); 
+
+        addToSyncQueue({ record_type: recordType, fin_id: targetId, fin_type: tType, category: cat, amount: amt, date: tDate, notes: notes, added_by: loggedInUser });
+    }
+
     function deleteFinance(index) {
         if(!confirm('هل أنت متأكد من حذف هذا السجل نهائياً؟')) return;
         const item = financesDB[index];
-        const btn = document.querySelectorAll('#financeTable .btn-red')[index]; btn.innerText = "⏳"; btn.disabled = true;
-        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ record_type: "delete_finance", fin_id: item.id }) })
-        .then(() => { financesDB.splice(index, 1); renderFinances(); toast('✅ تم الحذف بنجاح', 'warn'); }).catch(err => { toast('❌ خطأ', 'error'); btn.innerText = "🗑️"; btn.disabled = false; });
+        financesDB.splice(index, 1);
+        renderFinances(); saveLocalCache(); toast('✅ تم الحذف بنجاح', 'warn');
+        addToSyncQueue({ record_type: "delete_finance", fin_id: item.id });
     }
 
+    // ================== Maintenance Logic ==================
     function clearMaintenanceForm() {
         editingMaintenanceId = null;
         document.getElementById('saveMaintenanceBtn').innerText = "Submit Maintenance 💾"; document.getElementById('saveMaintenanceBtn').classList.replace('btn-blue', 'btn-green');
@@ -652,23 +791,41 @@
         });
     }
 
+    function saveMaintenance() {
+        const mDate = document.getElementById('mntDate').value.replace('T', ' ');
+        const type = document.getElementById('mntType').value;
+        const amt = parseFloat(document.getElementById('mntAmount').value);
+        const loc = document.getElementById('mntLocation').value;
+        const odo = document.getElementById('mntOdometer').value;
+        const notes = document.getElementById('mntNotes').value;
+        
+        if(!amt || !type) return toast('⚠️ Please fill Type and Amount', 'error');
+
+        const recordType = editingMaintenanceId ? "edit_maintenance" : "maintenance";
+        let targetId = editingMaintenanceId || generateID("MNT");
+
+        if(editingMaintenanceId) {
+            const idx = maintenanceDB.findIndex(m => m.id === editingMaintenanceId);
+            if(idx > -1) maintenanceDB[idx] = { id: targetId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes };
+        } else {
+            maintenanceDB.push({ id: targetId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes });
+        }
+
+        maintenanceDB.sort((a, b) => a.date.localeCompare(b.date));
+        renderMaintenance(); saveLocalCache(); clearMaintenanceForm(); toast('✅ Maintenance Saved!', 'success');
+
+        addToSyncQueue({ record_type: recordType, mnt_id: targetId, type: type, amount: amt, location: loc, odometer: odo, date: mDate, notes: notes, added_by: loggedInUser });
+    }
+
     function deleteMaintenance(index) {
         if(!confirm('هل أنت متأكد من حذف هذا السجل نهائياً؟')) return;
         const item = maintenanceDB[index];
-        const btn = document.querySelectorAll('#maintenanceTable .btn-red')[index]; btn.innerText = "⏳"; btn.disabled = true;
-        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ record_type: "delete_maintenance", mnt_id: item.id }) })
-        .then(() => { maintenanceDB.splice(index, 1); renderMaintenance(); toast('✅ تم الحذف بنجاح', 'warn'); }).catch(err => { toast('❌ خطأ', 'error'); btn.innerText = "🗑️"; btn.disabled = false; });
+        maintenanceDB.splice(index, 1);
+        renderMaintenance(); saveLocalCache(); toast('✅ تم الحذف بنجاح', 'warn');
+        addToSyncQueue({ record_type: "delete_maintenance", mnt_id: item.id });
     }
 
-    function cancelTripIndex(index) {
-        if(!confirm('هل أنت متأكد من حذف هذا المشوار نهائياً من قاعدة البيانات؟')) return;
-        const tripToDelete = recentTripsDB[index];
-        const btn = document.querySelectorAll('#recentTripsTable .btn-red')[index]; btn.innerText = "⏳"; btn.disabled = true;
-        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ record_type: "delete_trip", trip_id: tripToDelete.id }) })
-        .then(() => { recentTripsDB.splice(index, 1); renderRecentTrips(); toast('✅ تم الحذف بنجاح', 'warn'); })
-        .catch(err => { toast('❌ حدث خطأ', 'error'); btn.innerText = "🗑️"; btn.disabled = false; });
-    }
-
+    // ================== Reports Logic ==================
     function toggleReportTarget() {
         const type = document.getElementById('reportType').value;
         const targetContainer = document.getElementById('targetContainer');
@@ -824,109 +981,6 @@
             });
             tbody.innerHTML += `<tr class="total-row"><td colspan="6" style="text-align:left; direction:ltr; padding-left:15px;">Total Maintenance Cost / إجمالي تكلفة الصيانة :</td><td style="color:#e74c3c; font-weight:bold; direction:ltr; text-align:right;">${total.toFixed(2)}</td></tr>`;
         }
-    }
-
-    function saveTrip() {
-        const client = document.getElementById('tripClientSelect').value.trim();
-        const driver = document.getElementById('tripDriverSelect').value.trim();
-        const tripName = document.getElementById('tripNameSelect').value.trim();
-        const tDate = document.getElementById('tripDate').value.replace('T', ' ');
-        const tRev = parseFloat(document.getElementById('totalRevEGP').textContent) || 0;
-        const tFee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
-        const notes = document.getElementById('tripNotes').value;
-        
-        if (!client || !driver || !tripName) return toast('⚠️ Please fill Client, Partner, and Trip Type!', 'warn');
-
-        let isMasterUpdated = false;
-        if (!clientsDB.includes(client)) { clientsDB.push(client); isMasterUpdated = true; }
-        if (!driversDB.includes(driver)) { driversDB.push(driver); isMasterUpdated = true; }
-        if (!tripsDB.find(t => t.name === tripName)) { tripsDB.push({name: tripName, price: tRev, driverRate: tFee}); isMasterUpdated = true; }
-
-        if (isMasterUpdated) {
-            updateDropdownsAndTables();
-            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }) });
-            toast('ℹ️ تم إضافة أسماء جديدة تلقائياً للنظام', 'info');
-        }
-
-        const isDuplicate = recentTripsDB.some(t => t.client === client && t.driver === driver && t.trip === tripName && t.date === tDate && parseFloat(t.revenue) === tRev && parseFloat(t.fee) === tFee && t.id !== editingTripId);
-        if(isDuplicate) return toast('⚠️ تم إدخال هذا المشوار مسبقاً بنفس البيانات!', 'error');
-
-        const recordType = editingTripId ? "edit_trip" : "trip";
-        const payload = { record_type: recordType, trip_id: editingTripId, client_name: client, driver_name: driver, trip_name: tripName, date: tDate, notes: notes, revenue: tRev, driver_fee: tFee, tip_egp: 0, tip_usd: 0, tip_eur: 0, tip_gbp: 0, total_tip: 0 };
-        const btn = document.getElementById('saveTripBtn'); btn.innerText = "⏳ Saving..."; btn.disabled = true;
-
-        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        .then(() => { 
-            try {
-                toast('✅ Recorded successfully!', 'success'); btn.disabled = false;
-                if(editingTripId) {
-                    const idx = recentTripsDB.findIndex(t => t.id === editingTripId);
-                    if(idx > -1) recentTripsDB[idx] = { id: editingTripId, date: tDate, client: client, driver: driver, trip: tripName, revenue: tRev, fee: tFee, notes: notes };
-                } else {
-                    const tempId = "TRIP-" + Math.floor(Math.random() * 10000);
-                    recentTripsDB.push({ id: tempId, date: tDate, client: client, driver: driver, trip: tripName, revenue: tRev, fee: tFee, notes: notes });
-                }
-                recentTripsDB.sort((a, b) => a.date.localeCompare(b.date));
-                renderRecentTrips(); clearForm(); 
-            } catch(e) { btn.disabled = false; btn.innerText = "Save & Submit Trip 💾"; }
-        }).catch(err => { toast('❌ Network error.', 'error'); btn.innerText = "Save & Submit Trip 💾"; btn.disabled = false; });
-    }
-
-    function saveFinance() {
-        const tDate = document.getElementById('finDate').value.replace('T', ' ');
-        const tType = document.getElementById('finType').value;
-        const cat = document.getElementById('finCategory').value;
-        const amt = parseFloat(document.getElementById('finAmount').value);
-        const notes = document.getElementById('finNotes').value;
-        
-        if(!amt || !cat) return toast('⚠️ Please fill Category and Amount', 'error');
-
-        const recordType = editingFinanceId ? "edit_finance" : "finance";
-        const payload = { record_type: recordType, fin_id: editingFinanceId, fin_type: tType, category: cat, amount: amt, date: tDate, notes: notes, added_by: loggedInUser };
-        const btn = document.getElementById('saveFinanceBtn'); btn.innerText = "⏳ Saving..."; btn.disabled = true;
-        
-        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        .then(() => { 
-            toast('✅ Saved!', 'success'); btn.disabled = false; 
-            if(editingFinanceId) {
-                const idx = financesDB.findIndex(f => f.id === editingFinanceId);
-                if(idx > -1) financesDB[idx] = { id: editingFinanceId, date: tDate, type: tType, category: cat, amount: amt, notes: notes };
-            } else {
-                const tempId = "FIN-" + Math.floor(Math.random() * 10000);
-                financesDB.push({ id: tempId, date: tDate, type: tType, category: cat, amount: amt, notes: notes });
-            }
-            financesDB.sort((a, b) => a.date.localeCompare(b.date));
-            renderFinances(); clearFinanceForm();
-        }).catch(err => { toast('❌ Error.', 'error'); btn.disabled = false; btn.innerText = "Submit Transaction 💾"; });
-    }
-
-    function saveMaintenance() {
-        const mDate = document.getElementById('mntDate').value.replace('T', ' ');
-        const type = document.getElementById('mntType').value;
-        const amt = parseFloat(document.getElementById('mntAmount').value);
-        const loc = document.getElementById('mntLocation').value;
-        const odo = document.getElementById('mntOdometer').value;
-        const notes = document.getElementById('mntNotes').value;
-        
-        if(!amt || !type) return toast('⚠️ Please fill Type and Amount', 'error');
-
-        const recordType = editingMaintenanceId ? "edit_maintenance" : "maintenance";
-        const payload = { record_type: recordType, mnt_id: editingMaintenanceId, type: type, amount: amt, location: loc, odometer: odo, date: mDate, notes: notes, added_by: loggedInUser };
-        const btn = document.getElementById('saveMaintenanceBtn'); btn.innerText = "⏳ Saving..."; btn.disabled = true;
-        
-        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        .then(() => { 
-            toast('✅ Maintenance Saved!', 'success'); btn.disabled = false; 
-            if(editingMaintenanceId) {
-                const idx = maintenanceDB.findIndex(m => m.id === editingMaintenanceId);
-                if(idx > -1) maintenanceDB[idx] = { id: editingMaintenanceId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes };
-            } else {
-                const tempId = "MNT-" + Math.floor(Math.random() * 10000);
-                maintenanceDB.push({ id: tempId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes });
-            }
-            maintenanceDB.sort((a, b) => a.date.localeCompare(b.date));
-            renderMaintenance(); clearMaintenanceForm();
-        }).catch(err => { toast('❌ Error.', 'error'); btn.disabled = false; btn.innerText = "Submit Maintenance 💾"; });
     }
 
     function exportToExcel() {
