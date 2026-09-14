@@ -378,8 +378,30 @@
         if(recentTripsDB.length > 0) renderRecentTrips();
     }
 
-    function getCurrentLocalDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); }
-    function generateID(prefix) { return prefix + "-" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000); }
+    function getCurrentLocalDateTime() { 
+        const now = new Date(); 
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
+        return now.toISOString().slice(0, 16); 
+    }
+
+    // ================== GENERATE SEQUENTIAL TRIP ID (TRIP-0031, TRIP-0032...) ==================
+    function generateSequentialTripID() {
+        let maxNum = 0;
+        recentTripsDB.forEach(t => {
+            if(t.id && t.id.startsWith("TRIP-")) {
+                let numPart = parseInt(t.id.replace("TRIP-", ""), 10);
+                if(!isNaN(numPart) && numPart > maxNum) {
+                    maxNum = numPart;
+                }
+            }
+        });
+        let nextNum = maxNum + 1;
+        return "TRIP-" + String(nextNum).padStart(4, '0');
+    }
+
+    function generateID(prefix) { 
+        return prefix + "-" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000); 
+    }
     
     function updateOnlineStatus() {
         fetch("https://www.google.com/favicon.ico?t=" + new Date().getTime(), { mode: 'no-cors', cache: 'no-store' })
@@ -467,12 +489,16 @@
     function togglePasswordVisibility() { const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password'; }
     function showTab(tabId, btn) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btn.classList.add('active'); }
 
+    // ================== CLEAN LOAD DATA WITHOUT TIMEZONE CORRUPTION ==================
     function loadDataToUI(data) {
         usersDB = data.users || [];
-        clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
-        recentTripsDB = data.recent || []; recentTripsDB.sort((a,b) => String(a.date).localeCompare(String(b.date)));
-        financesDB = data.finances || []; financesDB.sort((a,b) => String(a.date).localeCompare(String(b.date)));
-        maintenanceDB = data.maintenance || []; maintenanceDB.sort((a,b) => String(a.date).localeCompare(String(b.date)));
+        clientsDB = data.clients || []; 
+        driversDB = data.drivers || []; 
+        tripsDB = data.trips || [];
+        
+        recentTripsDB = data.recent || []; 
+        financesDB = data.finances || []; 
+        maintenanceDB = data.maintenance || []; 
 
         document.getElementById('clientList').innerHTML = clientsDB.map(i => `<option value="${i}">`).join('');
         document.getElementById('driverList').innerHTML = driversDB.map(i => `<option value="${i.name}">`).join('');
@@ -544,7 +570,7 @@
         document.getElementById('netCommission').innerText = (rev - fee).toFixed(2);
     }
 
-    // ================== SAVE / EDIT TRIP FIX ==================
+    // ================== SAVE / EDIT TRIP WITH SEQUENTIAL ID ==================
     function saveTrip() {
         const client = document.getElementById('tripClientSelect').value.trim();
         const driverName = document.getElementById('tripDriverSelect').value.trim();
@@ -566,7 +592,8 @@
             addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB });
         }
 
-        const targetId = editingTripId || generateID("TRIP");
+        // توليد رقم مسلسل منتظم
+        const targetId = editingTripId || generateSequentialTripID();
         const tripObj = { id: targetId, date: tDate, client: client, driver: driverName, vehicle: vType, trip: tripName, revenue: rev, fee: fee, notes: notes };
 
         if (editingTripId) { 
@@ -576,12 +603,10 @@
             recentTripsDB.push(tripObj); 
         }
         
-        recentTripsDB.sort((a,b) => String(a.date).localeCompare(String(b.date)));
         localStorage.setItem('fleet_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB}));
         
         renderRecentTrips(); 
         
-        // إرسال البيانات بأسماء الحقول المطابقة للباك إند بالظبط
         addToSyncQueue({ 
             record_type: editingTripId ? "edit_trip" : "trip", 
             trip_id: targetId, 
@@ -596,14 +621,24 @@
         });
 
         clearForm();
-        toast(`✅ Saved Successfully!`, 'success');
+        toast(`✅ Saved (${targetId})!`, 'success');
+    }
+
+    // تنسيق التاريخ كما هو مكتوب في الشيت
+    function formatDateDisplay(rawDate) {
+        if(!rawDate) return '';
+        let dStr = String(rawDate);
+        if(dStr.includes('T')) {
+            dStr = dStr.replace('T', ' ');
+        }
+        return dStr.slice(0, 16);
     }
 
     function renderRecentTrips() {
         const tbody = document.querySelector('#recentTripsTable tbody');
         if(!tbody) return;
         if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="9">No trips</td></tr>'; return; }
-        tbody.innerHTML = recentTripsDB.map((t, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${(t.date||"").slice(0, 16)}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.vehicle||'-'}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px;" onclick="loadTrip(${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px;" onclick="delTrip(${i})">🗑️</button><button class="btn btn-whatsapp" style="padding:4px 8px;" onclick="sendWA(${i})" title="WhatsApp">💬</button></td></tr>`).join('');
+        tbody.innerHTML = recentTripsDB.map((t, i) => `<tr><td>${t.id || (i + 1)}</td><td style="direction:ltr;">${formatDateDisplay(t.date)}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.vehicle||'-'}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px;" onclick="loadTrip(${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px;" onclick="delTrip(${i})">🗑️</button><button class="btn btn-whatsapp" style="padding:4px 8px;" onclick="sendWA(${i})" title="WhatsApp">💬</button></td></tr>`).join('');
     }
 
     function sendWA(idx) {
@@ -611,7 +646,7 @@
         let driverObj = driversDB.find(d => d.name === t.driver);
         let phone = driverObj ? driverObj.phone : "";
         let cleanPhone = phone.replace(/\D/g,'');
-        let txt = `Trip Details 🚘\nDate: ${t.date.slice(0,16)}\nClient: ${t.client}\nVehicle: ${t.vehicle}\nTrip: ${t.trip}\nAmount: ${t.fee} EGP`;
+        let txt = `Trip Details 🚘\nDate: ${formatDateDisplay(t.date)}\nClient: ${t.client}\nVehicle: ${t.vehicle}\nTrip: ${t.trip}\nAmount: ${t.fee} EGP`;
         if(cleanPhone) { window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(txt)}`, '_blank'); } 
         else { window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
     }
@@ -619,7 +654,8 @@
     function loadTrip(idx) {
         const t = recentTripsDB[idx]; 
         editingTripId = t.id;
-        document.getElementById('tripDate').value = (t.date || '').replace(' ', 'T').slice(0,16);
+        let dateVal = String(t.date || '').replace(' ', 'T').slice(0,16);
+        document.getElementById('tripDate').value = dateVal;
         document.getElementById('tripClientSelect').value = t.client || ''; 
         document.getElementById('tripDriverSelect').value = t.driver || '';
         document.getElementById('tripVehicleType').value = t.vehicle || 'Limousine'; 
@@ -697,12 +733,12 @@
 
     function renderFinances() {
         const tbody = document.querySelector('#financeTable tbody'); if(!tbody) return; if(financesDB.length === 0) { tbody.innerHTML = '<tr><td colspan="7">No records</td></tr>'; return; }
-        tbody.innerHTML = financesDB.map((f, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${(f.date||"").slice(0, 16)}</td><td style="color:${f.type==='Revenue'?'#27ae60':'#e74c3c'};">${f.type}</td><td>${f.category}</td><td style="font-weight:bold;">${f.amount}</td><td>${f.notes}</td><td style="white-space:nowrap;"><button class="btn btn-red" onclick="deleteFinance(${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
+        tbody.innerHTML = financesDB.map((f, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(f.date)}</td><td style="color:${f.type==='Revenue'?'#27ae60':'#e74c3c'};">${f.type}</td><td>${f.category}</td><td style="font-weight:bold;">${f.amount}</td><td>${f.notes}</td><td style="white-space:nowrap;"><button class="btn btn-red" onclick="deleteFinance(${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
     }
     function saveFinance() {
         const tDate = document.getElementById('finDate').value.replace('T', ' '); const tType = document.getElementById('finType').value; const cat = document.getElementById('finCategory').value; const amt = parseFloat(document.getElementById('finAmount').value); const notes = document.getElementById('finNotes').value;
         if(!amt || !cat) return; let targetId = generateID("FIN"); financesDB.push({ id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes });
-        financesDB.sort((a,b) => String(a.date).localeCompare(String(b.date))); renderFinances(); addToSyncQueue({ record_type: "finance", fin_id: targetId, fin_type: tType, category: cat, amount: amt, date: tDate, notes: notes, added_by: loggedInUser }); toast('Saved');
+        renderFinances(); addToSyncQueue({ record_type: "finance", fin_id: targetId, fin_type: tType, category: cat, amount: amt, date: tDate, notes: notes, added_by: loggedInUser }); toast('Saved');
         document.getElementById('finCategory').value = ''; document.getElementById('finAmount').value = '';
     }
     function deleteFinance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_finance", fin_id: financesDB[i].id}); financesDB.splice(i,1); renderFinances(); } }
@@ -710,12 +746,12 @@
 
     function renderMaintenance() {
         const tbody = document.querySelector('#maintenanceTable tbody'); if(!tbody) return; if(maintenanceDB.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No records</td></tr>'; return; }
-        tbody.innerHTML = maintenanceDB.map((m, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${(m.date||"").slice(0, 16)}</td><td>${m.type}</td><td style="color:#e74c3c;">${m.amount}</td><td>${m.location}</td><td>${m.odometer}</td><td>${m.notes}</td><td style="white-space:nowrap;"><button class="btn btn-red" onclick="deleteMaintenance(${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
+        tbody.innerHTML = maintenanceDB.map((m, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(m.date)}</td><td>${m.type}</td><td style="color:#e74c3c;">${m.amount}</td><td>${m.location}</td><td>${m.odometer}</td><td>${m.notes}</td><td style="white-space:nowrap;"><button class="btn btn-red" onclick="deleteMaintenance(${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
     }
     function saveMaintenance() {
         const mDate = document.getElementById('mntDate').value.replace('T', ' '); const type = document.getElementById('mntType').value; const amt = parseFloat(document.getElementById('mntAmount').value); const loc = document.getElementById('mntLocation').value; const odo = document.getElementById('mntOdometer').value; const notes = document.getElementById('mntNotes').value;
         if(!amt || !type) return; let targetId = generateID("MNT"); maintenanceDB.push({ id: targetId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes });
-        maintenanceDB.sort((a,b) => String(a.date).localeCompare(String(b.date))); renderMaintenance(); addToSyncQueue({ record_type: "maintenance", mnt_id: targetId, type: type, amount: amt, location: loc, odometer: odo, date: mDate, notes: notes, added_by: loggedInUser }); toast('Saved');
+        renderMaintenance(); addToSyncQueue({ record_type: "maintenance", mnt_id: targetId, type: type, amount: amt, location: loc, odometer: odo, date: mDate, notes: notes, added_by: loggedInUser }); toast('Saved');
         document.getElementById('mntType').value = ''; document.getElementById('mntAmount').value = '';
     }
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
@@ -872,7 +908,7 @@
             document.querySelector('#reportsTable thead').innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_cat}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { 
                 tot += (r.type === 'Revenue' ? parseFloat(r.amount) : -parseFloat(r.amount)); 
-                tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${r.date.slice(0, 16)}</td><td>${r.type}</td><td>${r.category}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; 
+                tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.category}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; 
             });
             tbody.innerHTML += `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_fin} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
@@ -880,7 +916,7 @@
             document.querySelector('#reportsTable thead').innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_loc}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { 
                 tot += parseFloat(r.amount); 
-                tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${r.date.slice(0, 16)}</td><td>${r.type}</td><td>${r.location}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; 
+                tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.location}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; 
             });
             tbody.innerHTML += `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_mnt} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
@@ -888,7 +924,7 @@
             document.querySelector('#reportsTable thead').innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.th_desc}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { 
                 tot += parseFloat(r.amt); 
-                tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${r.date.slice(0, 16)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td></tr>`; 
+                tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td></tr>`; 
             });
             tbody.innerHTML += `<tr class="total-row"><td colspan="3">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.tab_rep}: ${target.toUpperCase()} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
