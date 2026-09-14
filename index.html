@@ -353,6 +353,7 @@
     let usersDB = [], clientsDB = [], driversDB = []; tripsDB = []; 
     let recentTripsDB = [], financesDB = [], maintenanceDB = [];
     let editingTripId = null;
+    let editingFinId = null;
     let syncQueue = JSON.parse(localStorage.getItem('fleet_sync_queue') || '[]');
     let isSyncing = false;
     let editingMasterIndex = { client: -1, driver: -1, trip: -1 };
@@ -384,7 +385,6 @@
         return now.toISOString().slice(0, 16); 
     }
 
-    // ================== GENERATE SEQUENTIAL TRIP ID (TRIP-0031, TRIP-0032...) ==================
     function generateSequentialTripID() {
         let maxNum = 0;
         recentTripsDB.forEach(t => {
@@ -489,7 +489,6 @@
     function togglePasswordVisibility() { const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password'; }
     function showTab(tabId, btn) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(tabId).classList.add('active'); btn.classList.add('active'); }
 
-    // ================== CLEAN LOAD DATA WITHOUT TIMEZONE CORRUPTION ==================
     function loadDataToUI(data) {
         usersDB = data.users || [];
         clientsDB = data.clients || []; 
@@ -570,7 +569,6 @@
         document.getElementById('netCommission').innerText = (rev - fee).toFixed(2);
     }
 
-    // ================== SAVE / EDIT TRIP WITH SEQUENTIAL ID ==================
     function saveTrip() {
         const client = document.getElementById('tripClientSelect').value.trim();
         const driverName = document.getElementById('tripDriverSelect').value.trim();
@@ -592,7 +590,6 @@
             addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB });
         }
 
-        // توليد رقم مسلسل منتظم
         const targetId = editingTripId || generateSequentialTripID();
         const tripObj = { id: targetId, date: tDate, client: client, driver: driverName, vehicle: vType, trip: tripName, revenue: rev, fee: fee, notes: notes };
 
@@ -624,13 +621,10 @@
         toast(`✅ Saved (${targetId})!`, 'success');
     }
 
-    // تنسيق التاريخ كما هو مكتوب في الشيت
     function formatDateDisplay(rawDate) {
         if(!rawDate) return '';
         let dStr = String(rawDate);
-        if(dStr.includes('T')) {
-            dStr = dStr.replace('T', ' ');
-        }
+        if(dStr.includes('T')) { dStr = dStr.replace('T', ' '); }
         return dStr.slice(0, 16);
     }
 
@@ -731,18 +725,75 @@
         addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }); toast('Deleted');
     }
 
+    // ================== EDIT FINANCE IMPLEMENTATION ==================
     function renderFinances() {
-        const tbody = document.querySelector('#financeTable tbody'); if(!tbody) return; if(financesDB.length === 0) { tbody.innerHTML = '<tr><td colspan="7">No records</td></tr>'; return; }
-        tbody.innerHTML = financesDB.map((f, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(f.date)}</td><td style="color:${f.type==='Revenue'?'#27ae60':'#e74c3c'};">${f.type}</td><td>${f.category}</td><td style="font-weight:bold;">${f.amount}</td><td>${f.notes}</td><td style="white-space:nowrap;"><button class="btn btn-red" onclick="deleteFinance(${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
+        const tbody = document.querySelector('#financeTable tbody'); 
+        if(!tbody) return; 
+        if(financesDB.length === 0) { tbody.innerHTML = '<tr><td colspan="7">No records</td></tr>'; return; }
+        tbody.innerHTML = financesDB.map((f, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(f.date)}</td><td style="color:${f.type==='Revenue'?'#27ae60':'#e74c3c'};">${f.type}</td><td>${f.category}</td><td style="font-weight:bold;">${f.amount}</td><td>${f.notes||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadFinance(${i})" style="padding:4px 8px;">✏️</button><button class="btn btn-red" onclick="deleteFinance(${i})" style="padding:4px 8px;">🗑️</button></td></tr>`).join('');
     }
+
     function saveFinance() {
-        const tDate = document.getElementById('finDate').value.replace('T', ' '); const tType = document.getElementById('finType').value; const cat = document.getElementById('finCategory').value; const amt = parseFloat(document.getElementById('finAmount').value); const notes = document.getElementById('finNotes').value;
-        if(!amt || !cat) return; let targetId = generateID("FIN"); financesDB.push({ id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes });
-        renderFinances(); addToSyncQueue({ record_type: "finance", fin_id: targetId, fin_type: tType, category: cat, amount: amt, date: tDate, notes: notes, added_by: loggedInUser }); toast('Saved');
-        document.getElementById('finCategory').value = ''; document.getElementById('finAmount').value = '';
+        const tDate = document.getElementById('finDate').value.replace('T', ' '); 
+        const tType = document.getElementById('finType').value; 
+        const cat = document.getElementById('finCategory').value.trim(); 
+        const amt = parseFloat(document.getElementById('finAmount').value); 
+        const notes = document.getElementById('finNotes').value.trim();
+        
+        if(!amt || !cat) return toast('⚠️ Please fill required fields!', 'warn'); 
+
+        let targetId = editingFinId || generateID("FIN"); 
+        const finObj = { id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes };
+
+        if(editingFinId) {
+            const idx = financesDB.findIndex(f => f.id === editingFinId);
+            if(idx > -1) financesDB[idx] = finObj;
+        } else {
+            financesDB.push(finObj);
+        }
+
+        renderFinances(); 
+        addToSyncQueue({ 
+            record_type: editingFinId ? "edit_finance" : "finance", 
+            fin_id: targetId, 
+            fin_type: tType, 
+            category: cat, 
+            amount: amt, 
+            date: tDate, 
+            notes: notes, 
+            added_by: loggedInUser 
+        }); 
+
+        clearFinanceForm();
+        toast('✅ Finance Saved!', 'success');
     }
-    function deleteFinance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_finance", fin_id: financesDB[i].id}); financesDB.splice(i,1); renderFinances(); } }
-    function clearFinanceForm() { document.getElementById('finCategory').value=''; document.getElementById('finAmount').value=''; }
+
+    function loadFinance(idx) {
+        const f = financesDB[idx];
+        editingFinId = f.id;
+        document.getElementById('finType').value = f.type || 'Expense';
+        document.getElementById('finCategory').value = f.category || '';
+        document.getElementById('finAmount').value = f.amount || '';
+        document.getElementById('finDate').value = String(f.date || '').replace(' ', 'T').slice(0, 16);
+        document.getElementById('finNotes').value = f.notes || '';
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function deleteFinance(i) { 
+        if(confirm('Delete finance record?')) { 
+            addToSyncQueue({record_type:"delete_finance", fin_id: financesDB[i].id}); 
+            financesDB.splice(i,1); 
+            renderFinances(); 
+        } 
+    }
+
+    function clearFinanceForm() { 
+        editingFinId = null;
+        document.getElementById('finCategory').value=''; 
+        document.getElementById('finAmount').value=''; 
+        document.getElementById('finNotes').value=''; 
+        document.getElementById('finDate').value = getCurrentLocalDateTime();
+    }
 
     function renderMaintenance() {
         const tbody = document.querySelector('#maintenanceTable tbody'); if(!tbody) return; if(maintenanceDB.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No records</td></tr>'; return; }
