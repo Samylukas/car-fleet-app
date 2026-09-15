@@ -102,8 +102,8 @@
         .pdf-compact .report-title-header { font-size: 1.2rem !important; margin-bottom: 8px !important; padding-bottom: 4px !important; }
         .pdf-compact .total-row td { font-size: 12px !important; padding: 5px !important; }
         
-        /* تنسيق رسومات الـ Dashboard */
-        .chart-page { width: 100%; height: 500px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; page-break-after: always; }
+        /* تنسيق رسومات الـ Dashboard الحديثة */
+        .chart-page { width: 100%; height: 500px; margin-bottom: 40px; display: flex; justify-content: center; align-items: center; page-break-after: always; padding: 10px; background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .chart-page canvas { max-height: 100% !important; max-width: 100% !important; }
     </style>
 </head>
@@ -354,18 +354,19 @@
                     <table id="reportsTable">
                         <thead></thead>
                         <tbody></tbody>
-                        <tfoot></tfoot> <!-- تذييل الجدول عشان الإجمالي ميهربش -->
+                        <tfoot></tfoot>
                     </table>
                 </div>
                 
                 <!-- ملخص الأرباح -->
                 <div id="netProfitSummary" style="display:none;"></div>
                 
-                <!-- منطقة الرسوم البيانية -->
+                <!-- منطقة الرسوم البيانية (4 خرائط) -->
                 <div id="chartsArea" style="display:none; flex-direction:column;">
                     <div class="chart-page"><canvas id="chartPartners"></canvas></div>
                     <div class="chart-page"><canvas id="chartClients"></canvas></div>
-                    <div class="chart-page" style="page-break-after: auto;"><canvas id="chartTrips"></canvas></div>
+                    <div class="chart-page"><canvas id="chartTrips"></canvas></div>
+                    <div class="chart-page" style="page-break-after: auto;"><canvas id="chartTripNames"></canvas></div>
                 </div>
 
             </div>
@@ -426,6 +427,11 @@
 </div>
 
 <script>
+    // إعدادات Chart.js العامة ليكون التصميم عصري وحديث
+    Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    Chart.defaults.color = '#333';
+    Chart.defaults.scale.grid.color = 'rgba(0, 0, 0, 0.05)';
+
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH8WrOZiqBqwYVo5NGc_Rg0EMS_m7LoB2bi1n6-NSYg3P7_uVLRzzq4dJAuJ28SPsMww/exec"; 
     
     let loggedInUser = ''; let userRole = '';
@@ -475,17 +481,14 @@
         return "TRIP-" + String(maxNum + 1).padStart(4, '0');
     }
 
-    function generateID(prefix) { 
-        return prefix + "-" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000); 
-    }
+    function generateID(prefix) { return prefix + "-" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000); }
     
     function updateOnlineStatus() {
         fetch("https://www.google.com/favicon.ico?t=" + new Date().getTime(), { mode: 'no-cors', cache: 'no-store' })
         .then(() => {
             const badge = document.getElementById('networkStatus');
             if(badge.innerHTML !== '🟢 Online' && !isSyncing) {
-                badge.className = 'network-badge network-online'; badge.innerHTML = '🟢 Online';
-                processSyncQueue();
+                badge.className = 'network-badge network-online'; badge.innerHTML = '🟢 Online'; processSyncQueue();
             }
         }).catch(() => {
             const badge = document.getElementById('networkStatus');
@@ -530,9 +533,7 @@
         if (cached) {
             setTimeout(hideSplashScreen, 1200); forceAppSync(false);
         } else {
-            document.getElementById('splashLoading').style.display = 'flex';
-            document.getElementById('splashMessage').innerText = "Loading...";
-            forceAppSync(true);
+            document.getElementById('splashLoading').style.display = 'flex'; document.getElementById('splashMessage').innerText = "Loading..."; forceAppSync(true);
         }
     });
 
@@ -557,8 +558,7 @@
         if(!u || !p) return;
         const matchedUser = usersDB.find(user => user.username.toLowerCase() === u && user.password === p);
         if (matchedUser || (u === 'samy' && p === '852')) {
-            localStorage.setItem('samy_logged_in_user', JSON.stringify(matchedUser || { username: 'SAMY', role: 'Admin' }));
-            location.reload();
+            localStorage.setItem('samy_logged_in_user', JSON.stringify(matchedUser || { username: 'SAMY', role: 'Admin' })); location.reload();
         } else { toast('❌ Incorrect Password', 'error'); }
     }
     function logout() { localStorage.removeItem('samy_logged_in_user'); location.reload(); }
@@ -732,7 +732,7 @@
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
     // ==========================================
-    // دالة الـ PDF الخارقة (مدمج بها حلول كل المشاكل)
+    // دالة الـ PDF الخارقة
     // ==========================================
     async function downloadDirectPDF() {
         const element = document.getElementById('reportPrintArea');
@@ -744,17 +744,15 @@
 
         toast('⏳ جاري تجهيز التقرير...', 'info');
 
-        // إضافة كلاس التصغير لاحتواء 50 سطر
+        // إضافة كلاس التصغير لاحتواء أكثر من 50 سطر
         element.classList.add('pdf-compact');
-        
-        // إعطاء المتصفح لحظة لتطبيق الـ CSS الجديد قبل أخذ لقطة الـ PDF
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 200)); // انتظار لتطبيق التنسيق
 
         const fileName = `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
         const isCharts = document.getElementById('reportType').value === 'charts';
 
         const opt = {
-            margin:       0.2, // هوامش صغيرة جداً لاحتواء أكبر قدر من البيانات
+            margin:       0.2, 
             filename:     fileName,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
@@ -765,7 +763,6 @@
         try {
             if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
                 try {
-                    // الكود العبقري لتنظيف الـ Base64 لكي يقبله الأندرويد
                     let pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
                     let cleanBase64 = pdfDataUri.replace(/^data:application\/[a-z]+;base64,/, "");
                     
@@ -783,11 +780,9 @@
                     toast('✅ تم فتح شاشة المشاركة!', 'success');
                 } catch (shareErr) {
                     console.error('Share Plugin Failed:', shareErr);
-                    // لو فشل بأي طريقة، نفتح طباعة الموبايل الإجبارية
                     window.print();
                 }
             } else {
-                // ويب عادي
                 const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
                 const blobUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -804,7 +799,6 @@
             console.error('PDF Error:', err);
             window.print();
         } finally {
-            // إزالة كلاس التصغير بعد الطباعة
             element.classList.remove('pdf-compact');
         }
     }
@@ -886,51 +880,60 @@
             return String(rawDate).trim().slice(0, 10);
         }
 
-        // ================== الرسم البياني الشامل (Dashboard) ==================
+        // ================== الرسم البياني الشامل المودرن ==================
         if (type === 'charts') {
             tableWrapper.style.display = 'none';
             chartsArea.style.display = 'flex';
             document.getElementById('printReportTitle').innerHTML = `📊 لوحة المؤشرات البيانية (Dashboard) <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
             document.getElementById('printReportTitle').style.display = 'block';
 
-            let partnerData = {}; let clientData = {}; let tripsByDate = {};
+            let partnerData = {}; let clientData = {}; let tripsByDate = {}; let tripNameData = {};
             recentTripsDB.forEach(t => {
                 const d = getCleanDay(t.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
                     let p = t.driver || 'Unknown'; let c = t.client || 'Unknown';
+                    let tName = (t.trip || t.trip_name || 'Unknown').trim();
                     partnerData[p] = (partnerData[p] || 0) + parseFloat(t.fee || 0);
                     clientData[c] = (clientData[c] || 0) + parseFloat(t.revenue || 0);
                     tripsByDate[d] = (tripsByDate[d] || 0) + 1;
+                    tripNameData[tName] = (tripNameData[tName] || 0) + 1;
                 }
             });
 
-            // تدمير الرسومات القديمة إن وجدت
-            if(window.c1) window.c1.destroy(); if(window.c2) window.c2.destroy(); if(window.c3) window.c3.destroy();
+            if(window.c1) window.c1.destroy(); if(window.c2) window.c2.destroy(); if(window.c3) window.c3.destroy(); if(window.c4) window.c4.destroy();
 
-            // رسم 1: الشركاء (بدون Animation عشان يظهر في الـ PDF فوراً)
+            // 1. الشركاء (أعمدة دائرية مودرن)
             window.c1 = new Chart(document.getElementById('chartPartners'), {
                 type: 'bar',
-                data: { labels: Object.keys(partnerData), datasets: [{ label: 'إيرادات الشركاء (EGP)', data: Object.values(partnerData), backgroundColor: '#e74c3c' }] },
+                data: { labels: Object.keys(partnerData), datasets: [{ label: 'إيرادات الشركاء (EGP)', data: Object.values(partnerData), backgroundColor: 'rgba(231, 76, 60, 0.8)', borderColor: '#c0392b', borderWidth: 2, borderRadius: 8, barPercentage: 0.6 }] },
                 options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'أكثر الشركاء تحقيقاً للإيرادات', font: {size: 18} } } }
             });
 
-            // رسم 2: العملاء
+            // 2. العملاء (أعمدة خضراء مودرن)
             window.c2 = new Chart(document.getElementById('chartClients'), {
                 type: 'bar',
-                data: { labels: Object.keys(clientData), datasets: [{ label: 'مبيعات العملاء (EGP)', data: Object.values(clientData), backgroundColor: '#27ae60' }] },
+                data: { labels: Object.keys(clientData), datasets: [{ label: 'مبيعات العملاء (EGP)', data: Object.values(clientData), backgroundColor: 'rgba(39, 174, 96, 0.8)', borderColor: '#229954', borderWidth: 2, borderRadius: 8, barPercentage: 0.6 }] },
                 options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'أكثر العملاء طلباً للمشاوير', font: {size: 18} } } }
             });
 
-            // رسم 3: المشاوير
+            // 3. المشاوير (خط منحني ناعم ومظلل)
             window.c3 = new Chart(document.getElementById('chartTrips'), {
                 type: 'line',
-                data: { labels: Object.keys(tripsByDate).sort(), datasets: [{ label: 'عدد المشاوير', data: Object.keys(tripsByDate).sort().map(k=>tripsByDate[k]), borderColor: '#1e3c72', fill: false }] },
+                data: { labels: Object.keys(tripsByDate).sort(), datasets: [{ label: 'عدد المشاوير', data: Object.keys(tripsByDate).sort().map(k=>tripsByDate[k]), borderColor: '#1e3c72', backgroundColor: 'rgba(30, 60, 114, 0.15)', fill: true, tension: 0.4, pointBackgroundColor: '#f39c12', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5 }] },
                 options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'معدل المشاوير خلال الفترة', font: {size: 18} } } }
+            });
+
+            // 4. الخريطة الجديدة: أسماء المشاوير (رسم دائري Doughnut)
+            const niceColors = ['#3498db', '#9b59b6', '#e67e22', '#1abc9c', '#f1c40f', '#e74c3c', '#34495e', '#16a085', '#27ae60', '#2980b9', '#d35400', '#c0392b'];
+            window.c4 = new Chart(document.getElementById('chartTripNames'), {
+                type: 'doughnut',
+                data: { labels: Object.keys(tripNameData), datasets: [{ data: Object.values(tripNameData), backgroundColor: niceColors, borderWidth: 2, borderColor: '#fff' }] },
+                options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'أكثر المشاوير طلباً (بالاسم)', font: {size: 18} }, legend: { position: 'right' } } }
             });
             return;
         }
 
-        // ================== باقي التقارير العادية ==================
+        // ================== باقي التقارير ==================
         if (type === 'net_profit') {
             let tRev = 0, fRev = 0, fExp = 0, mExp = 0;
             recentTripsDB.forEach(t => {
@@ -940,7 +943,8 @@
             financesDB.forEach(f => {
                 const d = getCleanDay(f.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    if(f.type === 'Revenue') fRev += parseFloat(f.amount || 0); else fExp += parseFloat(f.amount || 0);
+                    if(f.type === 'Revenue') fRev += parseFloat(f.amount || 0);
+                    else fExp += parseFloat(f.amount || 0);
                 }
             });
             maintenanceDB.forEach(m => {
@@ -948,7 +952,10 @@
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) mExp += parseFloat(m.amount || 0);
             });
 
-            let totalIncome = tRev + fRev; let totalExpenses = fExp + mExp; let net = totalIncome - totalExpenses;
+            let totalIncome = tRev + fRev;
+            let totalExpenses = fExp + mExp;
+            let net = totalIncome - totalExpenses;
+
             tableWrapper.style.display = 'none';
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_net_profit} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
             document.getElementById('printReportTitle').style.display = 'block';
@@ -974,8 +981,7 @@
             recentTripsDB.forEach(t => {
                 const d = getCleanDay(t.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    const cName = (t.client || "").trim(); const pName = (t.driver || "").trim();
-                    const tName = (t.trip || t.trip_name || "").trim();
+                    const cName = (t.client || "").trim(); const pName = (t.driver || "").trim(); const tName = (t.trip || t.trip_name || "").trim();
                     const rev = parseFloat(t.revenue || t.amount || 0); const fee = parseFloat(t.fee || t.driver_fee || 0);
 
                     if (type === 'client' && cName.toLowerCase() === target) { res.push({ date: t.date, desc: tName, amt: rev }); } 
@@ -994,7 +1000,6 @@
                 tot += (r.type === 'Revenue' ? parseFloat(r.amount) : -parseFloat(r.amount)); 
                 tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.category}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; 
             });
-            // استخدام tfoot لحماية الإجمالي
             tfoot.innerHTML = `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_fin} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else if (type === 'maintenance') {
@@ -1011,7 +1016,6 @@
                 tot += parseFloat(r.amt); 
                 tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td></tr>`; 
             });
-            // الإجمالي في الـ tfoot
             tfoot.innerHTML = `<tr class="total-row"><td colspan="3">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.tab_rep}: ${target.toUpperCase()} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         }
