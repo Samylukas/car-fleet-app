@@ -48,7 +48,7 @@
         .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; width: 100%; }
         @media (max-width: 600px) { .grid-form { grid-template-columns: 1fr; } }
         
-        .large-inputs .form-group input, .large-inputs .form-group select { padding: 16px; font-size: 1.1rem; }
+        .large-inputs .form-group input, .large-inputs .form-group select { padding: 14px; font-size: 1.05rem; }
 
         .form-group { display: flex; flex-direction: column; text-align: left; width: 100%; overflow: hidden; }
         html[dir="rtl"] .form-group { text-align: right; }
@@ -85,7 +85,6 @@
         .total-row td { background: #eafaf1 !important; font-weight: bold; font-size: 1.1rem; text-align: left; border-top: 2px solid #27ae60; }
         html[dir="rtl"] .total-row td { text-align: right; }
 
-        /* كلاس فصل الصفحات الديناميكي */
         .page-break-row { page-break-after: always !important; break-after: page !important; }
         
         .master-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; width: 100%; }
@@ -96,6 +95,11 @@
 
         .net-profit-card { background: #1e3c72; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .net-profit-card h2 { font-size: 2rem; margin: 10px 0; color: #f1c40f; }
+
+        /* صندوق إنذارات الصيانة */
+        .alert-box { background: #fdf2e9; border: 1px solid #f39c12; padding: 15px; border-radius: 10px; margin-bottom: 15px; display: none; }
+        .alert-box h4 { color: #d35400; margin-bottom: 10px; }
+        .alert-item { background: #fff; padding: 10px; border-radius: 6px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-weight: bold; display: flex; justify-content: space-between;}
 
         .pdf-compact table { font-size: 11px !important; line-height: 1.2 !important; }
         .pdf-compact th, .pdf-compact td { padding: 6px 5px !important; height: auto !important; }
@@ -166,7 +170,12 @@
 
             <div class="grid-form">
                 <div class="form-group"><label data-tr="client">Client:</label><input type="text" id="tripClientSelect" list="clientList"></div>
-                <div class="form-group"><label data-tr="driver">Partner (Driver):</label><input type="text" id="tripDriverSelect" list="driverList"></div>
+                <div class="form-group"><label data-tr="driver">Partner (حساب الشريك):</label><input type="text" id="tripDriverSelect" list="driverList"></div>
+                
+                <!-- إضافات السائق الفعلي والسيارة -->
+                <div class="form-group"><label>Actual Driver (السائق الفعلي):</label><input type="text" id="tripActualDriver" list="actualDriverList"></div>
+                <div class="form-group"><label>Vehicle Plate (رقم السيارة):</label><input type="text" id="tripVehiclePlate" list="plateList" style="direction: ltr;"></div>
+
                 <div class="form-group">
                     <label data-tr="vehicle">Vehicle Type:</label>
                     <select id="tripVehicleType" onchange="onTripSelected()">
@@ -181,7 +190,7 @@
                 <div class="form-group"><label data-tr="notes">Notes:</label><input type="text" id="tripNotes"></div>
             </div>
 
-            <div class="grid-form" style="margin-top:20px;">
+            <div class="grid-form" style="margin-top:20px; background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
                 <div class="form-group">
                     <label style="color:#27ae60;" data-tr="rev_client">💰 Revenue from Client (EGP):</label>
                     <input type="number" id="revEGP" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">
@@ -190,10 +199,15 @@
                     <label style="color:#e74c3c;" data-tr="fee_driver">💵 Partner Fee (EGP):</label>
                     <input type="number" id="tripDriverFee" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: bold; color: #e74c3c;">
                 </div>
+                <!-- حساب السائق الفعلي اللي بيتخصم من الصافي -->
+                <div class="form-group">
+                    <label style="color:#8e44ad;">🧑‍✈️ Actual Driver Fee (أجرة السائق):</label>
+                    <input type="number" id="tripActualDriverFee" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: bold; color: #8e44ad;">
+                </div>
             </div>
 
             <div style="margin-top:20px; padding:15px; background:#1e3c72; color:white; border-radius:10px; text-align:center;">
-                <span style="font-size:1.1rem;" data-tr="net">Net Commission: </span>
+                <span style="font-size:1.1rem;" data-tr="net">Net Commission (صافي العمولة): </span>
                 <span id="netCommission" style="color:#f1c40f; font-size:1.8rem; font-weight:bold;">0.00</span>
             </div>
 
@@ -204,7 +218,7 @@
             <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px;" data-tr="recent_trips">🕒 Recent Trips</h3>
             <div class="table-responsive">
                 <table id="recentTripsTable" style="width:100%;">
-                    <thead><tr><th data-tr="th_num">#</th><th data-tr="date">Date</th><th data-tr="client">Client</th><th data-tr="driver">Partner</th><th data-tr="vehicle">Vehicle</th><th data-tr="trip">Trip</th><th data-tr="rev">Rev</th><th data-tr="fee">Fee</th><th>Action</th></tr></thead>
+                    <thead><tr><th data-tr="th_num">#</th><th data-tr="date">Date</th><th data-tr="client">Client</th><th>Car Plate</th><th>Driver</th><th data-tr="trip">Trip</th><th data-tr="rev">Rev</th><th data-tr="fee">Fee</th><th>Action</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -290,26 +304,44 @@
 
     <!-- Tab: Maintenance -->
     <div id="maintenanceTab" class="tab-content admin-only">
+        
+        <!-- صندوق إنذارات الصيانة الذكي -->
+        <div id="mntAlerts" class="alert-box"></div>
+
         <div class="card">
-            <h2 class="section-title" data-tr="tab_mnt">🔧 Car Maintenance</h2>
+            <h2 class="section-title" data-tr="tab_mnt">🔧 Car Maintenance Log</h2>
             <div class="grid-form large-inputs" style="grid-template-columns: 1fr;">
                 <div class="form-group"><label data-tr="date">Date & Time:</label><input type="datetime-local" id="mntDate"></div>
-                <div class="form-group"><label data-tr="rep_type">Type / Category:</label><input type="text" id="mntType"></div>
-                <div class="form-group"><label data-tr="rep_amt">Amount (EGP):</label><input type="number" id="mntAmount"></div>
-                <div class="form-group"><label data-tr="rep_loc">Location:</label><input type="text" id="mntLocation"></div>
-                <div class="form-group"><label data-tr="rep_odo">Odometer:</label><input type="number" id="mntOdometer"></div>
+                
+                <!-- إضافات الصيانة -->
+                <div style="display:flex; gap:10px; width:100%;">
+                    <div class="form-group" style="flex:1;"><label>Vehicle Plate (رقم السيارة):</label><input type="text" id="mntVehiclePlate" list="plateList" style="direction: ltr;"></div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Type:</label>
+                        <select id="mntVehicleType"><option>Limousine</option><option>Microbus</option><option>Coaster</option><option>Bus</option></select>
+                    </div>
+                </div>
+
+                <div class="form-group"><label>Maintenance Type (نوع الصيانة):</label><input type="text" id="mntType" placeholder="تغيير زيت، تيل فرامل، الخ..."></div>
+                <div class="form-group"><label data-tr="rep_amt">Cost (EGP):</label><input type="number" id="mntAmount"></div>
+                
+                <div style="display:flex; gap:10px; width:100%;">
+                    <div class="form-group" style="flex:1;"><label>Current Odo (العداد الحالي):</label><input type="number" id="mntOdometer"></div>
+                    <div class="form-group" style="flex:1;"><label>Next Odo (الصيانة القادمة):</label><input type="number" id="mntNextOdo"></div>
+                </div>
+
                 <div class="form-group"><label data-tr="notes">Notes:</label><input type="text" id="mntNotes"></div>
             </div>
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button class="btn btn-gray" style="flex:1; padding: 15px; font-size: 1.1rem;" onclick="clearMaintenanceForm()">Clear</button>
-                <button id="saveMaintenanceBtn" class="btn btn-blue" style="flex:3; padding: 15px; font-size: 1.1rem;" onclick="saveMaintenance()">Save</button>
+                <button id="saveMaintenanceBtn" class="btn btn-blue" style="flex:3; padding: 15px; font-size: 1.1rem;" onclick="saveMaintenance()">Save Maintenance</button>
             </div>
         </div>
 
         <div class="card" style="margin-top: 20px;">
             <div class="table-responsive">
                 <table id="maintenanceTable" style="width:100%;">
-                    <thead><tr><th data-tr="th_num">#</th><th data-tr="date">Date</th><th data-tr="rep_type">Type</th><th data-tr="rep_amt">Amount</th><th data-tr="rep_loc">Location</th><th data-tr="rep_odo">Odometer</th><th data-tr="notes">Notes</th><th>Action</th></tr></thead>
+                    <thead><tr><th data-tr="th_num">#</th><th data-tr="date">Date</th><th>Plate</th><th>Mnt Type</th><th>Cost</th><th>Current Odo</th><th>Next Odo</th><th>Action</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -324,8 +356,10 @@
                 <div class="form-group">
                     <label data-tr="rep_type_select">Report Type:</label>
                     <select id="reportType" onchange="toggleReportTarget()">
-                        <option value="client" data-tr="opt_client">Client Report</option>
-                        <option value="driver" data-tr="opt_driver">Partner Report</option>
+                        <option value="client" data-tr="opt_client">Client Report (تقرير عميل)</option>
+                        <option value="driver" data-tr="opt_driver">Partner Report (تقرير شريك)</option>
+                        <option value="actual_driver" style="color: #8e44ad;">Driver Report (تقرير سائق فعلي)</option>
+                        <option value="vehicle_plate" style="color: #34495e;">Vehicle Report (تقرير إيراد سيارة)</option>
                         <option value="trip_detailed" data-tr="opt_trip">Trip Report</option>
                         <option value="finance" data-tr="opt_fin">Finance Report</option>
                         <option value="maintenance" data-tr="opt_mnt">Maintenance Report</option>
@@ -360,7 +394,7 @@
                 <!-- ملخص الأرباح -->
                 <div id="netProfitSummary" style="display:none;"></div>
                 
-                <!-- منطقة الرسوم البيانية (4 خرائط) -->
+                <!-- منطقة الرسوم البيانية -->
                 <div id="chartsArea" style="display:none; flex-direction:column;">
                     <div class="chart-page"><canvas id="chartPartners"></canvas></div>
                     <div class="chart-page"><canvas id="chartClients"></canvas></div>
@@ -372,7 +406,7 @@
         </div>
     </div>
 
-    <!-- Tab: Users Management & Change Password -->
+    <!-- Tab: Users Management -->
     <div id="usersTab" class="tab-content">
         <div class="card">
             <h2 class="section-title">🔑 Change Password</h2>
@@ -423,6 +457,9 @@
     <datalist id="clientList"></datalist>
     <datalist id="driverList"></datalist>
     <datalist id="tripList"></datalist>
+    <!-- قوائم استرشادية جديدة للسائق الفعلي وأرقام السيارات -->
+    <datalist id="actualDriverList"></datalist>
+    <datalist id="plateList"></datalist>
 </div>
 
 <script>
@@ -435,16 +472,14 @@
     let loggedInUser = ''; let userRole = '';
     let usersDB = [], clientsDB = [], driversDB = []; tripsDB = []; 
     let recentTripsDB = [], financesDB = [], maintenanceDB = [];
-    let editingTripId = null;
-    let editingFinId = null;
+    let editingTripId = null; let editingFinId = null;
     let syncQueue = JSON.parse(localStorage.getItem('fleet_sync_queue') || '[]');
-    let isSyncing = false;
-    let editingMasterIndex = { client: -1, driver: -1, trip: -1 };
+    let isSyncing = false; let editingMasterIndex = { client: -1, driver: -1, trip: -1 };
 
     let currentLang = 'en';
     const dict = {
-        'en': { username:"Username:", password:"Password:", logout:"Logout", dash_rev:"Monthly Profit (EGP)", dash_trips:"Monthly Trips", dash_top:"Top Partner", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", tab_users:"🔐 Users", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_excel:"Excel 📊", btn_print:"Print / PDF 📄", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
-        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", dash_rev:"أرباح الشهر (EGP)", dash_trips:"عدد مشاوير الشهر", dash_top:"نجم الشهر (شريك)", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", tab_users:"🔐 الحسابات", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_excel:"إكسيل 📊", btn_print:"طباعة / PDF 📄", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
+        'en': { username:"Username:", password:"Password:", logout:"Logout", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", tab_users:"🔐 Users", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_excel:"Excel 📊", btn_print:"Print / PDF 📄", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
+        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", tab_users:"🔐 الحسابات", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_excel:"إكسيل 📊", btn_print:"طباعة / PDF 📄", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
     };
 
     function toggleLang() {
@@ -462,10 +497,32 @@
         if(recentTripsDB.length > 0) renderRecentTrips();
     }
 
+    // ==========================================
+    // دالة فرمتة الوقت الإجبارية لنظام 24 ساعة
+    // ==========================================
     function getCurrentLocalDateTime() { 
         const now = new Date(); 
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
         return now.toISOString().slice(0, 16); 
+    }
+
+    function formatDateDisplay(rawDate) { 
+        if(!rawDate) return ''; 
+        let dStr = String(rawDate).trim(); 
+        
+        // لو سيرفر جوجل رجع الوقت بصيغة ISO وفيها T أو Z، نفرمتها على توقيت الجهاز اللي فاتح الأبلكيشن (24 ساعة)
+        if(dStr.includes('Z') || dStr.includes('T')) {
+            let d = new Date(rawDate);
+            if (!isNaN(d.getTime())) {
+                let yyyy = d.getFullYear();
+                let mm = String(d.getMonth()+1).padStart(2,'0');
+                let dd = String(d.getDate()).padStart(2,'0');
+                let hh = String(d.getHours()).padStart(2,'0');
+                let min = String(d.getMinutes()).padStart(2,'0');
+                return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+            }
+        }
+        return dStr.slice(0, 16).replace('T', ' '); 
     }
 
     function generateSequentialTripID() {
@@ -573,6 +630,15 @@
         document.getElementById('driverList').innerHTML = driversDB.map(i => `<option value="${i.name}">`).join('');
         document.getElementById('tripList').innerHTML = tripsDB.map(i => `<option value="${i.name}">`).join('');
 
+        // تجهيز قوائم الإكمال التلقائي للسائق الفعلي وأرقام العربيات
+        let uDrivers = new Set(); let uPlates = new Set();
+        recentTripsDB.forEach(t => {
+            if(t.actual_driver) uDrivers.add(t.actual_driver);
+            if(t.vehicle_plate) uPlates.add(t.vehicle_plate);
+        });
+        document.getElementById('actualDriverList').innerHTML = [...uDrivers].map(i => `<option value="${i}">`).join('');
+        document.getElementById('plateList').innerHTML = [...uPlates].map(i => `<option value="${i}">`).join('');
+
         const cBody = document.querySelector('#mClientTable tbody');
         if(cBody) cBody.innerHTML = clientsDB.map((c, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('client', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Clients', '${c}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
         const dBody = document.querySelector('#mDriverTable tbody');
@@ -581,6 +647,7 @@
         if(mBody) mBody.innerHTML = tripsDB.map((t, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${t.name}</td><td>${t.lp||0}/${t.lr||0}</td><td>${t.mp||0}/${t.mr||0}</td><td>${t.cp||0}/${t.cr||0}</td><td>${t.bp||0}/${t.br||0}</td><td><button class="btn btn-blue" onclick="loadMasterEdit('trip', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
 
         renderUsersTable(); toggleReportTarget(); renderRecentTrips(); renderFinances(); renderMaintenance();
+        checkMaintenanceAlerts(); // فحص تنبيهات الصيانة فوراً
     }
 
     function processSyncQueue() {
@@ -603,15 +670,27 @@
         }
     }
     function calcTotals() {
-        const rev = parseFloat(document.getElementById('revEGP').value) || 0; const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
-        document.getElementById('netCommission').innerText = (rev - fee).toFixed(2);
+        const rev = parseFloat(document.getElementById('revEGP').value) || 0; 
+        const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
+        const actFee = parseFloat(document.getElementById('tripActualDriverFee').value) || 0;
+        // صافي العمولة = الإيراد من العميل - حساب الشريك - أجرة السائق الفعلي
+        document.getElementById('netCommission').innerText = (rev - fee - actFee).toFixed(2);
     }
 
     function saveTrip() {
-        const client = document.getElementById('tripClientSelect').value.trim(); const driverName = document.getElementById('tripDriverSelect').value.trim();
-        const tripName = document.getElementById('tripNameSelect').value.trim(); const vType = document.getElementById('tripVehicleType').value;
-        const tDate = document.getElementById('tripDate').value.replace('T', ' '); const rev = parseFloat(document.getElementById('revEGP').value) || 0;
-        const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0; const notes = document.getElementById('tripNotes').value;
+        const client = document.getElementById('tripClientSelect').value.trim(); 
+        const driverName = document.getElementById('tripDriverSelect').value.trim();
+        const tripName = document.getElementById('tripNameSelect').value.trim(); 
+        const vType = document.getElementById('tripVehicleType').value;
+        const tDate = document.getElementById('tripDate').value.replace('T', ' '); 
+        const rev = parseFloat(document.getElementById('revEGP').value) || 0;
+        const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0; 
+        const notes = document.getElementById('tripNotes').value;
+        
+        // إضافات جديدة
+        const actualDriver = document.getElementById('tripActualDriver').value.trim();
+        const vehiclePlate = document.getElementById('tripVehiclePlate').value.trim();
+        const actualDriverFee = parseFloat(document.getElementById('tripActualDriverFee').value) || 0;
         
         if (!client || !driverName || !tripName) return toast('⚠️ Please fill required fields!', 'warn');
 
@@ -622,57 +701,47 @@
         if (isMasterUpdated) { loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }); }
 
         const targetId = editingTripId || generateSequentialTripID();
-        const tripObj = { id: targetId, date: tDate, client: client, driver: driverName, vehicle: vType, trip: tripName, revenue: rev, fee: fee, notes: notes };
+        const tripObj = { 
+            id: targetId, date: tDate, client: client, driver: driverName, vehicle: vType, trip: tripName, 
+            revenue: rev, fee: fee, notes: notes,
+            actual_driver: actualDriver, vehicle_plate: vehiclePlate, driver_fee: actualDriverFee 
+        };
 
         if (editingTripId) { const idx = recentTripsDB.findIndex(t => t.id === editingTripId); if(idx > -1) recentTripsDB[idx] = tripObj; } else { recentTripsDB.push(tripObj); }
         localStorage.setItem('fleet_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB}));
-        renderRecentTrips(); 
-        addToSyncQueue({ record_type: editingTripId ? "edit_trip" : "trip", trip_id: targetId, client_name: client, driver_name: driverName, vehicle_type: vType, trip_name: tripName, date: tDate, notes: notes, revenue: rev, driver_fee: fee });
-        clearForm(); toast(`✅ Saved (${targetId})!`, 'success');
-    }
-
-    // ==========================================
-    // دالة فرمتة الوقت وحل مشكلة الـ 24 ساعة وسيرفر جوجل
-    // ==========================================
-    function formatDateDisplay(rawDate) { 
-        if(!rawDate) return ''; 
-        let dStr = String(rawDate).trim(); 
         
-        // لو سيرفر جوجل رجع الوقت بصيغة ISO وفيها T أو Z، نفرمتها على توقيت الجهاز اللي فاتح الأبلكيشن
-        if(dStr.includes('Z') || dStr.includes('T')) {
-            let d = new Date(rawDate);
-            if (!isNaN(d.getTime())) {
-                let yyyy = d.getFullYear();
-                let mm = String(d.getMonth()+1).padStart(2,'0');
-                let dd = String(d.getDate()).padStart(2,'0');
-                let hh = String(d.getHours()).padStart(2,'0');
-                let min = String(d.getMinutes()).padStart(2,'0');
-                return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
-            }
-        }
-        // لو نص عادي هنكتفي بعرض أول 16 حرف (السنة لحد الدقائق)
-        return dStr.slice(0, 16).replace('T', ' '); 
+        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); // لتحديث قوائم السيارات
+        
+        addToSyncQueue({ 
+            record_type: editingTripId ? "edit_trip" : "trip", trip_id: targetId, client_name: client, driver_name: driverName, vehicle_type: vType, trip_name: tripName, 
+            date: tDate, notes: notes, revenue: rev, driver_fee: fee,
+            actual_driver: actualDriver, vehicle_plate: vehiclePlate, actual_driver_fee: actualDriverFee
+        });
+        clearForm(); toast(`✅ Saved (${targetId})!`, 'success');
     }
 
     function renderRecentTrips() {
         const tbody = document.querySelector('#recentTripsTable tbody'); if(!tbody) return;
         if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="9">No trips</td></tr>'; return; }
-        tbody.innerHTML = recentTripsDB.map((t, i) => `<tr><td>${t.id || (i + 1)}</td><td style="direction:ltr;">${formatDateDisplay(t.date)}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.vehicle||'-'}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px;" onclick="loadTrip(${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px;" onclick="delTrip(${i})">🗑️</button><button class="btn btn-whatsapp" style="padding:4px 8px;" onclick="sendWA(${i})" title="WhatsApp">💬</button></td></tr>`).join('');
+        tbody.innerHTML = recentTripsDB.map((t, i) => `<tr><td>${t.id || (i + 1)}</td><td style="direction:ltr;">${formatDateDisplay(t.date)}</td><td>${t.client}</td><td style="direction:ltr; font-weight:bold;">${t.vehicle_plate||'-'}</td><td>${t.actual_driver || t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px;" onclick="loadTrip(${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px;" onclick="delTrip(${i})">🗑️</button><button class="btn btn-whatsapp" style="padding:4px 8px;" onclick="sendWA(${i})" title="WhatsApp">💬</button></td></tr>`).join('');
     }
 
     function sendWA(idx) {
         let t = recentTripsDB[idx]; let driverObj = driversDB.find(d => d.name === t.driver); let phone = driverObj ? driverObj.phone : ""; let cleanPhone = phone.replace(/\D/g,'');
-        let txt = `Trip Details 🚘\nDate: ${formatDateDisplay(t.date)}\nClient: ${t.client}\nVehicle: ${t.vehicle}\nTrip: ${t.trip}\nAmount: ${t.fee} EGP`;
+        let txt = `Trip Details 🚘\nDate: ${formatDateDisplay(t.date)}\nClient: ${t.client}\nPlate: ${t.vehicle_plate||'-'}\nDriver: ${t.actual_driver || t.driver}\nTrip: ${t.trip}`;
         if(cleanPhone) { window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(txt)}`, '_blank'); } else { window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
     }
 
     function loadTrip(idx) {
         const t = recentTripsDB[idx]; editingTripId = t.id; let dateVal = String(t.date || '').replace(' ', 'T').slice(0,16);
         document.getElementById('tripDate').value = dateVal; document.getElementById('tripClientSelect').value = t.client || ''; document.getElementById('tripDriverSelect').value = t.driver || ''; document.getElementById('tripVehicleType').value = t.vehicle || 'Limousine'; document.getElementById('tripNameSelect').value = t.trip || ''; document.getElementById('revEGP').value = t.revenue || 0; document.getElementById('tripDriverFee').value = t.fee || 0; document.getElementById('tripNotes').value = t.notes || '';
+        document.getElementById('tripActualDriver').value = t.actual_driver || '';
+        document.getElementById('tripVehiclePlate').value = t.vehicle_plate || '';
+        document.getElementById('tripActualDriverFee').value = t.driver_fee || 0;
         calcTotals(); window.scrollTo({top: 0, behavior: 'smooth'});
     }
     function delTrip(idx) { if(confirm('Delete this trip?')) { addToSyncQueue({record_type:"delete_trip", trip_id: recentTripsDB[idx].id}); recentTripsDB.splice(idx,1); renderRecentTrips(); } }
-    function clearForm() { editingTripId = null; document.getElementById('tripClientSelect').value=''; document.getElementById('tripDriverSelect').value=''; document.getElementById('tripNameSelect').value=''; document.getElementById('revEGP').value='0'; document.getElementById('tripDriverFee').value='0'; document.getElementById('tripNotes').value=''; document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals(); }
+    function clearForm() { editingTripId = null; document.getElementById('tripClientSelect').value=''; document.getElementById('tripDriverSelect').value=''; document.getElementById('tripNameSelect').value=''; document.getElementById('revEGP').value='0'; document.getElementById('tripDriverFee').value='0'; document.getElementById('tripNotes').value=''; document.getElementById('tripActualDriver').value=''; document.getElementById('tripVehiclePlate').value=''; document.getElementById('tripActualDriverFee').value='0'; document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals(); }
 
     function loadMasterEdit(type, index) {
         if(type === 'client') { document.getElementById('mClientName').value = clientsDB[index]; editingMasterIndex.client = index; document.getElementById('addClientBtn').innerText = "Update"; } 
@@ -738,17 +807,69 @@
         tbody.innerHTML = usersDB.map((u, i) => `<tr><td>${i + 1}</td><td>${u.username}</td><td><span style="font-weight:bold; color:${u.role==='Admin'?'#27ae60':'#1e3c72'}">${u.role}</span></td><td>${u.username.toUpperCase() !== 'SAMY' ? `<button class="btn btn-red" onclick="deleteUser(${i})" style="padding:4px 8px;">🗑️ Delete</button>` : 'System Default'}</td></tr>`).join('');
     }
 
+    // ==========================================
+    // الصيانة المتقدمة + نظام التنبيهات
+    // ==========================================
+    function checkMaintenanceAlerts() {
+        let vehicles = {};
+        // فرز الصيانة من القديم للجديد لمعرفة آخر حالة للعداد
+        let sorted = [...maintenanceDB].sort((a,b) => new Date(a.date) - new Date(b.date));
+        sorted.forEach(m => {
+            let p = (m.vehicle_plate || '').trim();
+            if(!p) return;
+            if(!vehicles[p]) vehicles[p] = {};
+            vehicles[p].currentOdo = parseFloat(m.odometer) || 0;
+            if(m.next_odometer) vehicles[p].nextOdo = parseFloat(m.next_odometer) || Infinity;
+        });
+        
+        let alertHtml = '';
+        for(let p in vehicles) {
+            let v = vehicles[p];
+            if(v.nextOdo && v.nextOdo !== Infinity) {
+                let diff = v.nextOdo - v.currentOdo;
+                if(diff <= 500 && diff > 0) {
+                    alertHtml += `<div class="alert-item"><span style="color:#f39c12;">⚠️ السيارة [${p}]</span><span>باقي ${diff} كم للصيانة</span></div>`;
+                } else if (diff <= 0) {
+                    alertHtml += `<div class="alert-item"><span style="color:#c0392b;">🚨 السيارة [${p}]</span><span style="color:#c0392b;">تجاوزت الصيانة! (${-diff} كم)</span></div>`;
+                }
+            }
+        }
+        
+        const alertBox = document.getElementById('mntAlerts');
+        if(alertHtml) {
+            alertBox.style.display = 'block';
+            alertBox.innerHTML = `<h4>🔔 تنبيهات الصيانة العاجلة:</h4>` + alertHtml;
+        } else {
+            alertBox.style.display = 'none';
+        }
+    }
+
     function renderMaintenance() {
         const tbody = document.querySelector('#maintenanceTable tbody'); if(!tbody) return; if(maintenanceDB.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No records</td></tr>'; return; }
-        tbody.innerHTML = maintenanceDB.map((m, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(m.date)}</td><td>${m.type}</td><td style="color:#e74c3c;">${m.amount}</td><td>${m.location}</td><td>${m.odometer}</td><td>${m.notes}</td><td style="white-space:nowrap;"><button class="btn btn-red" onclick="deleteMaintenance(${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
+        tbody.innerHTML = maintenanceDB.map((m, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(m.date)}</td><td style="direction:ltr; font-weight:bold;">${m.vehicle_plate||'-'}</td><td>${m.type}</td><td style="color:#e74c3c;">${m.amount}</td><td>${m.odometer||'-'}</td><td>${m.next_odometer||'-'}</td><td style="white-space:nowrap;"><button class="btn btn-red" onclick="deleteMaintenance(${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
+        checkMaintenanceAlerts();
     }
+    
     function saveMaintenance() {
-        const mDate = document.getElementById('mntDate').value.replace('T', ' '); const type = document.getElementById('mntType').value; const amt = parseFloat(document.getElementById('mntAmount').value); const loc = document.getElementById('mntLocation').value; const odo = document.getElementById('mntOdometer').value; const notes = document.getElementById('mntNotes').value;
-        if(!amt || !type) return; let targetId = generateID("MNT"); maintenanceDB.push({ id: targetId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes });
-        renderMaintenance(); addToSyncQueue({ record_type: "maintenance", mnt_id: targetId, type: type, amount: amt, location: loc, odometer: odo, date: mDate, notes: notes, added_by: loggedInUser }); toast('Saved'); document.getElementById('mntType').value = ''; document.getElementById('mntAmount').value = '';
+        const mDate = document.getElementById('mntDate').value.replace('T', ' '); 
+        const vPlate = document.getElementById('mntVehiclePlate').value.trim();
+        const vType = document.getElementById('mntVehicleType').value;
+        const type = document.getElementById('mntType').value; 
+        const amt = parseFloat(document.getElementById('mntAmount').value); 
+        const odo = document.getElementById('mntOdometer').value; 
+        const nOdo = document.getElementById('mntNextOdo').value; 
+        const notes = document.getElementById('mntNotes').value;
+
+        if(!amt || !type || !vPlate) return toast('⚠️ الرجاء إدخال رقم السيارة ونوع الصيانة والتكلفة', 'warn'); 
+        
+        let targetId = generateID("MNT"); 
+        maintenanceDB.push({ id: targetId, date: mDate, vehicle_plate: vPlate, vehicle_type: vType, type: type, amount: amt, odometer: odo, next_odometer: nOdo, notes: notes });
+        renderMaintenance(); 
+        addToSyncQueue({ record_type: "maintenance", mnt_id: targetId, vehicle_plate: vPlate, vehicle_type: vType, type: type, amount: amt, odometer: odo, next_odometer: nOdo, date: mDate, notes: notes, added_by: loggedInUser }); 
+        toast('Saved'); clearMaintenanceForm();
     }
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
-    function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
+    function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; document.getElementById('mntVehiclePlate').value=''; document.getElementById('mntOdometer').value=''; document.getElementById('mntNextOdo').value='';}
 
     // ==========================================
     // صندوق حواري للسجلات ودالة الـ PDF
@@ -890,6 +1011,14 @@
             lbl.innerText = dL.driver; driversDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`);
         } else if(type === 'trip_detailed') {
             lbl.innerText = dL.trip; tripsDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`);
+        } else if(type === 'actual_driver') {
+            lbl.innerText = "Driver Name:";
+            let uDrivers = new Set(); recentTripsDB.forEach(t => { if(t.actual_driver) uDrivers.add(t.actual_driver); });
+            uDrivers.forEach(i => sel.innerHTML += `<option>${i}</option>`);
+        } else if(type === 'vehicle_plate') {
+            lbl.innerText = "Vehicle Plate:";
+            let uPlates = new Set(); recentTripsDB.forEach(t => { if(t.vehicle_plate) uPlates.add(t.vehicle_plate); });
+            uPlates.forEach(i => sel.innerHTML += `<option>${i}</option>`);
         } else if (type === 'finance' || type === 'maintenance' || type === 'net_profit' || type === 'charts') {
             targetContainer.style.display = 'none'; 
         } else { lbl.innerText = dL.target; }
@@ -977,7 +1106,7 @@
             return;
         }
 
-        // ================== حل مشكلة صافي الربح ==================
+        // ================== حل مشكلة صافي الربح الدقيقة ==================
         if (type === 'net_profit') {
             let comm = 0, fRev = 0, fExp = 0, mExp = 0;
             recentTripsDB.forEach(t => {
@@ -985,7 +1114,9 @@
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
                     let r = parseFloat(t.revenue || 0);
                     let f = parseFloat(t.fee || 0);
-                    comm += (r - f); // صافي العمولة
+                    let actF = parseFloat(t.driver_fee || 0);
+                    // صافي عمولة المشوار = إيراد العميل - الشريك - السائق الفعلي
+                    comm += (r - f - actF); 
                 }
             });
             financesDB.forEach(f => {
@@ -1011,10 +1142,10 @@
             summaryCard.style.display = 'block';
             summaryCard.innerHTML = `
                 <div class="net-profit-card">
-                    <p style="font-size:1.1rem; margin-bottom:5px;">Total Income (Trips Commission + Finance Revenues): <strong>${totalIncome.toFixed(2)}</strong></p>
-                    <p style="font-size:1.1rem; margin-bottom:15px; color:#ffcccc;">Total Expenses (Maintenance + Others): <strong>${totalExpenses.toFixed(2)}</strong></p>
+                    <p style="font-size:1.1rem; margin-bottom:5px;">إجمالي الدخل (صافي عمولات المشاوير + إيرادات خارجية): <strong>${totalIncome.toFixed(2)}</strong></p>
+                    <p style="font-size:1.1rem; margin-bottom:15px; color:#ffcccc;">إجمالي المصروفات (الصيانة + المصروفات الخارجية): <strong>${totalExpenses.toFixed(2)}</strong></p>
                     <hr style="border-color:rgba(255,255,255,0.2); margin-bottom:15px;">
-                    <p style="font-size:1.3rem;">NET PROFIT / صافي الربح</p>
+                    <p style="font-size:1.3rem;">NET PROFIT / صافي الربح الحقيقي</p>
                     <h2>${net.toFixed(2)} EGP</h2>
                 </div>
             `;
@@ -1030,10 +1161,13 @@
                 const d = getCleanDay(t.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
                     const cName = (t.client || "").trim(); const pName = (t.driver || "").trim(); const tName = (t.trip || t.trip_name || "").trim();
-                    const rev = parseFloat(t.revenue || t.amount || 0); const fee = parseFloat(t.fee || t.driver_fee || 0);
+                    const aDriver = (t.actual_driver || "").trim(); const vPlate = (t.vehicle_plate || "").trim();
+                    const rev = parseFloat(t.revenue || t.amount || 0); const fee = parseFloat(t.fee || t.driver_fee || 0); const actFee = parseFloat(t.actual_driver_fee || t.driver_fee || 0);
 
                     if (type === 'client' && cName.toLowerCase() === target) { res.push({ date: t.date, desc: tName, amt: rev }); } 
                     else if (type === 'driver' && pName.toLowerCase() === target) { res.push({ date: t.date, desc: tName, amt: fee }); } 
+                    else if (type === 'actual_driver' && aDriver.toLowerCase() === target) { res.push({ date: t.date, desc: `${tName} (${vPlate})`, amt: actFee }); } 
+                    else if (type === 'vehicle_plate' && vPlate.toLowerCase() === target) { res.push({ date: t.date, desc: `${tName} (${cName})`, amt: rev }); } 
                     else if (type === 'trips') { res.push({ date: t.date, desc: `${tName} (${cName} - ${pName})`, amt: rev }); } 
                     else if (type === 'trip_detailed' && tName.toLowerCase() === target) { res.push({ date: t.date, desc: `${cName} / ${pName}`, amt: rev }); }
                 }
@@ -1044,26 +1178,17 @@
         
         if (type === 'finance') {
             thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_cat}</th><th>${dL.rep_amt}</th></tr>`;
-            res.forEach((r, i) => { 
-                tot += (r.type === 'Revenue' ? parseFloat(r.amount) : -parseFloat(r.amount)); 
-                tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.category}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; 
-            });
+            res.forEach((r, i) => { tot += (r.type === 'Revenue' ? parseFloat(r.amount) : -parseFloat(r.amount)); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.category}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; });
             tfoot.innerHTML = `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_fin} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else if (type === 'maintenance') {
             thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_loc}</th><th>${dL.rep_amt}</th></tr>`;
-            res.forEach((r, i) => { 
-                tot += parseFloat(r.amount); 
-                tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.location}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; 
-            });
+            res.forEach((r, i) => { tot += parseFloat(r.amount); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.location}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; });
             tfoot.innerHTML = `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_mnt} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else {
             thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.th_desc}</th><th>${dL.rep_amt}</th></tr>`;
-            res.forEach((r, i) => { 
-                tot += parseFloat(r.amt); 
-                tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td></tr>`; 
-            });
+            res.forEach((r, i) => { tot += parseFloat(r.amt); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td></tr>`; });
             tfoot.innerHTML = `<tr class="total-row"><td colspan="3">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.tab_rep}: ${target.toUpperCase()} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         }
