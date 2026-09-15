@@ -77,7 +77,7 @@
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid #eee; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; background: #fff; text-align: center; white-space: nowrap; font-size: 0.85rem; }
         th, td { padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center; }
-        tr { page-break-inside: avoid; break-inside: avoid; } /* Fix for PDF table row cutting */
+        tr { page-break-inside: avoid; break-inside: avoid; } /* لمنع تقطيع الصفوف في الـ PDF */
         th { background: #f39c12; color: white; position: sticky; top: 0; font-weight: 600; }
         .total-row { background: #eafaf1; font-weight: bold; font-size: 1rem; text-align: left;}
         html[dir="rtl"] .total-row { text-align: right; }
@@ -90,6 +90,13 @@
 
         .net-profit-card { background: #1e3c72; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .net-profit-card h2 { font-size: 2rem; margin: 10px 0; color: #f1c40f; }
+
+        /* ======== كود تصغير الطباعة لـ 50 سطر ======== */
+        .pdf-compact table { font-size: 9px !important; }
+        .pdf-compact th, .pdf-compact td { padding: 3px 2px !important; height: auto !important; }
+        .pdf-compact .report-title-header { font-size: 1.1rem !important; margin-bottom: 8px !important; padding-bottom: 4px !important; }
+        .pdf-compact .net-profit-card { padding: 10px !important; margin-top: 10px !important; }
+        .pdf-compact .net-profit-card h2 { font-size: 1.5rem !important; margin: 5px 0 !important; }
     </style>
 </head>
 <body>
@@ -923,7 +930,7 @@
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
     // ==========================================
-    // دالة الـ PDF الجديدة (تدعم المتصفح والموبايل وتحل مشكلة القطع)
+    // دالة الـ PDF النهائية (الحل الشامل الجذري لجميع المتصفحات والموبايل)
     // ==========================================
     async function downloadDirectPDF() {
         const element = document.getElementById('reportPrintArea');
@@ -935,46 +942,55 @@
 
         toast('⏳ جاري تجهيز ملف الـ PDF...', 'info');
 
+        // تفعيل كلاس التصغير لاحتواء 50 سطر ومنع القطع
+        element.classList.add('pdf-compact');
+
         const fileName = `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
 
-        // إضافة خصائص منع قطع السطور للـ html2pdf
         const opt = {
-            margin:       [0.3, 0.3, 0.3, 0.3],
+            margin:       [0.2, 0.2, 0.2, 0.2], 
             filename:     fileName,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' } // هذا السطر لمنع القطع العشوائي
+            pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' }
         };
 
         try {
             // الكشف الحقيقي: هل التطبيق يعمل كـ APK على الموبايل؟
             if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
                 
-                // 1. تحويل التقرير إلى Base64
-                const pdfBase64 = await html2pdf().set(opt).from(element).outputPdf('base64');
-                
-                // 2. حفظ الملف في ذاكرة الكاش الخاصة بالموبايل
-                const savedFile = await window.Capacitor.Plugins.Filesystem.writeFile({
-                    path: fileName,
-                    data: pdfBase64,
-                    directory: 'CACHE'
-                });
+                try {
+                    // 1. تحويل التقرير والتخلص من صيغة الـ Base64 اللي بتبوظ الأندرويد
+                    let pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+                    let cleanBase64 = pdfDataUri.replace(/^data:application\/[a-z]+;base64,/, "");
+                    
+                    // 2. حفظ الملف في الذاكرة
+                    const savedFile = await window.Capacitor.Plugins.Filesystem.writeFile({
+                        path: fileName,
+                        data: cleanBase64,
+                        directory: 'CACHE'
+                    });
 
-                // 3. فتح شاشة المشاركة والطباعة الرسمية للنظام
-                await window.Capacitor.Plugins.Share.share({
-                    title: titleText,
-                    text: 'تقرير صادر من تطبيق Samy Fleet Pro',
-                    url: savedFile.uri,
-                    dialogTitle: 'حفظ أو طباعة التقرير 📄'
-                });
-                toast('✅ تم فتح شاشة المشاركة والحفظ!', 'success');
+                    // 3. المشاركة
+                    await window.Capacitor.Plugins.Share.share({
+                        title: titleText,
+                        url: savedFile.uri,
+                        dialogTitle: 'حفظ أو طباعة التقرير 📄'
+                    });
+                    toast('✅ تم فتح شاشة المشاركة والحفظ!', 'success');
+                    
+                } catch (shareErr) {
+                    console.error('Share Plugin Failed:', shareErr);
+                    // خط الدفاع الأخير: فتح شاشة الطباعة الأصلية للأندرويد لحفظ الـ PDF غصب عنه
+                    window.print();
+                    toast('✅ جاري فتح الطباعة المباشرة...', 'success');
+                }
 
             } else {
                 // للمتصفح العادي (الويب والويندوز) - تحميل مباشر
                 const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
                 const blobUrl = URL.createObjectURL(blob);
-                
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = blobUrl;
@@ -983,12 +999,15 @@
                 a.click();
                 URL.revokeObjectURL(blobUrl);
                 a.remove();
-                
                 toast('✅ تم تنزيل الملف!', 'success');
             }
         } catch (err) {
             console.error('PDF Error:', err);
-            toast('❌ حدث خطأ أثناء تجهيز الملف', 'error');
+            // لو كل حاجة باظت، هيطبع من المتصفح مباشرة
+            window.print();
+        } finally {
+            // إزالة الكلاس عشان يرجع الشكل الطبيعي قدام المستخدم
+            element.classList.remove('pdf-compact');
         }
     }
 
@@ -1045,12 +1064,11 @@
         } else { lbl.innerText = dL.target; }
     }
 
-    // ================== SEARCH REPORTS FIX (DATE ONLY COMPARISON) ==================
     function fetchReports() {
         const type = document.getElementById('reportType').value;
         const target = (document.getElementById('reportTarget').value || "").toLowerCase().trim();
-        const fDate = document.getElementById('repFrom').value; // e.g. "2026-09-14"
-        const tDate = document.getElementById('repTo').value;   // e.g. "2026-09-14"
+        const fDate = document.getElementById('repFrom').value; 
+        const tDate = document.getElementById('repTo').value;   
 
         const tbody = document.querySelector('#reportsTable tbody');
         const thead = document.querySelector('#reportsTable thead');
@@ -1061,7 +1079,6 @@
 
         let res = []; let dL = dict[currentLang];
 
-        // دالة تنظيف التاريخ لأول 10 حروف فقط (YYYY-MM-DD) لتجاوز أخطاء التوقيت والساعات
         function getCleanDay(rawDate) {
             if (!rawDate) return "";
             return String(rawDate).trim().slice(0, 10);
