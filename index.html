@@ -316,7 +316,7 @@
             <div class="btn-grid-container">
                 <button id="searchBtn" class="btn btn-blue" onclick="fetchReports()" data-tr="btn_search">Search 🔍</button>
                 <button class="btn btn-green" onclick="exportToExcel()" data-tr="btn_excel">Excel 📊</button>
-                <button class="btn btn-red" onclick="downloadDirectPDF()" data-tr="btn_print">Print / Save PDF 📄</button>
+                <button class="btn btn-red" onclick="()" data-tr="btn_print">Print / Save PDF 📄</button>
                 <button class="btn btn-whatsapp" onclick="shareReportText()">WhatsApp Text 💬</button>
             </div>
             
@@ -915,28 +915,52 @@
         };
 
         try {
-            // إنشاء الـ PDF كـ Data URI
-            const pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+            const isCapacitor = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+            
+            // في حالة تشغيل التطبيق كـ APK على الموبايل
+            if (isCapacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem && window.Capacitor.Plugins.Share) {
+                // 1. تحويل التقرير إلى Base64
+                const pdfBase64 = await html2pdf().set(opt).from(element).outputPdf('base64');
+                const fileName = `Report_${Date.now()}.pdf`;
 
-            // إذا كان التطبيق يعمل داخل APK
-            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Share) {
+                // 2. حفظ الملف في ذاكرة الكاش الخاصة بالموبايل
+                const savedFile = await window.Capacitor.Plugins.Filesystem.writeFile({
+                    path: fileName,
+                    data: pdfBase64,
+                    directory: 'CACHE'
+                });
+
+                // 3. فتح شاشة المشاركة والطباعة الرسمية للنظام
                 await window.Capacitor.Plugins.Share.share({
                     title: titleText,
                     text: 'تقرير صادر من تطبيق Samy Fleet Pro',
-                    url: pdfDataUri,
+                    url: savedFile.uri,
                     dialogTitle: 'حفظ أو طباعة التقرير 📄'
                 });
-                toast('✅ تم فتح شاشة المشاركة والحفظ!', 'success');
+
+                toast('✅ تم فتح شاشة الحفظ والطباعة!', 'success');
             } else {
-                // فتح الملف في نافذة جديدة للمتصفح العادي
+                // للكمبيوتر والمتصفح العادي
                 const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
                 const blobUrl = URL.createObjectURL(blob);
-                window.open(blobUrl, '_blank');
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
                 toast('✅ تم تنزيل الملف!', 'success');
             }
         } catch (err) {
-            console.error(err);
-            toast('❌ حدث خطأ أثناء تجهيز الملف', 'error');
+            console.error('PDF Error:', err);
+            // محاولة احتياطية فتح الملف في نافذة النظام
+            try {
+                const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
+                const blobUrl = URL.createObjectURL(blob);
+                window.open(blobUrl, '_system') || window.open(blobUrl, '_blank');
+            } catch(e) {
+                toast('❌ حدث خطأ أثناء تجهيز الملف', 'error');
+            }
         }
     }
 
