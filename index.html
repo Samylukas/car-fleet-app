@@ -16,7 +16,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* تطبيق الخط المودرن على كل الأبلكيشن */
         * { box-sizing: border-box; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; overflow-x: hidden; scroll-behavior: smooth; }
 
@@ -102,12 +101,10 @@
         .net-profit-card { background: #1e3c72; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .net-profit-card h2 { font-size: 2.2rem; font-weight: 800; margin: 10px 0; color: #f1c40f; }
 
-        /* صندوق إنذارات الصيانة */
         .alert-box { background: #fdf2e9; border: 1px solid #f39c12; padding: 15px; border-radius: 10px; margin-bottom: 15px; display: none; }
         .alert-box h4 { color: #d35400; margin-bottom: 10px; font-weight: 800;}
         .alert-item { background: #fff; padding: 10px; border-radius: 6px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-weight: 700; display: flex; justify-content: space-between;}
 
-        /* تنسيقات الطباعة والتصغير */
         .pdf-compact table { font-size: 11px !important; line-height: 1.3 !important; }
         .pdf-compact th, .pdf-compact td { padding: 6px 5px !important; height: auto !important; }
         .pdf-compact .report-title-header { font-size: 1.3rem !important; margin-bottom: 10px !important; padding-bottom: 5px !important; }
@@ -167,7 +164,7 @@
     <!-- Tab 1: Add Trip -->
     <div id="addTripTab" class="tab-content active">
         <div class="card">
-            <!-- شريط التنقل -->
+            <!-- شريط التنقل الجديد -->
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                 <h2 class="section-title" data-tr="add_title">📝 Add New Trip</h2>
                 <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
@@ -185,7 +182,7 @@
                 <div class="form-group"><label data-tr="driver">Partner (الشريك):</label><input type="text" id="tripDriverSelect" list="driverList"></div>
                 <div class="form-group">
                     <label data-tr="vehicle">Vehicle Type:</label>
-                    <select id="tripVehicleType" onchange="onVehicleTypeChange(); onTripSelected();">
+                    <select id="tripVehicleType" onchange="onTripSelected()">
                         <option value="Limousine" data-tr="v_limo">Limousine</option>
                         <option value="Microbus" data-tr="v_micro">Microbus</option>
                         <option value="Coaster" data-tr="v_coaster">Coaster</option>
@@ -196,8 +193,8 @@
             </div>
 
             <div class="grid-form" style="margin-top: 15px;">
-                <div class="form-group"><label>Actual Driver (السائق الفعلي):</label><input type="text" id="tripActualDriver" list="actualDriverList" placeholder="اختياري..."></div>
-                <div class="form-group"><label>Vehicle Plate (رقم السيارة):</label><input type="text" id="tripVehiclePlate" list="filteredPlateList" placeholder="اختر أو اكتب..." style="direction: ltr;"></div>
+                <div class="form-group"><label>Actual Driver (السائق الفعلي):</label><input type="text" id="tripActualDriver" list="actualDriverListMaster" placeholder="اختياري..."></div>
+                <div class="form-group"><label>Vehicle Plate (رقم السيارة):</label><input type="text" id="tripVehiclePlate" list="vehiclePlateListMaster" oninput="onPlateChange()" placeholder="اختر وسيتم تحديث النوع..." style="direction: ltr;"></div>
                 <div class="form-group"><label data-tr="date">Date & Time:</label><input type="datetime-local" id="tripDate"></div>
                 <div class="form-group"><label data-tr="notes">Notes:</label><input type="text" id="tripNotes"></div>
             </div>
@@ -351,7 +348,7 @@
             <div class="grid-form large-inputs" style="grid-template-columns: 1fr;">
                 <div class="form-group"><label data-tr="date">Date & Time:</label><input type="datetime-local" id="mntDate"></div>
                 <div style="display:flex; gap:10px; width:100%;">
-                    <div class="form-group" style="flex:1;"><label>Vehicle Plate:</label><input type="text" id="mntVehiclePlate" list="allPlateList" style="direction: ltr;"></div>
+                    <div class="form-group" style="flex:1;"><label>Vehicle Plate:</label><input type="text" id="mntVehiclePlate" list="vehiclePlateListMaster" style="direction: ltr;"></div>
                     <div class="form-group" style="flex:1;"><label>Type:</label><select id="mntVehicleType"><option>Limousine</option><option>Microbus</option><option>Coaster</option><option>Bus</option></select></div>
                 </div>
                 <div class="form-group"><label>Maintenance Type (نوع الصيانة):</label><input type="text" id="mntType" placeholder="تغيير زيت، تيل فرامل، الخ..."></div>
@@ -463,16 +460,15 @@
         </div>
     </div>
     
+    <!-- القوائم المنسدلة الديناميكية -->
     <datalist id="clientList"></datalist>
     <datalist id="driverList"></datalist>
     <datalist id="tripList"></datalist>
-    <datalist id="actualDriverList"></datalist>
-    <datalist id="filteredPlateList"></datalist>
-    <datalist id="allPlateList"></datalist>
+    <datalist id="actualDriverListMaster"></datalist>
+    <datalist id="vehiclePlateListMaster"></datalist>
 </div>
 
 <script>
-    // تفعيل الخط الجديد على جميع رسومات Chart.js
     Chart.defaults.font.family = "'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
     Chart.defaults.color = '#333';
     Chart.defaults.scale.grid.color = 'rgba(0, 0, 0, 0.05)';
@@ -585,9 +581,9 @@
         document.getElementById('driverList').innerHTML = driversDB.map(i => `<option value="${i.name}">`).join('');
         document.getElementById('tripList').innerHTML = tripsDB.map(i => `<option value="${i.name}">`).join('');
         
-        document.getElementById('actualDriverList').innerHTML = actualDriversDB.map(i => `<option value="${i.name}">`).join('');
-        document.getElementById('allPlateList').innerHTML = vehiclesDB.map(i => `<option value="${i.plate}">`).join('');
-        onVehicleTypeChange(); 
+        // ربط السائق الفعلي والسيارة بجداول الماستر الجديدة
+        document.getElementById('actualDriverListMaster').innerHTML = actualDriversDB.map(i => `<option value="${i.name}">`).join('');
+        document.getElementById('vehiclePlateListMaster').innerHTML = vehiclesDB.map(i => `<option value="${i.plate}">`).join('');
 
         const cBody = document.querySelector('#mClientTable tbody'); if(cBody) cBody.innerHTML = clientsDB.map((c, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('client', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Clients', '${c}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
         const dBody = document.querySelector('#mDriverTable tbody'); if(dBody) dBody.innerHTML = driversDB.map((d, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${d.name}</td><td style="direction:ltr;">${d.phone||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('driver', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Drivers', '${d.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
@@ -607,10 +603,14 @@
     }
     function addToSyncQueue(item) { syncQueue.push(item); localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue)); processSyncQueue(); }
 
-    function onVehicleTypeChange() {
-        const vType = document.getElementById('tripVehicleType').value;
-        const filtered = vehiclesDB.filter(v => v.type === vType);
-        document.getElementById('filteredPlateList').innerHTML = filtered.map(i => `<option value="${i.plate}">`).join('');
+    // تغيير نوع السيارة أوتوماتيك لو متسجلة في الماستر
+    function onPlateChange() {
+        let pl = document.getElementById('tripVehiclePlate').value.trim();
+        let match = vehiclesDB.find(v => v.plate === pl);
+        if (match && match.type) {
+            document.getElementById('tripVehicleType').value = match.type;
+            onTripSelected(); 
+        }
     }
 
     function onTripSelected() {
@@ -828,20 +828,62 @@
         el.innerHTML = msg; stack.appendChild(el); setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 4000);
     }
 
+    // ==========================================
+    // الحل السحري لتشغيل التقارير بضمان 100%
+    // ==========================================
     function toggleReportTarget() {
-        const type = document.getElementById('reportType').value; const targetContainer = document.getElementById('targetContainer'); const sel = document.getElementById('reportTarget'); sel.innerHTML = ''; const lbl = document.getElementById('targetLabel'); let dL = dict[currentLang]; targetContainer.style.display = 'flex';
+        const type = document.getElementById('reportType').value; 
+        const targetContainer = document.getElementById('targetContainer'); 
+        const sel = document.getElementById('reportTarget'); 
+        sel.innerHTML = ''; 
+        const lbl = document.getElementById('targetLabel'); 
+        let dL = dict[currentLang]; 
+        targetContainer.style.display = 'flex';
 
-        if(type === 'client') { lbl.innerText = dL.client; clientsDB.forEach(i => sel.innerHTML += `<option>${i}</option>`); } 
-        else if(type === 'driver') { lbl.innerText = "Partner (الشريك):"; driversDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`); } 
-        else if(type === 'actual_driver') { lbl.innerText = "Actual Driver (السائق الفعلي):"; actualDriversDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`); } 
-        else if(type === 'vehicle_plate') { lbl.innerText = "Vehicle Plate (رقم السيارة):"; vehiclesDB.forEach(i => sel.innerHTML += `<option>${i.plate}</option>`); } 
-        else if(type === 'trip_detailed') { lbl.innerText = dL.trip; tripsDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`); } 
-        else if (type === 'finance' || type === 'maintenance' || type === 'net_profit' || type === 'charts') { targetContainer.style.display = 'none'; } 
-        else { lbl.innerText = dL.target; }
+        // دالة مساعدة لإنشاء الاختيارات بشكل آمن برمجياً
+        function addOptions(setValues) {
+            let arr = Array.from(setValues).sort();
+            arr.forEach(i => {
+                let opt = document.createElement('option');
+                opt.value = i; opt.text = i; // ضمان إن الـ value مش فاضي
+                sel.appendChild(opt);
+            });
+        }
+
+        if(type === 'client') { 
+            lbl.innerText = dL.client; 
+            let vals = new Set(); recentTripsDB.forEach(t => { if(t.client) vals.add(t.client.trim()); }); addOptions(vals);
+        } 
+        else if(type === 'driver') { 
+            lbl.innerText = "Partner (الشريك):"; 
+            let vals = new Set(); recentTripsDB.forEach(t => { if(t.driver) vals.add(t.driver.trim()); }); addOptions(vals);
+        } 
+        else if(type === 'actual_driver') { 
+            lbl.innerText = "Actual Driver (السائق الفعلي):"; 
+            let vals = new Set(); recentTripsDB.forEach(t => { if(t.actual_driver) vals.add(t.actual_driver.trim()); }); addOptions(vals);
+        } 
+        else if(type === 'vehicle_plate') { 
+            lbl.innerText = "Vehicle Plate (رقم السيارة):"; 
+            let vals = new Set(); recentTripsDB.forEach(t => { if(t.vehicle_plate) vals.add(t.vehicle_plate.trim()); }); addOptions(vals);
+        } 
+        else if(type === 'trip_detailed') { 
+            lbl.innerText = dL.trip; 
+            let vals = new Set(); recentTripsDB.forEach(t => { if(t.trip) vals.add(t.trip.trim()); }); addOptions(vals);
+        } 
+        else if (type === 'finance' || type === 'maintenance' || type === 'net_profit' || type === 'charts') { 
+            targetContainer.style.display = 'none'; 
+        } 
+        else { 
+            lbl.innerText = dL.target; 
+        }
     }
 
     function fetchReports() {
-        const type = document.getElementById('reportType').value; const target = (document.getElementById('reportTarget').value || "").toLowerCase().trim(); const fDate = document.getElementById('repFrom').value; const tDate = document.getElementById('repTo').value;   
+        const type = document.getElementById('reportType').value; 
+        const target = (document.getElementById('reportTarget').value || "").toLowerCase().trim(); 
+        const fDate = document.getElementById('repFrom').value; 
+        const tDate = document.getElementById('repTo').value;   
+
         const tbody = document.querySelector('#reportsTable tbody'); const thead = document.querySelector('#reportsTable thead'); const tfoot = document.querySelector('#reportsTable tfoot'); const summaryCard = document.getElementById('netProfitSummary'); const chartsArea = document.getElementById('chartsArea'); const tableWrapper = document.getElementById('tableWrapper');
         tbody.innerHTML = ''; thead.innerHTML = ''; tfoot.innerHTML = ''; summaryCard.style.display = 'none'; summaryCard.innerHTML = ''; chartsArea.style.display = 'none'; tableWrapper.style.display = 'block';
 
