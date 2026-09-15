@@ -896,29 +896,48 @@
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
-    function downloadDirectPDF() {
+  async function downloadDirectPDF() {
         const element = document.getElementById('reportPrintArea');
         const titleText = document.getElementById('printReportTitle').innerText || 'Fleet_Report';
         
         if (!element || element.innerText.trim() === '') {
-            return toast('⚠️ Please search and generate report first!', 'warn');
+            return toast('⚠️ اختر التقرير أولاً!', 'warn');
         }
 
-        toast('⏳ Generating PDF File...', 'info');
+        toast('⏳ جاري تجهيز ملف الـ PDF...', 'info');
 
         const opt = {
-            margin:       [0.4, 0.4, 0.4, 0.4],
-            filename:     `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`,
+            margin:       [0.3, 0.3, 0.3, 0.3],
+            filename:     `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(element).save().then(() => {
-            toast('✅ PDF Downloaded Successfully!', 'success');
-        }).catch(err => {
-            toast('❌ Error Generating PDF', 'error');
-        });
+        try {
+            // إنشاء الـ PDF كـ Data URI
+            const pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+
+            // إذا كان التطبيق يعمل داخل APK
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Share) {
+                await window.Capacitor.Plugins.Share.share({
+                    title: titleText,
+                    text: 'تقرير صادر من تطبيق Samy Fleet Pro',
+                    url: pdfDataUri,
+                    dialogTitle: 'حفظ أو طباعة التقرير 📄'
+                });
+                toast('✅ تم فتح شاشة المشاركة والحفظ!', 'success');
+            } else {
+                // فتح الملف في نافذة جديدة للمتصفح العادي
+                const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
+                const blobUrl = URL.createObjectURL(blob);
+                window.open(blobUrl, '_blank');
+                toast('✅ تم تنزيل الملف!', 'success');
+            }
+        } catch (err) {
+            console.error(err);
+            toast('❌ حدث خطأ أثناء تجهيز الملف', 'error');
+        }
     }
 
     function shareReportText() {
