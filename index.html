@@ -86,7 +86,7 @@
         tr { page-break-inside: avoid; break-inside: avoid; } 
         th { background: #f39c12; color: white; position: sticky; top: 0; font-weight: 800; }
         
-        tfoot { display: table-row-group; }
+        /* نقل الإجمالي عشان ميهربش من الـ PDF */
         .total-row td { background: #eafaf1 !important; font-weight: 800; font-size: 1.1rem; text-align: left; border-top: 2px solid #27ae60; }
         html[dir="rtl"] .total-row td { text-align: right; }
 
@@ -164,7 +164,6 @@
     <!-- Tab 1: Add Trip -->
     <div id="addTripTab" class="tab-content active">
         <div class="card">
-            <!-- شريط التنقل -->
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                 <h2 class="section-title" data-tr="add_title">📝 Add New Trip</h2>
                 <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
@@ -413,7 +412,7 @@
                     <table id="reportsTable">
                         <thead></thead>
                         <tbody></tbody>
-                        <tfoot></tfoot>
+                        <!-- شيلنا الـ tfoot من هنا عشان هنضيف الإجمالي كسطر عادي جوه الجدول -->
                     </table>
                 </div>
                 
@@ -460,7 +459,7 @@
         </div>
     </div>
     
-    <!-- القوائم المنسدلة الديناميكية (الآن تسحب من الماستر بأمان تام) -->
+    <!-- القوائم المنسدلة الديناميكية -->
     <datalist id="clientList"></datalist>
     <datalist id="driverList"></datalist>
     <datalist id="tripList"></datalist>
@@ -470,7 +469,6 @@
 </div>
 
 <script>
-    // تفعيل الخط الجديد على جميع رسومات Chart.js
     Chart.defaults.font.family = "'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
     Chart.defaults.color = '#333';
     Chart.defaults.scale.grid.color = 'rgba(0, 0, 0, 0.05)';
@@ -585,6 +583,7 @@
         
         document.getElementById('actualDriverListMaster').innerHTML = actualDriversDB.map(i => `<option value="${i.name}">`).join('');
         document.getElementById('vehiclePlateListMaster').innerHTML = vehiclesDB.map(i => `<option value="${i.plate}">`).join('');
+        onVehicleTypeChange(); 
 
         const cBody = document.querySelector('#mClientTable tbody'); if(cBody) cBody.innerHTML = clientsDB.map((c, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('client', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Clients', '${c}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
         const dBody = document.querySelector('#mDriverTable tbody'); if(dBody) dBody.innerHTML = driversDB.map((d, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${d.name}</td><td style="direction:ltr;">${d.phone||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('driver', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Drivers', '${d.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
@@ -664,9 +663,8 @@
     }
 
     function sendWA(idx) {
-        let t = recentTripsDB[idx]; let driverObj = driversDB.find(d => d.name === t.driver); let phone = driverObj ? driverObj.phone : ""; let cleanPhone = String(phone).replace(/\D/g,'');
-        let txt = `Trip Details 🚘\nDate: ${formatDateDisplay(t.date)}\nClient: ${t.client}\nPartner: ${t.driver}\nActual Driver: ${t.actual_driver||'-'}\nPlate: ${t.vehicle_plate||'-'}\nTrip: ${t.trip}`;
-        if(cleanPhone) { window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(txt)}`, '_blank'); } else { window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
+        let t = recentTripsDB[idx]; let txt = `Trip Details 🚘\nDate: ${formatDateDisplay(t.date)}\nClient: ${t.client}\nPartner: ${t.driver}\nActual Driver: ${t.actual_driver||'-'}\nPlate: ${t.vehicle_plate||'-'}\nTrip: ${t.trip}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank');
     }
 
     function navTrip(action) {
@@ -785,11 +783,18 @@
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; document.getElementById('mntVehiclePlate').value=''; document.getElementById('mntOdometer').value=''; document.getElementById('mntNextOdo').value='';}
 
+    // ==========================================
+    // الحل الجذري لمشكلة الـ PDF وبدايته من النص
+    // ==========================================
     async function downloadDirectPDF() {
         const element = document.getElementById('reportPrintArea'); const titleText = document.getElementById('printReportTitle').innerText || 'Fleet_Report';
         if (!element || element.innerText.trim() === '') return toast('⚠️ اختر التقرير أولاً!', 'warn');
 
         const isCharts = document.getElementById('reportType').value === 'charts';
+        
+        // إجبار الشاشة على الصعود لأعلى نقطة عشان html2canvas ميقراش المسافة الفاضية
+        window.scrollTo({ top: 0, behavior: 'instant' });
+
         if (!isCharts) {
             let rowInput = prompt("كم عدد السجلات التي تريدها في الصفحة الواحدة؟ (أدخل رقم من 1 إلى 50)", "50");
             let rowsPerPage = parseInt(rowInput); if (isNaN(rowsPerPage) || rowsPerPage < 1) rowsPerPage = 50; if (rowsPerPage > 50) rowsPerPage = 50;
@@ -798,10 +803,21 @@
             rows.forEach((row, index) => { if ((index + 1) % rowsPerPage === 0 && index !== rows.length - 1) row.classList.add('page-break-row'); });
             element.classList.add('pdf-compact');
         }
-        toast('⏳ جاري تجهيز التقرير...', 'info'); await new Promise(r => setTimeout(r, 200));
+        
+        toast('⏳ جاري تجهيز التقرير...', 'info'); 
+        await new Promise(r => setTimeout(r, 400)); // وقت كافي للمتصفح عشان يعمل Scroll ويرسم التعديلات
 
         const fileName = `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
-        const opt = { margin: 0.2, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: isCharts ? 'landscape' : 'portrait' }, pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.chart-page'] } };
+        const opt = { 
+            margin: 0.2, 
+            filename: fileName, 
+            image: { type: 'jpeg', quality: 0.98 }, 
+            // ضفنا scrollY: 0 عشان يصور الصفحة من فوق تماماً
+            html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, 
+            jsPDF: { unit: 'in', format: 'a4', orientation: isCharts ? 'landscape' : 'portrait' }, 
+            // منع قطع صف الإجمالي والرسومات
+            pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.chart-page', '.total-row'] } 
+        };
 
         try {
             if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
@@ -834,9 +850,6 @@
         el.innerHTML = msg; stack.appendChild(el); setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 4000);
     }
 
-    // ==========================================
-    // الحل السحري لتشغيل التقارير بضمان 100% (منع إنهيار الدالة)
-    // ==========================================
     function toggleReportTarget() {
         const type = document.getElementById('reportType').value; 
         const targetContainer = document.getElementById('targetContainer'); 
@@ -846,43 +859,28 @@
         let dL = dict[currentLang]; 
         targetContainer.style.display = 'flex';
 
-        if(type === 'client') { 
-            lbl.innerText = dL.client; 
-            clientsDB.forEach(i => sel.innerHTML += `<option value="${i}">${i}</option>`); 
-        } 
-        else if(type === 'driver') { 
-            lbl.innerText = "Partner (الشريك):"; 
-            driversDB.forEach(i => sel.innerHTML += `<option value="${i.name}">${i.name}</option>`); 
-        } 
-        else if(type === 'actual_driver') { 
-            lbl.innerText = "Actual Driver (السائق الفعلي):"; 
-            actualDriversDB.forEach(i => sel.innerHTML += `<option value="${i.name}">${i.name}</option>`); 
-        } 
-        else if(type === 'vehicle_plate') { 
-            lbl.innerText = "Vehicle Plate (رقم السيارة):"; 
-            vehiclesDB.forEach(i => sel.innerHTML += `<option value="${i.plate}">${i.plate}</option>`); 
-        } 
-        else if(type === 'trip_detailed') { 
-            lbl.innerText = dL.trip; 
-            tripsDB.forEach(i => sel.innerHTML += `<option value="${i.name}">${i.name}</option>`); 
-        } 
-        else if (type === 'finance' || type === 'maintenance' || type === 'net_profit' || type === 'charts') { 
-            targetContainer.style.display = 'none'; 
-        } 
-        else { 
-            lbl.innerText = dL.target; 
+        function addOptions(setValues) {
+            let arr = Array.from(setValues).sort();
+            arr.forEach(i => { let opt = document.createElement('option'); opt.value = i; opt.text = i; sel.appendChild(opt); });
         }
+
+        if(type === 'client') { lbl.innerText = dL.client; let vals = new Set(); recentTripsDB.forEach(t => { if(t.client) vals.add(t.client.trim()); }); addOptions(vals); } 
+        else if(type === 'driver') { lbl.innerText = "Partner (الشريك):"; let vals = new Set(); recentTripsDB.forEach(t => { if(t.driver) vals.add(t.driver.trim()); }); addOptions(vals); } 
+        else if(type === 'actual_driver') { lbl.innerText = "Actual Driver (السائق الفعلي):"; let vals = new Set(); recentTripsDB.forEach(t => { if(t.actual_driver) vals.add(t.actual_driver.trim()); }); addOptions(vals); } 
+        else if(type === 'vehicle_plate') { lbl.innerText = "Vehicle Plate (رقم السيارة):"; let vals = new Set(); recentTripsDB.forEach(t => { if(t.vehicle_plate) vals.add(t.vehicle_plate.trim()); }); addOptions(vals); } 
+        else if(type === 'trip_detailed') { lbl.innerText = dL.trip; let vals = new Set(); recentTripsDB.forEach(t => { if(t.trip) vals.add(t.trip.trim()); }); addOptions(vals); } 
+        else if (type === 'finance' || type === 'maintenance' || type === 'net_profit' || type === 'charts') { targetContainer.style.display = 'none'; } 
+        else { lbl.innerText = dL.target; }
     }
 
     function fetchReports() {
         const type = document.getElementById('reportType').value; 
-        // الحل السحري: تحويل أي اختيار إلى (نص String) لتجنب أخطاء الأرقام
         const target = String(document.getElementById('reportTarget').value || "").toLowerCase().trim(); 
         const fDate = document.getElementById('repFrom').value; 
         const tDate = document.getElementById('repTo').value;   
 
-        const tbody = document.querySelector('#reportsTable tbody'); const thead = document.querySelector('#reportsTable thead'); const tfoot = document.querySelector('#reportsTable tfoot'); const summaryCard = document.getElementById('netProfitSummary'); const chartsArea = document.getElementById('chartsArea'); const tableWrapper = document.getElementById('tableWrapper');
-        tbody.innerHTML = ''; thead.innerHTML = ''; tfoot.innerHTML = ''; summaryCard.style.display = 'none'; summaryCard.innerHTML = ''; chartsArea.style.display = 'none'; tableWrapper.style.display = 'block';
+        const tbody = document.querySelector('#reportsTable tbody'); const thead = document.querySelector('#reportsTable thead'); const summaryCard = document.getElementById('netProfitSummary'); const chartsArea = document.getElementById('chartsArea'); const tableWrapper = document.getElementById('tableWrapper');
+        tbody.innerHTML = ''; thead.innerHTML = ''; summaryCard.style.display = 'none'; summaryCard.innerHTML = ''; chartsArea.style.display = 'none'; tableWrapper.style.display = 'block';
 
         let res = []; let dL = dict[currentLang]; 
         function getCleanDay(rawDate) { if (!rawDate) return ""; return String(rawDate).trim().slice(0, 10); }
@@ -893,9 +891,7 @@
             recentTripsDB.forEach(t => {
                 const d = getCleanDay(t.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    let p = String(t.driver || 'Unknown').trim(); 
-                    let c = String(t.client || 'Unknown').trim(); 
-                    let tName = String(t.trip || t.trip_name || 'Unknown').trim();
+                    let p = String(t.driver || 'Unknown').trim(); let c = String(t.client || 'Unknown').trim(); let tName = String(t.trip || t.trip_name || 'Unknown').trim();
                     partnerData[p] = (partnerData[p] || 0) + parseFloat(t.fee || 0); clientData[c] = (clientData[c] || 0) + parseFloat(t.revenue || 0); tripsByDate[d] = (tripsByDate[d] || 0) + 1; tripNameData[tName] = (tripNameData[tName] || 0) + 1;
                 }
             });
@@ -929,13 +925,8 @@
             recentTripsDB.forEach(t => {
                 const d = getCleanDay(t.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    // الحل السحري: تحويل الكل لنص لتفادي أخطاء الأرقام
-                    const cName = String(t.client || "").trim(); 
-                    const pName = String(t.driver || "").trim(); 
-                    const tName = String(t.trip || t.trip_name || "").trim();
-                    const aDriver = String(t.actual_driver || "").trim(); 
-                    const vPlate = String(t.vehicle_plate || "").trim();
-                    
+                    const cName = String(t.client || "").trim(); const pName = String(t.driver || "").trim(); const tName = String(t.trip || t.trip_name || "").trim();
+                    const aDriver = String(t.actual_driver || "").trim(); const vPlate = String(t.vehicle_plate || "").trim();
                     const rev = parseFloat(t.revenue || t.amount || 0); const fee = parseFloat(t.fee || 0); const actFee = parseFloat(t.driver_fee || 0);
 
                     if (type === 'client' && cName.toLowerCase() === target) { res.push({ date: t.date, desc: tName, amt: rev }); } 
@@ -949,18 +940,22 @@
         
         let tot = 0;
         
+        // تعديل الجداول وإضافة سطر الإجمالي جوه الـ tbody عشان ميختفيش في الطباعة أبداً
         if (type === 'finance') {
             thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_cat}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { tot += (r.type === 'Revenue' ? parseFloat(r.amount) : -parseFloat(r.amount)); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.category}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; });
-            tfoot.innerHTML = `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_fin} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
+            tbody.innerHTML += `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; 
+            document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_fin} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else if (type === 'maintenance') {
             thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_loc}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { tot += parseFloat(r.amount); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.location}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; });
-            tfoot.innerHTML = `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_mnt} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
+            tbody.innerHTML += `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; 
+            document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_mnt} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else {
             thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.th_desc}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { tot += parseFloat(r.amt); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td></tr>`; });
-            tfoot.innerHTML = `<tr class="total-row"><td colspan="3">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.tab_rep}: ${target.toUpperCase()} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
+            tbody.innerHTML += `<tr class="total-row"><td colspan="3">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; 
+            document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.tab_rep}: ${target.toUpperCase()} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         }
         document.getElementById('printReportTitle').style.display = 'block';
     }
