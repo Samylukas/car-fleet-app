@@ -164,7 +164,7 @@
     <!-- Tab 1: Add Trip -->
     <div id="addTripTab" class="tab-content active">
         <div class="card">
-            <!-- شريط التنقل الجديد -->
+            <!-- شريط التنقل -->
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                 <h2 class="section-title" data-tr="add_title">📝 Add New Trip</h2>
                 <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
@@ -182,7 +182,7 @@
                 <div class="form-group"><label data-tr="driver">Partner (الشريك):</label><input type="text" id="tripDriverSelect" list="driverList"></div>
                 <div class="form-group">
                     <label data-tr="vehicle">Vehicle Type:</label>
-                    <select id="tripVehicleType" onchange="onTripSelected()">
+                    <select id="tripVehicleType" onchange="onVehicleTypeChange(); onTripSelected();">
                         <option value="Limousine" data-tr="v_limo">Limousine</option>
                         <option value="Microbus" data-tr="v_micro">Microbus</option>
                         <option value="Coaster" data-tr="v_coaster">Coaster</option>
@@ -460,15 +460,17 @@
         </div>
     </div>
     
-    <!-- القوائم المنسدلة الديناميكية -->
+    <!-- القوائم المنسدلة الديناميكية (الآن تسحب من الماستر بأمان تام) -->
     <datalist id="clientList"></datalist>
     <datalist id="driverList"></datalist>
     <datalist id="tripList"></datalist>
     <datalist id="actualDriverListMaster"></datalist>
     <datalist id="vehiclePlateListMaster"></datalist>
+    <datalist id="filteredPlateList"></datalist>
 </div>
 
 <script>
+    // تفعيل الخط الجديد على جميع رسومات Chart.js
     Chart.defaults.font.family = "'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
     Chart.defaults.color = '#333';
     Chart.defaults.scale.grid.color = 'rgba(0, 0, 0, 0.05)';
@@ -581,7 +583,6 @@
         document.getElementById('driverList').innerHTML = driversDB.map(i => `<option value="${i.name}">`).join('');
         document.getElementById('tripList').innerHTML = tripsDB.map(i => `<option value="${i.name}">`).join('');
         
-        // ربط السائق الفعلي والسيارة بجداول الماستر الجديدة
         document.getElementById('actualDriverListMaster').innerHTML = actualDriversDB.map(i => `<option value="${i.name}">`).join('');
         document.getElementById('vehiclePlateListMaster').innerHTML = vehiclesDB.map(i => `<option value="${i.plate}">`).join('');
 
@@ -603,10 +604,15 @@
     }
     function addToSyncQueue(item) { syncQueue.push(item); localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue)); processSyncQueue(); }
 
-    // تغيير نوع السيارة أوتوماتيك لو متسجلة في الماستر
+    function onVehicleTypeChange() {
+        const vType = document.getElementById('tripVehicleType').value;
+        const filtered = vehiclesDB.filter(v => v.type === vType);
+        document.getElementById('filteredPlateList').innerHTML = filtered.map(i => `<option value="${i.plate}">`).join('');
+    }
+
     function onPlateChange() {
         let pl = document.getElementById('tripVehiclePlate').value.trim();
-        let match = vehiclesDB.find(v => v.plate === pl);
+        let match = vehiclesDB.find(v => String(v.plate).trim() === pl);
         if (match && match.type) {
             document.getElementById('tripVehicleType').value = match.type;
             onTripSelected(); 
@@ -658,7 +664,7 @@
     }
 
     function sendWA(idx) {
-        let t = recentTripsDB[idx]; let driverObj = driversDB.find(d => d.name === t.driver); let phone = driverObj ? driverObj.phone : ""; let cleanPhone = phone.replace(/\D/g,'');
+        let t = recentTripsDB[idx]; let driverObj = driversDB.find(d => d.name === t.driver); let phone = driverObj ? driverObj.phone : ""; let cleanPhone = String(phone).replace(/\D/g,'');
         let txt = `Trip Details 🚘\nDate: ${formatDateDisplay(t.date)}\nClient: ${t.client}\nPartner: ${t.driver}\nActual Driver: ${t.actual_driver||'-'}\nPlate: ${t.vehicle_plate||'-'}\nTrip: ${t.trip}`;
         if(cleanPhone) { window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(txt)}`, '_blank'); } else { window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
     }
@@ -752,7 +758,7 @@
     function checkMaintenanceAlerts() {
         let vehicles = {}; let sorted = [...maintenanceDB].sort((a,b) => new Date(a.date) - new Date(b.date));
         sorted.forEach(m => {
-            let p = (m.vehicle_plate || '').trim(); if(!p) return; if(!vehicles[p]) vehicles[p] = {}; vehicles[p].currentOdo = parseFloat(m.odometer) || 0; if(m.next_odometer) vehicles[p].nextOdo = parseFloat(m.next_odometer) || Infinity;
+            let p = String(m.vehicle_plate || '').trim(); if(!p) return; if(!vehicles[p]) vehicles[p] = {}; vehicles[p].currentOdo = parseFloat(m.odometer) || 0; if(m.next_odometer) vehicles[p].nextOdo = parseFloat(m.next_odometer) || Infinity;
         });
         let alertHtml = '';
         for(let p in vehicles) {
@@ -829,7 +835,7 @@
     }
 
     // ==========================================
-    // الحل السحري لتشغيل التقارير بضمان 100%
+    // الحل السحري لتشغيل التقارير بضمان 100% (منع إنهيار الدالة)
     // ==========================================
     function toggleReportTarget() {
         const type = document.getElementById('reportType').value; 
@@ -840,35 +846,25 @@
         let dL = dict[currentLang]; 
         targetContainer.style.display = 'flex';
 
-        // دالة مساعدة لإنشاء الاختيارات بشكل آمن برمجياً
-        function addOptions(setValues) {
-            let arr = Array.from(setValues).sort();
-            arr.forEach(i => {
-                let opt = document.createElement('option');
-                opt.value = i; opt.text = i; // ضمان إن الـ value مش فاضي
-                sel.appendChild(opt);
-            });
-        }
-
         if(type === 'client') { 
             lbl.innerText = dL.client; 
-            let vals = new Set(); recentTripsDB.forEach(t => { if(t.client) vals.add(t.client.trim()); }); addOptions(vals);
+            clientsDB.forEach(i => sel.innerHTML += `<option value="${i}">${i}</option>`); 
         } 
         else if(type === 'driver') { 
             lbl.innerText = "Partner (الشريك):"; 
-            let vals = new Set(); recentTripsDB.forEach(t => { if(t.driver) vals.add(t.driver.trim()); }); addOptions(vals);
+            driversDB.forEach(i => sel.innerHTML += `<option value="${i.name}">${i.name}</option>`); 
         } 
         else if(type === 'actual_driver') { 
             lbl.innerText = "Actual Driver (السائق الفعلي):"; 
-            let vals = new Set(); recentTripsDB.forEach(t => { if(t.actual_driver) vals.add(t.actual_driver.trim()); }); addOptions(vals);
+            actualDriversDB.forEach(i => sel.innerHTML += `<option value="${i.name}">${i.name}</option>`); 
         } 
         else if(type === 'vehicle_plate') { 
             lbl.innerText = "Vehicle Plate (رقم السيارة):"; 
-            let vals = new Set(); recentTripsDB.forEach(t => { if(t.vehicle_plate) vals.add(t.vehicle_plate.trim()); }); addOptions(vals);
+            vehiclesDB.forEach(i => sel.innerHTML += `<option value="${i.plate}">${i.plate}</option>`); 
         } 
         else if(type === 'trip_detailed') { 
             lbl.innerText = dL.trip; 
-            let vals = new Set(); recentTripsDB.forEach(t => { if(t.trip) vals.add(t.trip.trim()); }); addOptions(vals);
+            tripsDB.forEach(i => sel.innerHTML += `<option value="${i.name}">${i.name}</option>`); 
         } 
         else if (type === 'finance' || type === 'maintenance' || type === 'net_profit' || type === 'charts') { 
             targetContainer.style.display = 'none'; 
@@ -880,14 +876,16 @@
 
     function fetchReports() {
         const type = document.getElementById('reportType').value; 
-        const target = (document.getElementById('reportTarget').value || "").toLowerCase().trim(); 
+        // الحل السحري: تحويل أي اختيار إلى (نص String) لتجنب أخطاء الأرقام
+        const target = String(document.getElementById('reportTarget').value || "").toLowerCase().trim(); 
         const fDate = document.getElementById('repFrom').value; 
         const tDate = document.getElementById('repTo').value;   
 
         const tbody = document.querySelector('#reportsTable tbody'); const thead = document.querySelector('#reportsTable thead'); const tfoot = document.querySelector('#reportsTable tfoot'); const summaryCard = document.getElementById('netProfitSummary'); const chartsArea = document.getElementById('chartsArea'); const tableWrapper = document.getElementById('tableWrapper');
         tbody.innerHTML = ''; thead.innerHTML = ''; tfoot.innerHTML = ''; summaryCard.style.display = 'none'; summaryCard.innerHTML = ''; chartsArea.style.display = 'none'; tableWrapper.style.display = 'block';
 
-        let res = []; let dL = dict[currentLang]; function getCleanDay(rawDate) { if (!rawDate) return ""; return String(rawDate).trim().slice(0, 10); }
+        let res = []; let dL = dict[currentLang]; 
+        function getCleanDay(rawDate) { if (!rawDate) return ""; return String(rawDate).trim().slice(0, 10); }
 
         if (type === 'charts') {
             tableWrapper.style.display = 'none'; chartsArea.style.display = 'flex'; document.getElementById('printReportTitle').innerHTML = `📊 لوحة المؤشرات البيانية (Dashboard) <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`; document.getElementById('printReportTitle').style.display = 'block';
@@ -895,7 +893,9 @@
             recentTripsDB.forEach(t => {
                 const d = getCleanDay(t.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    let p = t.driver || 'Unknown'; let c = t.client || 'Unknown'; let tName = (t.trip || t.trip_name || 'Unknown').trim();
+                    let p = String(t.driver || 'Unknown').trim(); 
+                    let c = String(t.client || 'Unknown').trim(); 
+                    let tName = String(t.trip || t.trip_name || 'Unknown').trim();
                     partnerData[p] = (partnerData[p] || 0) + parseFloat(t.fee || 0); clientData[c] = (clientData[c] || 0) + parseFloat(t.revenue || 0); tripsByDate[d] = (tripsByDate[d] || 0) + 1; tripNameData[tName] = (tripNameData[tName] || 0) + 1;
                 }
             });
@@ -929,8 +929,13 @@
             recentTripsDB.forEach(t => {
                 const d = getCleanDay(t.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    const cName = (t.client || "").trim(); const pName = (t.driver || "").trim(); const tName = (t.trip || t.trip_name || "").trim();
-                    const aDriver = (t.actual_driver || "").trim(); const vPlate = (t.vehicle_plate || "").trim();
+                    // الحل السحري: تحويل الكل لنص لتفادي أخطاء الأرقام
+                    const cName = String(t.client || "").trim(); 
+                    const pName = String(t.driver || "").trim(); 
+                    const tName = String(t.trip || t.trip_name || "").trim();
+                    const aDriver = String(t.actual_driver || "").trim(); 
+                    const vPlate = String(t.vehicle_plate || "").trim();
+                    
                     const rev = parseFloat(t.revenue || t.amount || 0); const fee = parseFloat(t.fee || 0); const actFee = parseFloat(t.driver_fee || 0);
 
                     if (type === 'client' && cName.toLowerCase() === target) { res.push({ date: t.date, desc: tName, amt: rev }); } 
