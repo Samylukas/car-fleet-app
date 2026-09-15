@@ -84,6 +84,9 @@
         tfoot { display: table-row-group; }
         .total-row td { background: #eafaf1 !important; font-weight: bold; font-size: 1.1rem; text-align: left; border-top: 2px solid #27ae60; }
         html[dir="rtl"] .total-row td { text-align: right; }
+
+        /* كلاس فصل الصفحات الديناميكي */
+        .page-break-row { page-break-after: always !important; break-after: page !important; }
         
         .master-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; width: 100%; }
         .master-card { background: #f9fbfd; border: 1px solid #e1e8ed; padding: 15px; border-radius: 10px; width: 100%; overflow: hidden; }
@@ -94,15 +97,12 @@
         .net-profit-card { background: #1e3c72; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .net-profit-card h2 { font-size: 2rem; margin: 10px 0; color: #f1c40f; }
 
-        /* ======== إعدادات الطباعة للـ PDF ======== */
         .pdf-compact table { font-size: 11px !important; line-height: 1.2 !important; }
         .pdf-compact th, .pdf-compact td { padding: 6px 5px !important; height: auto !important; }
         .pdf-compact .report-title-header { font-size: 1.2rem !important; margin-bottom: 10px !important; padding-bottom: 5px !important; }
         
-        /* تنسيق رسومات الـ Dashboard المودرن */
         .chart-page { width: 100%; height: 500px; margin-bottom: 40px; display: flex; justify-content: center; align-items: center; page-break-after: always; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .chart-page canvas { max-height: 100% !important; max-width: 100% !important; }
-        /* تكبير مساحة الدائرة عشان الـ Legend ياخد راحته تحت */
         .chart-page.doughnut-page { min-height: 600px; }
     </style>
 </head>
@@ -360,7 +360,7 @@
                 <!-- ملخص الأرباح -->
                 <div id="netProfitSummary" style="display:none;"></div>
                 
-                <!-- منطقة الرسوم البيانية -->
+                <!-- منطقة الرسوم البيانية (4 خرائط) -->
                 <div id="chartsArea" style="display:none; flex-direction:column;">
                     <div class="chart-page"><canvas id="chartPartners"></canvas></div>
                     <div class="chart-page"><canvas id="chartClients"></canvas></div>
@@ -426,7 +426,6 @@
 </div>
 
 <script>
-    // إعدادات Chart.js العامة ليكون التصميم عصري وحديث
     Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
     Chart.defaults.color = '#333';
     Chart.defaults.scale.grid.color = 'rgba(0, 0, 0, 0.05)';
@@ -632,7 +631,28 @@
         clearForm(); toast(`✅ Saved (${targetId})!`, 'success');
     }
 
-    function formatDateDisplay(rawDate) { if(!rawDate) return ''; let dStr = String(rawDate); if(dStr.includes('T')) dStr = dStr.replace('T', ' '); return dStr.slice(0, 16); }
+    // ==========================================
+    // دالة فرمتة الوقت وحل مشكلة الـ 24 ساعة وسيرفر جوجل
+    // ==========================================
+    function formatDateDisplay(rawDate) { 
+        if(!rawDate) return ''; 
+        let dStr = String(rawDate).trim(); 
+        
+        // لو سيرفر جوجل رجع الوقت بصيغة ISO وفيها T أو Z، نفرمتها على توقيت الجهاز اللي فاتح الأبلكيشن
+        if(dStr.includes('Z') || dStr.includes('T')) {
+            let d = new Date(rawDate);
+            if (!isNaN(d.getTime())) {
+                let yyyy = d.getFullYear();
+                let mm = String(d.getMonth()+1).padStart(2,'0');
+                let dd = String(d.getDate()).padStart(2,'0');
+                let hh = String(d.getHours()).padStart(2,'0');
+                let min = String(d.getMinutes()).padStart(2,'0');
+                return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+            }
+        }
+        // لو نص عادي هنكتفي بعرض أول 16 حرف (السنة لحد الدقائق)
+        return dStr.slice(0, 16).replace('T', ' '); 
+    }
 
     function renderRecentTrips() {
         const tbody = document.querySelector('#recentTripsTable tbody'); if(!tbody) return;
@@ -731,7 +751,7 @@
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
     // ==========================================
-    // دالة الـ PDF الخارقة
+    // صندوق حواري للسجلات ودالة الـ PDF
     // ==========================================
     async function downloadDirectPDF() {
         const element = document.getElementById('reportPrintArea');
@@ -741,12 +761,31 @@
             return toast('⚠️ اختر التقرير أولاً!', 'warn');
         }
 
-        toast('⏳ جاري تجهيز التقرير...', 'info');
-
-        // تطبيق الـ CSS الخاص بالطباعة للرسومات
         const isCharts = document.getElementById('reportType').value === 'charts';
-        if (!isCharts) element.classList.add('pdf-compact');
-        
+
+        // إظهار صندوق حواري لسؤال المستخدم عن عدد السجلات لو كان تقرير جداول
+        if (!isCharts) {
+            let rowInput = prompt("كم عدد السجلات التي تريدها في الصفحة الواحدة؟ (أدخل رقم من 1 إلى 50)", "50");
+            let rowsPerPage = parseInt(rowInput);
+            
+            if (isNaN(rowsPerPage) || rowsPerPage < 1) rowsPerPage = 50;
+            if (rowsPerPage > 50) rowsPerPage = 50;
+
+            // تنظيف أي فواصل صفحات قديمة
+            document.querySelectorAll('.page-break-row').forEach(el => el.classList.remove('page-break-row'));
+
+            // تطبيق فواصل الصفحات الجديدة بناءً على اختيار المستخدم
+            const rows = document.querySelectorAll('#reportsTable tbody tr');
+            rows.forEach((row, index) => {
+                if ((index + 1) % rowsPerPage === 0 && index !== rows.length - 1) {
+                    row.classList.add('page-break-row');
+                }
+            });
+            
+            element.classList.add('pdf-compact');
+        }
+
+        toast('⏳ جاري تجهيز التقرير...', 'info');
         await new Promise(r => setTimeout(r, 200));
 
         const fileName = `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
@@ -880,7 +919,6 @@
             return String(rawDate).trim().slice(0, 10);
         }
 
-        // ================== الرسم البياني الشامل المودرن ==================
         if (type === 'charts') {
             tableWrapper.style.display = 'none';
             chartsArea.style.display = 'flex';
@@ -902,31 +940,25 @@
 
             if(window.c1) window.c1.destroy(); if(window.c2) window.c2.destroy(); if(window.c3) window.c3.destroy(); if(window.c4) window.c4.destroy();
 
-            // 1. الشركاء
             window.c1 = new Chart(document.getElementById('chartPartners'), {
                 type: 'bar',
                 data: { labels: Object.keys(partnerData), datasets: [{ label: 'إيرادات الشركاء (EGP)', data: Object.values(partnerData), backgroundColor: 'rgba(231, 76, 60, 0.8)', borderColor: '#c0392b', borderWidth: 2, borderRadius: 8, barPercentage: 0.6 }] },
                 options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'أكثر الشركاء تحقيقاً للإيرادات', font: {size: 18} } } }
             });
 
-            // 2. العملاء
             window.c2 = new Chart(document.getElementById('chartClients'), {
                 type: 'bar',
                 data: { labels: Object.keys(clientData), datasets: [{ label: 'مبيعات العملاء (EGP)', data: Object.values(clientData), backgroundColor: 'rgba(39, 174, 96, 0.8)', borderColor: '#229954', borderWidth: 2, borderRadius: 8, barPercentage: 0.6 }] },
                 options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'أكثر العملاء طلباً للمشاوير', font: {size: 18} } } }
             });
 
-            // 3. المشاوير
             window.c3 = new Chart(document.getElementById('chartTrips'), {
                 type: 'line',
                 data: { labels: Object.keys(tripsByDate).sort(), datasets: [{ label: 'عدد المشاوير', data: Object.keys(tripsByDate).sort().map(k=>tripsByDate[k]), borderColor: '#1e3c72', backgroundColor: 'rgba(30, 60, 114, 0.15)', fill: true, tension: 0.4, pointBackgroundColor: '#f39c12', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5 }] },
                 options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'معدل المشاوير خلال الفترة', font: {size: 18} } } }
             });
 
-            // 4. الدائرة (Doughnut) - الحل السحري لعدم تداخل الأسماء
             const niceColors = ['#3498db', '#9b59b6', '#e67e22', '#1abc9c', '#f1c40f', '#e74c3c', '#34495e', '#16a085', '#27ae60', '#2980b9', '#d35400', '#c0392b', '#7f8c8d', '#8e44ad', '#2c3e50'];
-            
-            // تصفية أعلى 10 مشاوير وتجميع الباقي في "أخرى"
             let sortedTrips = Object.entries(tripNameData).sort((a, b) => b[1] - a[1]);
             let topTrips = sortedTrips.slice(0, 10);
             let othersCount = sortedTrips.slice(10).reduce((sum, item) => sum + item[1], 0);
@@ -938,25 +970,23 @@
                 type: 'doughnut',
                 data: { labels: finalLabels, datasets: [{ data: finalData, backgroundColor: niceColors, borderWidth: 2, borderColor: '#fff' }] },
                 options: { 
-                    animation: false, 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    layout: { padding: 10 },
-                    plugins: { 
-                        title: { display: true, text: 'أكثر المشاوير طلباً (بالاسم)', font: {size: 18} }, 
-                        legend: { position: 'bottom', labels: { font: { size: 12 }, boxWidth: 15 } } 
-                    } 
+                    animation: false, responsive: true, maintainAspectRatio: false, layout: { padding: 10 },
+                    plugins: { title: { display: true, text: 'أكثر المشاوير طلباً (بالاسم)', font: {size: 18} }, legend: { position: 'bottom', labels: { font: { size: 12 }, boxWidth: 15 } } } 
                 }
             });
             return;
         }
 
-        // ================== باقي التقارير ==================
+        // ================== حل مشكلة صافي الربح ==================
         if (type === 'net_profit') {
-            let tRev = 0, fRev = 0, fExp = 0, mExp = 0;
+            let comm = 0, fRev = 0, fExp = 0, mExp = 0;
             recentTripsDB.forEach(t => {
                 const d = getCleanDay(t.date);
-                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) tRev += parseFloat(t.revenue || 0);
+                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
+                    let r = parseFloat(t.revenue || 0);
+                    let f = parseFloat(t.fee || 0);
+                    comm += (r - f); // صافي العمولة
+                }
             });
             financesDB.forEach(f => {
                 const d = getCleanDay(f.date);
@@ -970,7 +1000,7 @@
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) mExp += parseFloat(m.amount || 0);
             });
 
-            let totalIncome = tRev + fRev;
+            let totalIncome = comm + fRev;
             let totalExpenses = fExp + mExp;
             let net = totalIncome - totalExpenses;
 
@@ -981,7 +1011,7 @@
             summaryCard.style.display = 'block';
             summaryCard.innerHTML = `
                 <div class="net-profit-card">
-                    <p style="font-size:1.1rem; margin-bottom:5px;">Total Income (Trips + Revenues): <strong>${totalIncome.toFixed(2)}</strong></p>
+                    <p style="font-size:1.1rem; margin-bottom:5px;">Total Income (Trips Commission + Finance Revenues): <strong>${totalIncome.toFixed(2)}</strong></p>
                     <p style="font-size:1.1rem; margin-bottom:15px; color:#ffcccc;">Total Expenses (Maintenance + Others): <strong>${totalExpenses.toFixed(2)}</strong></p>
                     <hr style="border-color:rgba(255,255,255,0.2); margin-bottom:15px;">
                     <p style="font-size:1.3rem;">NET PROFIT / صافي الربح</p>
