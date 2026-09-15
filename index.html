@@ -896,7 +896,6 @@
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
-    // ================== DIRECT IN-APP PDF GENERATOR (NO BROWSER NEEDED) ==================
     function downloadDirectPDF() {
         const element = document.getElementById('reportPrintArea');
         const titleText = document.getElementById('printReportTitle').innerText || 'Fleet_Report';
@@ -975,16 +974,12 @@
         } else { lbl.innerText = dL.target; }
     }
 
-    // ================== SEARCH REPORTS FIX (FULL DAY INCLUSION) ==================
+    // ================== SEARCH REPORTS FIX (DATE ONLY COMPARISON) ==================
     function fetchReports() {
         const type = document.getElementById('reportType').value;
         const target = (document.getElementById('reportTarget').value || "").toLowerCase().trim();
-        const fDate = document.getElementById('repFrom').value;
-        let tDate = document.getElementById('repTo').value;
-        
-        // إصلاح السيرش لتضمين اليوم بالكامل حتى نهاية الساعة 23:59:59
-        let tDateFull = tDate ? tDate + ' 23:59:59' : '2099-12-31 23:59:59';
-        let fDateFull = fDate ? fDate + ' 00:00:00' : '2000-01-01 00:00:00';
+        const fDate = document.getElementById('repFrom').value; // e.g. "2026-09-14"
+        const tDate = document.getElementById('repTo').value;   // e.g. "2026-09-14"
 
         const tbody = document.querySelector('#reportsTable tbody');
         const thead = document.querySelector('#reportsTable thead');
@@ -995,22 +990,28 @@
 
         let res = []; let dL = dict[currentLang];
 
+        // دالة تنظيف التاريخ لأول 10 حروف فقط (YYYY-MM-DD) لتجاوز أخطاء التوقيت والساعات
+        function getCleanDay(rawDate) {
+            if (!rawDate) return "";
+            return String(rawDate).trim().slice(0, 10);
+        }
+
         if (type === 'net_profit') {
             let tRev = 0, fRev = 0, fExp = 0, mExp = 0;
             recentTripsDB.forEach(t => {
-                const d = String(t.date || "");
-                if (d >= fDateFull && d <= tDateFull) tRev += parseFloat(t.revenue || 0);
+                const d = getCleanDay(t.date);
+                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) tRev += parseFloat(t.revenue || 0);
             });
             financesDB.forEach(f => {
-                const d = String(f.date || "");
-                if (d >= fDateFull && d <= tDateFull) {
+                const d = getCleanDay(f.date);
+                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
                     if(f.type === 'Revenue') fRev += parseFloat(f.amount || 0);
                     else fExp += parseFloat(f.amount || 0);
                 }
             });
             maintenanceDB.forEach(m => {
-                const d = String(m.date || "");
-                if (d >= fDateFull && d <= tDateFull) mExp += parseFloat(m.amount || 0);
+                const d = getCleanDay(m.date);
+                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) mExp += parseFloat(m.amount || 0);
             });
 
             let totalIncome = tRev + fRev;
@@ -1035,18 +1036,18 @@
 
         if (type === 'finance') {
             financesDB.forEach(f => {
-                const d = String(f.date || "");
-                if (d >= fDateFull && d <= tDateFull) res.push(f);
+                const d = getCleanDay(f.date);
+                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) res.push(f);
             });
         } else if (type === 'maintenance') {
             maintenanceDB.forEach(m => {
-                const d = String(m.date || "");
-                if (d >= fDateFull && d <= tDateFull) res.push(m);
+                const d = getCleanDay(m.date);
+                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) res.push(m);
             });
         } else {
             recentTripsDB.forEach(t => {
-                const d = String(t.date || "");
-                if (d >= fDateFull && d <= tDateFull) {
+                const d = getCleanDay(t.date);
+                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
                     const cName = (t.client || "").trim();
                     const pName = (t.driver || "").trim();
                     const tName = (t.trip || t.trip_name || "").trim();
