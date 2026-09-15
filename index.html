@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Samy Fleet Pro 2026</title>
-    <!-- مكتبة الإكسيل ومكتبة الـ PDF المباشرة -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -12,12 +11,12 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; overflow-x: hidden; scroll-behavior: smooth; }
 
-        #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.5s ease, visibility 0.5s ease; }
+        #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.4s ease, visibility 0.4s ease; }
         @keyframes driveForward { 0% { transform: scale(0.1) translateY(-100px); opacity: 0; } 80% { transform: scale(1.1) translateY(10px); opacity: 1; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
-        .splash-logo { font-size: 5rem; margin-bottom: 10px; animation: driveForward 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .splash-logo { font-size: 5rem; margin-bottom: 10px; animation: driveForward 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
         .splash-title { font-size: 2.2rem; font-weight: bold; margin-bottom: 15px; }
 
-        #loginOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,60,114,0.95), rgba(42,82,152,0.95)); display: flex; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.5s ease; visibility: hidden; opacity: 0; }
+        #loginOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,60,114,0.95), rgba(42,82,152,0.95)); display: flex; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.4s ease; visibility: hidden; opacity: 0; }
         .login-card { background: #ffffff; padding: 35px 25px; border-radius: 16px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .login-card h2 { color: #1e3c72; margin-bottom: 8px; font-size: 1.6rem; }
         
@@ -316,7 +315,7 @@
             <div class="btn-grid-container">
                 <button id="searchBtn" class="btn btn-blue" onclick="fetchReports()" data-tr="btn_search">Search 🔍</button>
                 <button class="btn btn-green" onclick="exportToExcel()" data-tr="btn_excel">Excel 📊</button>
-                <button class="btn btn-red" onclick="()" data-tr="btn_print">Print / Save PDF 📄</button>
+                <button class="btn btn-red" onclick="downloadDirectPDF()" data-tr="btn_print">Print / Save PDF 📄</button>
                 <button class="btn btn-whatsapp" onclick="shareReportText()">WhatsApp Text 💬</button>
             </div>
             
@@ -463,6 +462,12 @@
         updateOnlineStatus();
 
         const session = localStorage.getItem('samy_logged_in_user');
+        
+        // تحميل من الكاش الفوري دون انتظار السيرفر
+        let cached = localStorage.getItem('fleet_data_cache');
+        if (cached) { try { loadDataToUI(JSON.parse(cached)); } catch(e) {} } 
+        else { usersDB = [{username: "SAMY", password: "852", role: "Admin"}]; }
+
         setTimeout(() => {
             document.getElementById('splashScreen').style.opacity = '0'; 
             setTimeout(() => { 
@@ -477,8 +482,8 @@
                     document.getElementById('loginOverlay').style.opacity = '1'; 
                     setTimeout(() => document.getElementById('loginPass').focus(), 100);
                 }
-            }, 500); 
-        }, 1200); 
+            }, 400); 
+        }, 500); 
 
         document.getElementById('tripDate').value = getCurrentLocalDateTime();
         document.getElementById('finDate').value = getCurrentLocalDateTime();
@@ -486,11 +491,8 @@
         const firstDay = new Date(); firstDay.setDate(1);
         document.getElementById('repFrom').value = firstDay.toISOString().slice(0, 10);
         document.getElementById('repTo').value = new Date().toISOString().slice(0, 10);
-
-        let cached = localStorage.getItem('fleet_data_cache');
-        if (cached) { try { loadDataToUI(JSON.parse(cached)); } catch(e) { localStorage.removeItem('fleet_data_cache'); } } 
-        else { usersDB = [{username: "SAMY", password: "852", role: "Admin"}]; }
         
+        // تحديث حي في الخلفية من الشيت
         forceAppSync();
     });
 
@@ -896,68 +898,54 @@
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
-  async function downloadDirectPDF() {
+    // ================== PDF GENERATOR PERFECTED (WORKS EVERYWHERE) ==================
+    async function downloadDirectPDF() {
         const element = document.getElementById('reportPrintArea');
         const titleText = document.getElementById('printReportTitle').innerText || 'Fleet_Report';
         
         if (!element || element.innerText.trim() === '') {
-            return toast('⚠️ اختر التقرير أولاً!', 'warn');
+            return toast('⚠️ اختر التقرير وتأكد من وجود بيانات!', 'warn');
         }
 
         toast('⏳ جاري تجهيز ملف الـ PDF...', 'info');
 
+        const fileName = `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
+
         const opt = {
             margin:       [0.3, 0.3, 0.3, 0.3],
-            filename:     `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`,
+            filename:     fileName,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
 
         try {
-            const isCapacitor = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
-            
-            // في حالة تشغيل التطبيق كـ APK على الموبايل
-            if (isCapacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem && window.Capacitor.Plugins.Share) {
-                // 1. تحويل التقرير إلى Base64
+            // فحص إضافات الموبايل الحقيقية
+            const plugins = window.Capacitor && window.Capacitor.Plugins;
+            if (plugins && plugins.Filesystem && plugins.Share) {
                 const pdfBase64 = await html2pdf().set(opt).from(element).outputPdf('base64');
-                const fileName = `Report_${Date.now()}.pdf`;
-
-                // 2. حفظ الملف في ذاكرة الكاش الخاصة بالموبايل
-                const savedFile = await window.Capacitor.Plugins.Filesystem.writeFile({
+                const savedFile = await plugins.Filesystem.writeFile({
                     path: fileName,
                     data: pdfBase64,
                     directory: 'CACHE'
                 });
-
-                // 3. فتح شاشة المشاركة والطباعة الرسمية للنظام
-                await window.Capacitor.Plugins.Share.share({
+                await plugins.Share.share({
                     title: titleText,
-                    text: 'تقرير صادر من تطبيق Samy Fleet Pro',
+                    text: 'تقرير Samy Fleet Pro',
                     url: savedFile.uri,
-                    dialogTitle: 'حفظ أو طباعة التقرير 📄'
+                    dialogTitle: 'حفظ / طباعة التقرير 📄'
                 });
-
-                toast('✅ تم فتح شاشة الحفظ والطباعة!', 'success');
+                toast('✅ تم فتح شاشة المشاركة والحفظ!', 'success');
             } else {
-                // للكمبيوتر والمتصفح العادي
-                const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
-                const blobUrl = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                toast('✅ تم تنزيل الملف!', 'success');
+                // للويندوز وكروم والمتصفح المباشر (تنزيل تلقائي مباشر)
+                await html2pdf().set(opt).from(element).save();
+                toast('✅ تم تحميل ملف الـ PDF بنجاح!', 'success');
             }
         } catch (err) {
             console.error('PDF Error:', err);
-            // محاولة احتياطية فتح الملف في نافذة النظام
             try {
-                const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
-                const blobUrl = URL.createObjectURL(blob);
-                window.open(blobUrl, '_system') || window.open(blobUrl, '_blank');
+                await html2pdf().set(opt).from(element).save();
+                toast('✅ تم تحميل ملف الـ PDF!', 'success');
             } catch(e) {
                 toast('❌ حدث خطأ أثناء تجهيز الملف', 'error');
             }
@@ -1017,12 +1005,11 @@
         } else { lbl.innerText = dL.target; }
     }
 
-    // ================== SEARCH REPORTS FIX (DATE ONLY COMPARISON) ==================
     function fetchReports() {
         const type = document.getElementById('reportType').value;
         const target = (document.getElementById('reportTarget').value || "").toLowerCase().trim();
-        const fDate = document.getElementById('repFrom').value; // e.g. "2026-09-14"
-        const tDate = document.getElementById('repTo').value;   // e.g. "2026-09-14"
+        const fDate = document.getElementById('repFrom').value;
+        const tDate = document.getElementById('repTo').value;
 
         const tbody = document.querySelector('#reportsTable tbody');
         const thead = document.querySelector('#reportsTable thead');
@@ -1033,7 +1020,6 @@
 
         let res = []; let dL = dict[currentLang];
 
-        // دالة تنظيف التاريخ لأول 10 حروف فقط (YYYY-MM-DD) لتجاوز أخطاء التوقيت والساعات
         function getCleanDay(rawDate) {
             if (!rawDate) return "";
             return String(rawDate).trim().slice(0, 10);
