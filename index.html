@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Samy Fleet Pro 2026</title>
+    <!-- مكتبة الإكسيل ومكتبة الـ PDF المباشرة -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
@@ -77,26 +79,11 @@
         .master-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; width: 100%; }
         .master-card { background: #f9fbfd; border: 1px solid #e1e8ed; padding: 15px; border-radius: 10px; width: 100%; overflow: hidden; }
 
-        .report-print-container { background: #fff; padding: 10px; border-radius: 8px; width: 100%; overflow-x: auto; } 
+        .report-print-container { background: #fff; padding: 15px; border-radius: 8px; width: 100%; overflow-x: auto; } 
         .report-title-header { text-align: center; color: #1e3c72; margin-bottom: 15px; font-size: 1.4rem; display: none; border-bottom: 3px solid #f39c12; padding-bottom: 8px; font-weight: bold; }
 
         .net-profit-card { background: #1e3c72; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .net-profit-card h2 { font-size: 2rem; margin: 10px 0; color: #f1c40f; }
-
-        @media print {
-            body * { visibility: hidden !important; }
-            #reportPrintArea, #reportPrintArea * { visibility: visible !important; }
-            #reportPrintArea { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-            .scroll-btn-group, .nav-tabs, .header-bar, .action-buttons, .grid-form, #toastStack, .btn-grid-container { display: none !important; }
-            #reportPrintArea table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px; font-size: 11pt; }
-            #reportPrintArea th { background-color: #1e3c72 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 10px; border: 1.5px solid #1e3c72 !important; font-weight: bold; }
-            #reportPrintArea td { padding: 8px; border: 1px solid #333 !important; text-align: center; color: #000; font-weight: 500; }
-            #reportPrintArea .total-row td { background-color: #f39c12 !important; color: white !important; font-weight: bold; font-size: 13pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .report-title-header { color: #1e3c72 !important; font-size: 16pt !important; text-align: center; margin-bottom: 15px; border-bottom: 3px solid #f39c12 !important; padding-bottom: 8px; display: block !important; }
-            .net-profit-card { border: 2px solid #1e3c72 !important; background: #fff !important; color: #000 !important; }
-            .net-profit-card h2 { color: #000 !important; font-weight: bold; }
-            @page { margin: 1cm; size: A4 portrait; }
-        }
     </style>
 </head>
 <body>
@@ -328,9 +315,8 @@
             
             <div class="btn-grid-container">
                 <button id="searchBtn" class="btn btn-blue" onclick="fetchReports()" data-tr="btn_search">Search 🔍</button>
-                <button class="btn btn-green" onclick="exportToExcel()" data-tr="btn_excel">PC Excel 📊</button>
-                <button class="btn btn-dark" onclick="exportToWindowsPDF()" data-tr="btn_print">PC Print 🖨️</button>
-                <button class="btn btn-purple" onclick="openInBrowser()">🌐 Open in Chrome</button>
+                <button class="btn btn-green" onclick="exportToExcel()" data-tr="btn_excel">Excel 📊</button>
+                <button class="btn btn-red" onclick="downloadDirectPDF()" data-tr="btn_print">Print / Save PDF 📄</button>
                 <button class="btn btn-whatsapp" onclick="shareReportText()">WhatsApp Text 💬</button>
             </div>
             
@@ -409,8 +395,8 @@
 
     let currentLang = 'en';
     const dict = {
-        'en': { username:"Username:", password:"Password:", logout:"Logout", dash_rev:"Monthly Profit (EGP)", dash_trips:"Monthly Trips", dash_top:"Top Partner", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", tab_users:"🔐 Users", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_excel:"PC Excel 📊", btn_print:"PC Print 🖨️", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
-        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", dash_rev:"أرباح الشهر (EGP)", dash_trips:"عدد مشاوير الشهر", dash_top:"نجم الشهر (شريك)", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", tab_users:"🔐 الحسابات", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_excel:"إكسيل 📊", btn_print:"طباعة 🖨️", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
+        'en': { username:"Username:", password:"Password:", logout:"Logout", dash_rev:"Monthly Profit (EGP)", dash_trips:"Monthly Trips", dash_top:"Top Partner", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", tab_users:"🔐 Users", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_excel:"Excel 📊", btn_print:"Print / PDF 📄", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
+        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", dash_rev:"أرباح الشهر (EGP)", dash_trips:"عدد مشاوير الشهر", dash_top:"نجم الشهر (شريك)", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", tab_users:"🔐 الحسابات", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_excel:"إكسيل 📊", btn_print:"طباعة / PDF 📄", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
     };
 
     function toggleLang() {
@@ -776,7 +762,6 @@
         addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }); toast('Deleted');
     }
 
-    // ================== EDIT FINANCE IMPLEMENTATION ==================
     function renderFinances() {
         const tbody = document.querySelector('#financeTable tbody'); 
         if(!tbody) return; 
@@ -846,7 +831,6 @@
         document.getElementById('finDate').value = getCurrentLocalDateTime();
     }
 
-    // ================== USERS MANAGEMENT ==================
     function changeMyPassword() {
         const p1 = document.getElementById('chgNewPass').value.trim();
         const p2 = document.getElementById('chgConfPass').value.trim();
@@ -912,12 +896,31 @@
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
-    function openInBrowser() {
-        toast('⏳ Opening Browser...', 'info');
-        window.open(window.location.href, '_system') || window.open(window.location.href, '_blank');
-    }
+    // ================== DIRECT IN-APP PDF GENERATOR (NO BROWSER NEEDED) ==================
+    function downloadDirectPDF() {
+        const element = document.getElementById('reportPrintArea');
+        const titleText = document.getElementById('printReportTitle').innerText || 'Fleet_Report';
+        
+        if (!element || element.innerText.trim() === '') {
+            return toast('⚠️ Please search and generate report first!', 'warn');
+        }
 
-    function exportToWindowsPDF() { window.print(); }
+        toast('⏳ Generating PDF File...', 'info');
+
+        const opt = {
+            margin:       [0.4, 0.4, 0.4, 0.4],
+            filename:     `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            toast('✅ PDF Downloaded Successfully!', 'success');
+        }).catch(err => {
+            toast('❌ Error Generating PDF', 'error');
+        });
+    }
 
     function shareReportText() {
         const title = document.getElementById('printReportTitle').innerText;
@@ -972,11 +975,17 @@
         } else { lbl.innerText = dL.target; }
     }
 
+    // ================== SEARCH REPORTS FIX (FULL DAY INCLUSION) ==================
     function fetchReports() {
         const type = document.getElementById('reportType').value;
         const target = (document.getElementById('reportTarget').value || "").toLowerCase().trim();
         const fDate = document.getElementById('repFrom').value;
-        const tDate = document.getElementById('repTo').value;
+        let tDate = document.getElementById('repTo').value;
+        
+        // إصلاح السيرش لتضمين اليوم بالكامل حتى نهاية الساعة 23:59:59
+        let tDateFull = tDate ? tDate + ' 23:59:59' : '2099-12-31 23:59:59';
+        let fDateFull = fDate ? fDate + ' 00:00:00' : '2000-01-01 00:00:00';
+
         const tbody = document.querySelector('#reportsTable tbody');
         const thead = document.querySelector('#reportsTable thead');
         const summaryCard = document.getElementById('netProfitSummary');
@@ -989,19 +998,19 @@
         if (type === 'net_profit') {
             let tRev = 0, fRev = 0, fExp = 0, mExp = 0;
             recentTripsDB.forEach(t => {
-                const d = (t.date || "").split(' ')[0];
-                if (d >= fDate && d <= tDate) tRev += parseFloat(t.revenue || 0);
+                const d = String(t.date || "");
+                if (d >= fDateFull && d <= tDateFull) tRev += parseFloat(t.revenue || 0);
             });
             financesDB.forEach(f => {
-                const d = (f.date || "").split(' ')[0];
-                if (d >= fDate && d <= tDate) {
+                const d = String(f.date || "");
+                if (d >= fDateFull && d <= tDateFull) {
                     if(f.type === 'Revenue') fRev += parseFloat(f.amount || 0);
                     else fExp += parseFloat(f.amount || 0);
                 }
             });
             maintenanceDB.forEach(m => {
-                const d = (m.date || "").split(' ')[0];
-                if (d >= fDate && d <= tDate) mExp += parseFloat(m.amount || 0);
+                const d = String(m.date || "");
+                if (d >= fDateFull && d <= tDateFull) mExp += parseFloat(m.amount || 0);
             });
 
             let totalIncome = tRev + fRev;
@@ -1026,18 +1035,18 @@
 
         if (type === 'finance') {
             financesDB.forEach(f => {
-                const d = (f.date || "").split(' ')[0];
-                if (d >= fDate && d <= tDate) res.push(f);
+                const d = String(f.date || "");
+                if (d >= fDateFull && d <= tDateFull) res.push(f);
             });
         } else if (type === 'maintenance') {
             maintenanceDB.forEach(m => {
-                const d = (m.date || "").split(' ')[0];
-                if (d >= fDate && d <= tDate) res.push(m);
+                const d = String(m.date || "");
+                if (d >= fDateFull && d <= tDateFull) res.push(m);
             });
         } else {
             recentTripsDB.forEach(t => {
-                const d = (t.date || "").split(' ')[0];
-                if (d >= fDate && d <= tDate) {
+                const d = String(t.date || "");
+                if (d >= fDateFull && d <= tDateFull) {
                     const cName = (t.client || "").trim();
                     const pName = (t.driver || "").trim();
                     const tName = (t.trip || t.trip_name || "").trim();
