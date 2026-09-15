@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Samy Fleet Pro 2026</title>
-    <!-- مكتبة الإكسيل ومكتبة الـ PDF المباشرة -->
+    
+    <!-- المكتبات: إكسيل، PDF، ورسوم بيانية (Charts) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
@@ -17,7 +19,7 @@
         .splash-logo { font-size: 5rem; margin-bottom: 10px; animation: driveForward 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
         .splash-title { font-size: 2.2rem; font-weight: bold; margin-bottom: 15px; }
         
-        /* علامة التحميل الدائرية */
+        /* علامة التحميل (Spinner) */
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #f39c12; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #splashLoading { display: flex; flex-direction: column; align-items: center; }
@@ -77,10 +79,13 @@
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid #eee; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; background: #fff; text-align: center; white-space: nowrap; font-size: 0.85rem; }
         th, td { padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center; }
-        tr { page-break-inside: avoid; break-inside: avoid; } /* لمنع تقطيع الصفوف في الـ PDF */
+        tr { page-break-inside: avoid; break-inside: avoid; } 
         th { background: #f39c12; color: white; position: sticky; top: 0; font-weight: 600; }
-        .total-row { background: #eafaf1; font-weight: bold; font-size: 1rem; text-align: left;}
-        html[dir="rtl"] .total-row { text-align: right; }
+        
+        /* تظبيط سطر الإجمالي عشان ميختفيش في الطباعة */
+        tfoot { display: table-row-group; }
+        .total-row td { background: #eafaf1 !important; font-weight: bold; font-size: 1.1rem; text-align: left; border-top: 2px solid #27ae60; }
+        html[dir="rtl"] .total-row td { text-align: right; }
         
         .master-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; width: 100%; }
         .master-card { background: #f9fbfd; border: 1px solid #e1e8ed; padding: 15px; border-radius: 10px; width: 100%; overflow: hidden; }
@@ -91,12 +96,15 @@
         .net-profit-card { background: #1e3c72; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .net-profit-card h2 { font-size: 2rem; margin: 10px 0; color: #f1c40f; }
 
-        /* ======== كود تصغير الطباعة لـ 50 سطر ======== */
-        .pdf-compact table { font-size: 9px !important; }
-        .pdf-compact th, .pdf-compact td { padding: 3px 2px !important; height: auto !important; }
-        .pdf-compact .report-title-header { font-size: 1.1rem !important; margin-bottom: 8px !important; padding-bottom: 4px !important; }
-        .pdf-compact .net-profit-card { padding: 10px !important; margin-top: 10px !important; }
-        .pdf-compact .net-profit-card h2 { font-size: 1.5rem !important; margin: 5px 0 !important; }
+        /* ======== السر الحقيقي لتصغير الطباعة لـ 50+ سطر ======== */
+        .pdf-compact table { font-size: 10px !important; line-height: 1.1 !important; }
+        .pdf-compact th, .pdf-compact td { padding: 3px 4px !important; height: auto !important; }
+        .pdf-compact .report-title-header { font-size: 1.2rem !important; margin-bottom: 8px !important; padding-bottom: 4px !important; }
+        .pdf-compact .total-row td { font-size: 12px !important; padding: 5px !important; }
+        
+        /* تنسيق رسومات الـ Dashboard */
+        .chart-page { width: 100%; height: 500px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; page-break-after: always; }
+        .chart-page canvas { max-height: 100% !important; max-width: 100% !important; }
     </style>
 </head>
 <body>
@@ -323,6 +331,7 @@
                         <option value="finance" data-tr="opt_fin">Finance Report</option>
                         <option value="maintenance" data-tr="opt_mnt">Maintenance Report</option>
                         <option value="net_profit" data-tr="opt_net_profit" style="font-weight:bold; color:#1e3c72;">Net Profit Summary 💰</option>
+                        <option value="charts" style="font-weight:bold; color:#e74c3c;">📊 الرسم البياني الشامل (Dashboard)</option>
                     </select>
                 </div>
                 <div class="form-group" id="targetContainer"><label id="targetLabel" data-tr="target">Target:</label><select id="reportTarget"></select></div>
@@ -339,8 +348,26 @@
             
             <div id="reportPrintArea" class="report-print-container" style="margin-top:20px; background:#fff; padding:15px;">
                 <h3 id="printReportTitle" class="report-title-header"></h3>
-                <div class="table-responsive"><table id="reportsTable"><thead></thead><tbody></tbody></table></div>
+                
+                <!-- الجداول العادية -->
+                <div class="table-responsive" id="tableWrapper">
+                    <table id="reportsTable">
+                        <thead></thead>
+                        <tbody></tbody>
+                        <tfoot></tfoot> <!-- تذييل الجدول عشان الإجمالي ميهربش -->
+                    </table>
+                </div>
+                
+                <!-- ملخص الأرباح -->
                 <div id="netProfitSummary" style="display:none;"></div>
+                
+                <!-- منطقة الرسوم البيانية -->
+                <div id="chartsArea" style="display:none; flex-direction:column;">
+                    <div class="chart-page"><canvas id="chartPartners"></canvas></div>
+                    <div class="chart-page"><canvas id="chartClients"></canvas></div>
+                    <div class="chart-page" style="page-break-after: auto;"><canvas id="chartTrips"></canvas></div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -442,13 +469,10 @@
         recentTripsDB.forEach(t => {
             if(t.id && t.id.startsWith("TRIP-")) {
                 let numPart = parseInt(t.id.replace("TRIP-", ""), 10);
-                if(!isNaN(numPart) && numPart > maxNum) {
-                    maxNum = numPart;
-                }
+                if(!isNaN(numPart) && numPart > maxNum) { maxNum = numPart; }
             }
         });
-        let nextNum = maxNum + 1;
-        return "TRIP-" + String(nextNum).padStart(4, '0');
+        return "TRIP-" + String(maxNum + 1).padStart(4, '0');
     }
 
     function generateID(prefix) { 
@@ -460,18 +484,14 @@
         .then(() => {
             const badge = document.getElementById('networkStatus');
             if(badge.innerHTML !== '🟢 Online' && !isSyncing) {
-                badge.className = 'network-badge network-online';
-                badge.innerHTML = '🟢 Online';
+                badge.className = 'network-badge network-online'; badge.innerHTML = '🟢 Online';
                 processSyncQueue();
             }
-        })
-        .catch(() => {
+        }).catch(() => {
             const badge = document.getElementById('networkStatus');
-            badge.className = 'network-badge network-offline';
-            badge.innerHTML = '🔴 Offline';
+            badge.className = 'network-badge network-offline'; badge.innerHTML = '🔴 Offline';
         });
     }
-    
     setInterval(updateOnlineStatus, 3000);
 
     function hideSplashScreen() {
@@ -493,8 +513,7 @@
     }
 
     window.addEventListener('load', () => {
-        document.documentElement.dir = 'ltr';
-        document.documentElement.lang = 'en';
+        document.documentElement.dir = 'ltr'; document.documentElement.lang = 'en';
         updateOnlineStatus();
 
         document.getElementById('tripDate').value = getCurrentLocalDateTime();
@@ -505,16 +524,11 @@
         document.getElementById('repTo').value = new Date().toISOString().slice(0, 10);
 
         let cached = localStorage.getItem('fleet_data_cache');
-        
-        if (cached) { 
-            try { loadDataToUI(JSON.parse(cached)); } catch(e) { localStorage.removeItem('fleet_data_cache'); cached = null; } 
-        } else { 
-            usersDB = [{username: "SAMY", password: "852", role: "Admin"}]; 
-        }
+        if (cached) { try { loadDataToUI(JSON.parse(cached)); } catch(e) { localStorage.removeItem('fleet_data_cache'); cached = null; } } 
+        else { usersDB = [{username: "SAMY", password: "852", role: "Admin"}]; }
         
         if (cached) {
-            setTimeout(hideSplashScreen, 1200);
-            forceAppSync(false);
+            setTimeout(hideSplashScreen, 1200); forceAppSync(false);
         } else {
             document.getElementById('splashLoading').style.display = 'flex';
             document.getElementById('splashMessage').innerText = "Loading...";
@@ -528,17 +542,12 @@
         .then(data => {
             if (data.status === 'success') {
                 localStorage.setItem('fleet_data_cache', JSON.stringify(data));
-                loadDataToUI(data); 
-                processSyncQueue();
+                loadDataToUI(data); processSyncQueue();
                 if(!isFirstLoad) toast('🟢 Data Refreshed Live!', 'success');
             }
             if(isFirstLoad) hideSplashScreen();
         }).catch(err => {
-            console.log("Fetch Error:", err);
-            if(isFirstLoad) {
-                document.getElementById('splashMessage').innerText = "Loading...";
-                setTimeout(hideSplashScreen, 2000);
-            }
+            if(isFirstLoad) { document.getElementById('splashMessage').innerText = "Loading..."; setTimeout(hideSplashScreen, 2000); }
         });
     }
 
@@ -548,8 +557,7 @@
         if(!u || !p) return;
         const matchedUser = usersDB.find(user => user.username.toLowerCase() === u && user.password === p);
         if (matchedUser || (u === 'samy' && p === '852')) {
-            const userObj = matchedUser || { username: 'SAMY', role: 'Admin' };
-            localStorage.setItem('samy_logged_in_user', JSON.stringify(userObj));
+            localStorage.setItem('samy_logged_in_user', JSON.stringify(matchedUser || { username: 'SAMY', role: 'Admin' }));
             location.reload();
         } else { toast('❌ Incorrect Password', 'error'); }
     }
@@ -559,13 +567,8 @@
 
     function loadDataToUI(data) {
         usersDB = data.users || [{username:"SAMY", password:"852", role:"Admin"}];
-        clientsDB = data.clients || []; 
-        driversDB = data.drivers || []; 
-        tripsDB = data.trips || [];
-        
-        recentTripsDB = data.recent || []; 
-        financesDB = data.finances || []; 
-        maintenanceDB = data.maintenance || []; 
+        clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
+        recentTripsDB = data.recent || []; financesDB = data.finances || []; maintenanceDB = data.maintenance || []; 
 
         document.getElementById('loginUser').innerHTML = usersDB.map(u => `<option value="${u.username}">${u.username}</option>`).join('');
         document.getElementById('clientList').innerHTML = clientsDB.map(i => `<option value="${i}">`).join('');
@@ -574,80 +577,43 @@
 
         const cBody = document.querySelector('#mClientTable tbody');
         if(cBody) cBody.innerHTML = clientsDB.map((c, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('client', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Clients', '${c}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
-        
         const dBody = document.querySelector('#mDriverTable tbody');
         if(dBody) dBody.innerHTML = driversDB.map((d, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${d.name}</td><td style="direction:ltr;">${d.phone||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('driver', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Drivers', '${d.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
-
         const mBody = document.querySelector('#mTripTable tbody');
-        if(mBody) {
-            mBody.innerHTML = tripsDB.map((t, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${t.name}</td><td>${t.lp||0}/${t.lr||0}</td><td>${t.mp||0}/${t.mr||0}</td><td>${t.cp||0}/${t.cr||0}</td><td>${t.bp||0}/${t.br||0}</td><td><button class="btn btn-blue" onclick="loadMasterEdit('trip', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
-        }
+        if(mBody) mBody.innerHTML = tripsDB.map((t, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${t.name}</td><td>${t.lp||0}/${t.lr||0}</td><td>${t.mp||0}/${t.mr||0}</td><td>${t.cp||0}/${t.cr||0}</td><td>${t.bp||0}/${t.br||0}</td><td><button class="btn btn-blue" onclick="loadMasterEdit('trip', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
 
-        renderUsersTable();
-        toggleReportTarget();
-        renderRecentTrips(); renderFinances(); renderMaintenance();
+        renderUsersTable(); toggleReportTarget(); renderRecentTrips(); renderFinances(); renderMaintenance();
     }
 
     function processSyncQueue() {
-        if (isSyncing || syncQueue.length === 0) return;
-        isSyncing = true; 
-        
-        const badge = document.getElementById('networkStatus');
-        badge.className = 'network-badge network-sync';
-        badge.innerHTML = '🔄 Syncing...';
-
+        if (isSyncing || syncQueue.length === 0) return; isSyncing = true; 
+        document.getElementById('networkStatus').className = 'network-badge network-sync'; document.getElementById('networkStatus').innerHTML = '🔄 Syncing...';
         const payload = syncQueue[0];
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        .then(() => { 
-            syncQueue.shift(); 
-            localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue)); 
-            isSyncing = false; 
-            updateOnlineStatus(); 
-            processSyncQueue(); 
-        })
-        .catch(() => { 
-            isSyncing = false; 
-            updateOnlineStatus(); 
-        });
+        .then(() => { syncQueue.shift(); localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue)); isSyncing = false; updateOnlineStatus(); processSyncQueue(); })
+        .catch(() => { isSyncing = false; updateOnlineStatus(); });
     }
-
-    function addToSyncQueue(item) {
-        syncQueue.push(item);
-        localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue));
-        processSyncQueue();
-    }
+    function addToSyncQueue(item) { syncQueue.push(item); localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue)); processSyncQueue(); }
 
     function onTripSelected() {
-        const tName = document.getElementById('tripNameSelect').value.trim();
-        const vType = document.getElementById('tripVehicleType').value;
+        const tName = document.getElementById('tripNameSelect').value.trim(); const vType = document.getElementById('tripVehicleType').value;
         const matched = tripsDB.find(t => t.name === tName);
         if (matched) { 
             let p=0, r=0;
-            if(vType === 'Limousine') { p=matched.lp; r=matched.lr; }
-            else if(vType === 'Microbus') { p=matched.mp; r=matched.mr; }
-            else if(vType === 'Coaster') { p=matched.cp; r=matched.cr; }
-            else if(vType === 'Bus') { p=matched.bp; r=matched.br; }
-            document.getElementById('revEGP').value = p || 0; 
-            document.getElementById('tripDriverFee').value = r || 0; 
-            calcTotals(); 
+            if(vType === 'Limousine') { p=matched.lp; r=matched.lr; } else if(vType === 'Microbus') { p=matched.mp; r=matched.mr; } else if(vType === 'Coaster') { p=matched.cp; r=matched.cr; } else if(vType === 'Bus') { p=matched.bp; r=matched.br; }
+            document.getElementById('revEGP').value = p || 0; document.getElementById('tripDriverFee').value = r || 0; calcTotals(); 
         }
     }
-
     function calcTotals() {
-        const rev = parseFloat(document.getElementById('revEGP').value) || 0;
-        const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
+        const rev = parseFloat(document.getElementById('revEGP').value) || 0; const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
         document.getElementById('netCommission').innerText = (rev - fee).toFixed(2);
     }
 
     function saveTrip() {
-        const client = document.getElementById('tripClientSelect').value.trim();
-        const driverName = document.getElementById('tripDriverSelect').value.trim();
-        const tripName = document.getElementById('tripNameSelect').value.trim();
-        const vType = document.getElementById('tripVehicleType').value;
-        const tDate = document.getElementById('tripDate').value.replace('T', ' ');
-        const rev = parseFloat(document.getElementById('revEGP').value) || 0;
-        const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
-        const notes = document.getElementById('tripNotes').value;
+        const client = document.getElementById('tripClientSelect').value.trim(); const driverName = document.getElementById('tripDriverSelect').value.trim();
+        const tripName = document.getElementById('tripNameSelect').value.trim(); const vType = document.getElementById('tripVehicleType').value;
+        const tDate = document.getElementById('tripDate').value.replace('T', ' '); const rev = parseFloat(document.getElementById('revEGP').value) || 0;
+        const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0; const notes = document.getElementById('tripNotes').value;
         
         if (!client || !driverName || !tripName) return toast('⚠️ Please fill required fields!', 'warn');
 
@@ -655,264 +621,101 @@
         if (!clientsDB.includes(client)) { clientsDB.push(client); isMasterUpdated = true; }
         if (!driversDB.find(d => d.name === driverName)) { driversDB.push({name: driverName, phone: ""}); isMasterUpdated = true; }
 
-        if (isMasterUpdated) {
-            loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB});
-            addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB });
-        }
+        if (isMasterUpdated) { loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }); }
 
         const targetId = editingTripId || generateSequentialTripID();
         const tripObj = { id: targetId, date: tDate, client: client, driver: driverName, vehicle: vType, trip: tripName, revenue: rev, fee: fee, notes: notes };
 
-        if (editingTripId) { 
-            const idx = recentTripsDB.findIndex(t => t.id === editingTripId); 
-            if(idx > -1) recentTripsDB[idx] = tripObj; 
-        } else { 
-            recentTripsDB.push(tripObj); 
-        }
-        
+        if (editingTripId) { const idx = recentTripsDB.findIndex(t => t.id === editingTripId); if(idx > -1) recentTripsDB[idx] = tripObj; } else { recentTripsDB.push(tripObj); }
         localStorage.setItem('fleet_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB}));
-        
         renderRecentTrips(); 
-        
-        addToSyncQueue({ 
-            record_type: editingTripId ? "edit_trip" : "trip", 
-            trip_id: targetId, 
-            client_name: client, 
-            driver_name: driverName, 
-            vehicle_type: vType, 
-            trip_name: tripName, 
-            date: tDate, 
-            notes: notes, 
-            revenue: rev, 
-            driver_fee: fee 
-        });
-
-        clearForm();
-        toast(`✅ Saved (${targetId})!`, 'success');
+        addToSyncQueue({ record_type: editingTripId ? "edit_trip" : "trip", trip_id: targetId, client_name: client, driver_name: driverName, vehicle_type: vType, trip_name: tripName, date: tDate, notes: notes, revenue: rev, driver_fee: fee });
+        clearForm(); toast(`✅ Saved (${targetId})!`, 'success');
     }
 
-    function formatDateDisplay(rawDate) {
-        if(!rawDate) return '';
-        let dStr = String(rawDate);
-        if(dStr.includes('T')) { dStr = dStr.replace('T', ' '); }
-        return dStr.slice(0, 16);
-    }
+    function formatDateDisplay(rawDate) { if(!rawDate) return ''; let dStr = String(rawDate); if(dStr.includes('T')) dStr = dStr.replace('T', ' '); return dStr.slice(0, 16); }
 
     function renderRecentTrips() {
-        const tbody = document.querySelector('#recentTripsTable tbody');
-        if(!tbody) return;
+        const tbody = document.querySelector('#recentTripsTable tbody'); if(!tbody) return;
         if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="9">No trips</td></tr>'; return; }
         tbody.innerHTML = recentTripsDB.map((t, i) => `<tr><td>${t.id || (i + 1)}</td><td style="direction:ltr;">${formatDateDisplay(t.date)}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.vehicle||'-'}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px;" onclick="loadTrip(${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px;" onclick="delTrip(${i})">🗑️</button><button class="btn btn-whatsapp" style="padding:4px 8px;" onclick="sendWA(${i})" title="WhatsApp">💬</button></td></tr>`).join('');
     }
 
     function sendWA(idx) {
-        let t = recentTripsDB[idx];
-        let driverObj = driversDB.find(d => d.name === t.driver);
-        let phone = driverObj ? driverObj.phone : "";
-        let cleanPhone = phone.replace(/\D/g,'');
+        let t = recentTripsDB[idx]; let driverObj = driversDB.find(d => d.name === t.driver); let phone = driverObj ? driverObj.phone : ""; let cleanPhone = phone.replace(/\D/g,'');
         let txt = `Trip Details 🚘\nDate: ${formatDateDisplay(t.date)}\nClient: ${t.client}\nVehicle: ${t.vehicle}\nTrip: ${t.trip}\nAmount: ${t.fee} EGP`;
-        if(cleanPhone) { window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(txt)}`, '_blank'); } 
-        else { window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
+        if(cleanPhone) { window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(txt)}`, '_blank'); } else { window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
     }
 
     function loadTrip(idx) {
-        const t = recentTripsDB[idx]; 
-        editingTripId = t.id;
-        let dateVal = String(t.date || '').replace(' ', 'T').slice(0,16);
-        document.getElementById('tripDate').value = dateVal;
-        document.getElementById('tripClientSelect').value = t.client || ''; 
-        document.getElementById('tripDriverSelect').value = t.driver || '';
-        document.getElementById('tripVehicleType').value = t.vehicle || 'Limousine'; 
-        document.getElementById('tripNameSelect').value = t.trip || '';
-        document.getElementById('revEGP').value = t.revenue || 0; 
-        document.getElementById('tripDriverFee').value = t.fee || 0; 
-        document.getElementById('tripNotes').value = t.notes || '';
-        calcTotals(); 
-        window.scrollTo({top: 0, behavior: 'smooth'});
+        const t = recentTripsDB[idx]; editingTripId = t.id; let dateVal = String(t.date || '').replace(' ', 'T').slice(0,16);
+        document.getElementById('tripDate').value = dateVal; document.getElementById('tripClientSelect').value = t.client || ''; document.getElementById('tripDriverSelect').value = t.driver || ''; document.getElementById('tripVehicleType').value = t.vehicle || 'Limousine'; document.getElementById('tripNameSelect').value = t.trip || ''; document.getElementById('revEGP').value = t.revenue || 0; document.getElementById('tripDriverFee').value = t.fee || 0; document.getElementById('tripNotes').value = t.notes || '';
+        calcTotals(); window.scrollTo({top: 0, behavior: 'smooth'});
     }
-
-    function delTrip(idx) { 
-        if(confirm('Delete this trip?')) { 
-            addToSyncQueue({record_type:"delete_trip", trip_id: recentTripsDB[idx].id}); 
-            recentTripsDB.splice(idx,1); 
-            localStorage.setItem('fleet_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB})); 
-            renderRecentTrips(); 
-        } 
-    }
-
-    function clearForm() { 
-        editingTripId = null; 
-        document.getElementById('tripClientSelect').value=''; 
-        document.getElementById('tripDriverSelect').value=''; 
-        document.getElementById('tripNameSelect').value=''; 
-        document.getElementById('revEGP').value='0'; 
-        document.getElementById('tripDriverFee').value='0'; 
-        document.getElementById('tripNotes').value=''; 
-        document.getElementById('tripDate').value = getCurrentLocalDateTime(); 
-        calcTotals(); 
-    }
+    function delTrip(idx) { if(confirm('Delete this trip?')) { addToSyncQueue({record_type:"delete_trip", trip_id: recentTripsDB[idx].id}); recentTripsDB.splice(idx,1); renderRecentTrips(); } }
+    function clearForm() { editingTripId = null; document.getElementById('tripClientSelect').value=''; document.getElementById('tripDriverSelect').value=''; document.getElementById('tripNameSelect').value=''; document.getElementById('revEGP').value='0'; document.getElementById('tripDriverFee').value='0'; document.getElementById('tripNotes').value=''; document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals(); }
 
     function loadMasterEdit(type, index) {
         if(type === 'client') { document.getElementById('mClientName').value = clientsDB[index]; editingMasterIndex.client = index; document.getElementById('addClientBtn').innerText = "Update"; } 
         else if(type === 'driver') { document.getElementById('mDriverName').value = driversDB[index].name; document.getElementById('mDriverPhone').value = driversDB[index].phone||''; editingMasterIndex.driver = index; document.getElementById('addDriverBtn').innerText = "Update"; } 
-        else if(type === 'trip') { 
-            let t = tripsDB[index]; document.getElementById('mTripName').value = t.name; 
-            document.getElementById('mLimoP').value=t.lp; document.getElementById('mLimoR').value=t.lr;
-            document.getElementById('mMicroP').value=t.mp; document.getElementById('mMicroR').value=t.mr;
-            document.getElementById('mCoasterP').value=t.cp; document.getElementById('mCoasterR').value=t.cr;
-            document.getElementById('mBusP').value=t.bp; document.getElementById('mBusR').value=t.br;
-            editingMasterIndex.trip = index; 
-        }
+        else if(type === 'trip') { let t = tripsDB[index]; document.getElementById('mTripName').value = t.name; document.getElementById('mLimoP').value=t.lp; document.getElementById('mLimoR').value=t.lr; document.getElementById('mMicroP').value=t.mp; document.getElementById('mMicroR').value=t.mr; document.getElementById('mCoasterP').value=t.cp; document.getElementById('mCoasterR').value=t.cr; document.getElementById('mBusP').value=t.bp; document.getElementById('mBusR').value=t.br; editingMasterIndex.trip = index; }
     }
     function addMasterItem(type, btn) {
-        if(type === 'client') { 
-            let n = document.getElementById('mClientName').value.trim(); if(!n) return;
-            if(editingMasterIndex.client > -1) clientsDB[editingMasterIndex.client] = n; else if(!clientsDB.includes(n)) clientsDB.push(n); 
-            document.getElementById('mClientName').value = ''; editingMasterIndex.client = -1; btn.innerText = "Add";
-        } else if(type === 'driver') { 
-            let n = document.getElementById('mDriverName').value.trim(); let p = document.getElementById('mDriverPhone').value.trim(); if(!n) return;
-            if(editingMasterIndex.driver > -1) { driversDB[editingMasterIndex.driver].name = n; driversDB[editingMasterIndex.driver].phone = p; } 
-            else { driversDB.push({name:n, phone:p}); }
-            document.getElementById('mDriverName').value = ''; document.getElementById('mDriverPhone').value = ''; editingMasterIndex.driver = -1; btn.innerText = "Add";
-        } else if(type === 'trip') { 
+        if(type === 'client') { let n = document.getElementById('mClientName').value.trim(); if(!n) return; if(editingMasterIndex.client > -1) clientsDB[editingMasterIndex.client] = n; else if(!clientsDB.includes(n)) clientsDB.push(n); document.getElementById('mClientName').value = ''; editingMasterIndex.client = -1; btn.innerText = "Add"; } 
+        else if(type === 'driver') { let n = document.getElementById('mDriverName').value.trim(); let p = document.getElementById('mDriverPhone').value.trim(); if(!n) return; if(editingMasterIndex.driver > -1) { driversDB[editingMasterIndex.driver].name = n; driversDB[editingMasterIndex.driver].phone = p; } else { driversDB.push({name:n, phone:p}); } document.getElementById('mDriverName').value = ''; document.getElementById('mDriverPhone').value = ''; editingMasterIndex.driver = -1; btn.innerText = "Add"; } 
+        else if(type === 'trip') { 
             let n = document.getElementById('mTripName').value.trim(); if(!n) return;
             let lp = parseFloat(document.getElementById('mLimoP').value)||0, lr = parseFloat(document.getElementById('mLimoR').value)||0, mp = parseFloat(document.getElementById('mMicroP').value)||0, mr = parseFloat(document.getElementById('mMicroR').value)||0, cp = parseFloat(document.getElementById('mCoasterP').value)||0, cr = parseFloat(document.getElementById('mCoasterR').value)||0, bp = parseFloat(document.getElementById('mBusP').value)||0, br = parseFloat(document.getElementById('mBusR').value)||0;
-            if(editingMasterIndex.trip > -1) { let ex = tripsDB[editingMasterIndex.trip]; ex.name=n; ex.lp=lp; ex.lr=lr; ex.mp=mp; ex.mr=mr; ex.cp=cp; ex.cr=cr; ex.bp=bp; ex.br=br; } 
-            else { let ex = tripsDB.find(t => t.name === n); if(ex) { ex.lp=lp; ex.lr=lr; ex.mp=mp; ex.mr=mr; ex.cp=cp; ex.cr=cr; ex.bp=bp; ex.br=br; } else { tripsDB.push({name:n, lp:lp, lr:lr, mp:mp, mr:mr, cp:cp, cr:cr, bp:bp, br:br}); } }
+            if(editingMasterIndex.trip > -1) { let ex = tripsDB[editingMasterIndex.trip]; ex.name=n; ex.lp=lp; ex.lr=lr; ex.mp=mp; ex.mr=mr; ex.cp=cp; ex.cr=cr; ex.bp=bp; ex.br=br; } else { let ex = tripsDB.find(t => t.name === n); if(ex) { ex.lp=lp; ex.lr=lr; ex.mp=mp; ex.mr=mr; ex.cp=cp; ex.cr=cr; ex.bp=bp; ex.br=br; } else { tripsDB.push({name:n, lp:lp, lr:lr, mp:mp, mr:mr, cp:cp, cr:cr, bp:bp, br:br}); } }
             document.querySelectorAll('#mastersTab input[type="number"]').forEach(i => i.value=''); document.getElementById('mTripName').value=''; editingMasterIndex.trip = -1;
         }
-        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB});
-        localStorage.setItem('fleet_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB})); 
-        addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }); toast('Saved!');
+        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }); toast('Saved!');
     }
     function removeMasterItem(sheetName, name, idx) {
         if(!confirm('Delete?')) return;
-        if(sheetName === 'Clients') clientsDB.splice(idx, 1);
-        if(sheetName === 'Drivers') driversDB.splice(idx, 1);
-        if(sheetName === 'Trip_Types') tripsDB.splice(idx, 1);
-        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB});
-        localStorage.setItem('fleet_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB})); 
-        addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }); toast('Deleted');
+        if(sheetName === 'Clients') clientsDB.splice(idx, 1); if(sheetName === 'Drivers') driversDB.splice(idx, 1); if(sheetName === 'Trip_Types') tripsDB.splice(idx, 1);
+        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }); toast('Deleted');
     }
 
     function renderFinances() {
-        const tbody = document.querySelector('#financeTable tbody'); 
-        if(!tbody) return; 
-        if(financesDB.length === 0) { tbody.innerHTML = '<tr><td colspan="7">No records</td></tr>'; return; }
+        const tbody = document.querySelector('#financeTable tbody'); if(!tbody) return; if(financesDB.length === 0) { tbody.innerHTML = '<tr><td colspan="7">No records</td></tr>'; return; }
         tbody.innerHTML = financesDB.map((f, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(f.date)}</td><td style="color:${f.type==='Revenue'?'#27ae60':'#e74c3c'};">${f.type}</td><td>${f.category}</td><td style="font-weight:bold;">${f.amount}</td><td>${f.notes||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadFinance(${i})" style="padding:4px 8px;">✏️</button><button class="btn btn-red" onclick="deleteFinance(${i})" style="padding:4px 8px;">🗑️</button></td></tr>`).join('');
     }
-
     function saveFinance() {
-        const tDate = document.getElementById('finDate').value.replace('T', ' '); 
-        const tType = document.getElementById('finType').value; 
-        const cat = document.getElementById('finCategory').value.trim(); 
-        const amt = parseFloat(document.getElementById('finAmount').value); 
-        const notes = document.getElementById('finNotes').value.trim();
-        
+        const tDate = document.getElementById('finDate').value.replace('T', ' '); const tType = document.getElementById('finType').value; const cat = document.getElementById('finCategory').value.trim(); const amt = parseFloat(document.getElementById('finAmount').value); const notes = document.getElementById('finNotes').value.trim();
         if(!amt || !cat) return toast('⚠️ Please fill required fields!', 'warn'); 
-
-        let targetId = editingFinId || generateID("FIN"); 
-        const finObj = { id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes };
-
-        if(editingFinId) {
-            const idx = financesDB.findIndex(f => f.id === editingFinId);
-            if(idx > -1) financesDB[idx] = finObj;
-        } else {
-            financesDB.push(finObj);
-        }
-
-        renderFinances(); 
-        addToSyncQueue({ 
-            record_type: editingFinId ? "edit_finance" : "finance", 
-            fin_id: targetId, 
-            fin_type: tType, 
-            category: cat, 
-            amount: amt, 
-            date: tDate, 
-            notes: notes, 
-            added_by: loggedInUser 
-        }); 
-
-        clearFinanceForm();
-        toast('✅ Finance Saved!', 'success');
+        let targetId = editingFinId || generateID("FIN"); const finObj = { id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes };
+        if(editingFinId) { const idx = financesDB.findIndex(f => f.id === editingFinId); if(idx > -1) financesDB[idx] = finObj; } else { financesDB.push(finObj); }
+        renderFinances(); addToSyncQueue({ record_type: editingFinId ? "edit_finance" : "finance", fin_id: targetId, fin_type: tType, category: cat, amount: amt, date: tDate, notes: notes, added_by: loggedInUser }); clearFinanceForm(); toast('✅ Finance Saved!', 'success');
     }
-
     function loadFinance(idx) {
-        const f = financesDB[idx];
-        editingFinId = f.id;
-        document.getElementById('finType').value = f.type || 'Expense';
-        document.getElementById('finCategory').value = f.category || '';
-        document.getElementById('finAmount').value = f.amount || '';
-        document.getElementById('finDate').value = String(f.date || '').replace(' ', 'T').slice(0, 16);
-        document.getElementById('finNotes').value = f.notes || '';
+        const f = financesDB[idx]; editingFinId = f.id;
+        document.getElementById('finType').value = f.type || 'Expense'; document.getElementById('finCategory').value = f.category || ''; document.getElementById('finAmount').value = f.amount || ''; document.getElementById('finDate').value = String(f.date || '').replace(' ', 'T').slice(0, 16); document.getElementById('finNotes').value = f.notes || '';
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
-
-    function deleteFinance(i) { 
-        if(confirm('Delete finance record?')) { 
-            addToSyncQueue({record_type:"delete_finance", fin_id: financesDB[i].id}); 
-            financesDB.splice(i,1); 
-            renderFinances(); 
-        } 
-    }
-
-    function clearFinanceForm() { 
-        editingFinId = null;
-        document.getElementById('finCategory').value=''; 
-        document.getElementById('finAmount').value=''; 
-        document.getElementById('finNotes').value=''; 
-        document.getElementById('finDate').value = getCurrentLocalDateTime();
-    }
+    function deleteFinance(i) { if(confirm('Delete finance record?')) { addToSyncQueue({record_type:"delete_finance", fin_id: financesDB[i].id}); financesDB.splice(i,1); renderFinances(); } }
+    function clearFinanceForm() { editingFinId = null; document.getElementById('finCategory').value=''; document.getElementById('finAmount').value=''; document.getElementById('finNotes').value=''; document.getElementById('finDate').value = getCurrentLocalDateTime(); }
 
     function changeMyPassword() {
-        const p1 = document.getElementById('chgNewPass').value.trim();
-        const p2 = document.getElementById('chgConfPass').value.trim();
-        if(!p1) return toast('⚠️ Please enter password!', 'warn');
-        if(p1 !== p2) return toast('❌ Passwords do not match!', 'error');
-
+        const p1 = document.getElementById('chgNewPass').value.trim(); const p2 = document.getElementById('chgConfPass').value.trim();
+        if(!p1) return toast('⚠️ Please enter password!', 'warn'); if(p1 !== p2) return toast('❌ Passwords do not match!', 'error');
         addToSyncQueue({ record_type: "change_password", username: loggedInUser, new_password: p1 });
-        const userObj = usersDB.find(u => u.username.toLowerCase() === loggedInUser.toLowerCase());
-        if(userObj) userObj.password = p1;
-        
-        document.getElementById('chgNewPass').value = '';
-        document.getElementById('chgConfPass').value = '';
-        toast('✅ Password Updated Successfully!', 'success');
+        const userObj = usersDB.find(u => u.username.toLowerCase() === loggedInUser.toLowerCase()); if(userObj) userObj.password = p1;
+        document.getElementById('chgNewPass').value = ''; document.getElementById('chgConfPass').value = ''; toast('✅ Password Updated Successfully!', 'success');
     }
-
     function createNewUser() {
-        const u = document.getElementById('newUsername').value.trim();
-        const p = document.getElementById('newUserPass').value.trim();
-        const r = document.getElementById('newUserRole').value;
-
-        if(!u || !p) return toast('⚠️ Please fill username and password!', 'warn');
-        if(usersDB.find(x => x.username.toLowerCase() === u.toLowerCase())) return toast('❌ Username already exists!', 'error');
-
-        usersDB.push({ username: u, password: p, role: r });
-        addToSyncQueue({ record_type: "add_user", username: u, password: p, role: r });
-        
-        renderUsersTable();
-        document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join('');
-        
-        document.getElementById('newUsername').value = '';
-        document.getElementById('newUserPass').value = '';
-        toast('✅ New User Added!', 'success');
+        const u = document.getElementById('newUsername').value.trim(); const p = document.getElementById('newUserPass').value.trim(); const r = document.getElementById('newUserRole').value;
+        if(!u || !p) return toast('⚠️ Please fill username and password!', 'warn'); if(usersDB.find(x => x.username.toLowerCase() === u.toLowerCase())) return toast('❌ Username already exists!', 'error');
+        usersDB.push({ username: u, password: p, role: r }); addToSyncQueue({ record_type: "add_user", username: u, password: p, role: r });
+        renderUsersTable(); document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join('');
+        document.getElementById('newUsername').value = ''; document.getElementById('newUserPass').value = ''; toast('✅ New User Added!', 'success');
     }
-
     function deleteUser(idx) {
-        const u = usersDB[idx];
-        if(u.username.toUpperCase() === 'SAMY') return toast('❌ Cannot delete primary Admin SAMY!', 'error');
-        if(confirm(`Delete user ${u.username}?`)) {
-            addToSyncQueue({ record_type: "delete_user", username: u.username });
-            usersDB.splice(idx, 1);
-            renderUsersTable();
-            document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join('');
-            toast('User Deleted');
-        }
+        const u = usersDB[idx]; if(u.username.toUpperCase() === 'SAMY') return toast('❌ Cannot delete primary Admin SAMY!', 'error');
+        if(confirm(`Delete user ${u.username}?`)) { addToSyncQueue({ record_type: "delete_user", username: u.username }); usersDB.splice(idx, 1); renderUsersTable(); document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join(''); toast('User Deleted'); }
     }
-
     function renderUsersTable() {
-        const tbody = document.querySelector('#usersTable tbody');
-        if(!tbody) return;
+        const tbody = document.querySelector('#usersTable tbody'); if(!tbody) return;
         tbody.innerHTML = usersDB.map((u, i) => `<tr><td>${i + 1}</td><td>${u.username}</td><td><span style="font-weight:bold; color:${u.role==='Admin'?'#27ae60':'#1e3c72'}">${u.role}</span></td><td>${u.username.toUpperCase() !== 'SAMY' ? `<button class="btn btn-red" onclick="deleteUser(${i})" style="padding:4px 8px;">🗑️ Delete</button>` : 'System Default'}</td></tr>`).join('');
     }
 
@@ -923,14 +726,13 @@
     function saveMaintenance() {
         const mDate = document.getElementById('mntDate').value.replace('T', ' '); const type = document.getElementById('mntType').value; const amt = parseFloat(document.getElementById('mntAmount').value); const loc = document.getElementById('mntLocation').value; const odo = document.getElementById('mntOdometer').value; const notes = document.getElementById('mntNotes').value;
         if(!amt || !type) return; let targetId = generateID("MNT"); maintenanceDB.push({ id: targetId, date: mDate, type: type, amount: amt, location: loc, odometer: odo, notes: notes });
-        renderMaintenance(); addToSyncQueue({ record_type: "maintenance", mnt_id: targetId, type: type, amount: amt, location: loc, odometer: odo, date: mDate, notes: notes, added_by: loggedInUser }); toast('Saved');
-        document.getElementById('mntType').value = ''; document.getElementById('mntAmount').value = '';
+        renderMaintenance(); addToSyncQueue({ record_type: "maintenance", mnt_id: targetId, type: type, amount: amt, location: loc, odometer: odo, date: mDate, notes: notes, added_by: loggedInUser }); toast('Saved'); document.getElementById('mntType').value = ''; document.getElementById('mntAmount').value = '';
     }
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; }
 
     // ==========================================
-    // دالة الـ PDF النهائية (الحل الشامل الجذري لجميع المتصفحات والموبايل)
+    // دالة الـ PDF الخارقة (مدمج بها حلول كل المشاكل)
     // ==========================================
     async function downloadDirectPDF() {
         const element = document.getElementById('reportPrintArea');
@@ -940,55 +742,52 @@
             return toast('⚠️ اختر التقرير أولاً!', 'warn');
         }
 
-        toast('⏳ جاري تجهيز ملف الـ PDF...', 'info');
+        toast('⏳ جاري تجهيز التقرير...', 'info');
 
-        // تفعيل كلاس التصغير لاحتواء 50 سطر ومنع القطع
+        // إضافة كلاس التصغير لاحتواء 50 سطر
         element.classList.add('pdf-compact');
+        
+        // إعطاء المتصفح لحظة لتطبيق الـ CSS الجديد قبل أخذ لقطة الـ PDF
+        await new Promise(r => setTimeout(r, 150));
 
         const fileName = `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
+        const isCharts = document.getElementById('reportType').value === 'charts';
 
         const opt = {
-            margin:       [0.2, 0.2, 0.2, 0.2], 
+            margin:       0.2, // هوامش صغيرة جداً لاحتواء أكبر قدر من البيانات
             filename:     fileName,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' }
+            jsPDF:        { unit: 'in', format: 'a4', orientation: isCharts ? 'landscape' : 'portrait' }, // قلب الصفحة لو التقرير رسومات
+            pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr', '.chart-page'] } // منع قص السطور والرسومات
         };
 
         try {
-            // الكشف الحقيقي: هل التطبيق يعمل كـ APK على الموبايل؟
             if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-                
                 try {
-                    // 1. تحويل التقرير والتخلص من صيغة الـ Base64 اللي بتبوظ الأندرويد
+                    // الكود العبقري لتنظيف الـ Base64 لكي يقبله الأندرويد
                     let pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
                     let cleanBase64 = pdfDataUri.replace(/^data:application\/[a-z]+;base64,/, "");
                     
-                    // 2. حفظ الملف في الذاكرة
                     const savedFile = await window.Capacitor.Plugins.Filesystem.writeFile({
                         path: fileName,
                         data: cleanBase64,
                         directory: 'CACHE'
                     });
 
-                    // 3. المشاركة
                     await window.Capacitor.Plugins.Share.share({
                         title: titleText,
                         url: savedFile.uri,
                         dialogTitle: 'حفظ أو طباعة التقرير 📄'
                     });
-                    toast('✅ تم فتح شاشة المشاركة والحفظ!', 'success');
-                    
+                    toast('✅ تم فتح شاشة المشاركة!', 'success');
                 } catch (shareErr) {
                     console.error('Share Plugin Failed:', shareErr);
-                    // خط الدفاع الأخير: فتح شاشة الطباعة الأصلية للأندرويد لحفظ الـ PDF غصب عنه
+                    // لو فشل بأي طريقة، نفتح طباعة الموبايل الإجبارية
                     window.print();
-                    toast('✅ جاري فتح الطباعة المباشرة...', 'success');
                 }
-
             } else {
-                // للمتصفح العادي (الويب والويندوز) - تحميل مباشر
+                // ويب عادي
                 const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
                 const blobUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -1003,10 +802,9 @@
             }
         } catch (err) {
             console.error('PDF Error:', err);
-            // لو كل حاجة باظت، هيطبع من المتصفح مباشرة
             window.print();
         } finally {
-            // إزالة الكلاس عشان يرجع الشكل الطبيعي قدام المستخدم
+            // إزالة كلاس التصغير بعد الطباعة
             element.classList.remove('pdf-compact');
         }
     }
@@ -1059,7 +857,7 @@
             lbl.innerText = dL.driver; driversDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`);
         } else if(type === 'trip_detailed') {
             lbl.innerText = dL.trip; tripsDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`);
-        } else if (type === 'finance' || type === 'maintenance' || type === 'net_profit') {
+        } else if (type === 'finance' || type === 'maintenance' || type === 'net_profit' || type === 'charts') {
             targetContainer.style.display = 'none'; 
         } else { lbl.innerText = dL.target; }
     }
@@ -1072,10 +870,14 @@
 
         const tbody = document.querySelector('#reportsTable tbody');
         const thead = document.querySelector('#reportsTable thead');
+        const tfoot = document.querySelector('#reportsTable tfoot');
         const summaryCard = document.getElementById('netProfitSummary');
+        const chartsArea = document.getElementById('chartsArea');
+        const tableWrapper = document.getElementById('tableWrapper');
         
-        tbody.innerHTML = ''; thead.innerHTML = '';
+        tbody.innerHTML = ''; thead.innerHTML = ''; tfoot.innerHTML = '';
         summaryCard.style.display = 'none'; summaryCard.innerHTML = '';
+        chartsArea.style.display = 'none'; tableWrapper.style.display = 'block';
 
         let res = []; let dL = dict[currentLang];
 
@@ -1084,6 +886,51 @@
             return String(rawDate).trim().slice(0, 10);
         }
 
+        // ================== الرسم البياني الشامل (Dashboard) ==================
+        if (type === 'charts') {
+            tableWrapper.style.display = 'none';
+            chartsArea.style.display = 'flex';
+            document.getElementById('printReportTitle').innerHTML = `📊 لوحة المؤشرات البيانية (Dashboard) <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
+            document.getElementById('printReportTitle').style.display = 'block';
+
+            let partnerData = {}; let clientData = {}; let tripsByDate = {};
+            recentTripsDB.forEach(t => {
+                const d = getCleanDay(t.date);
+                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
+                    let p = t.driver || 'Unknown'; let c = t.client || 'Unknown';
+                    partnerData[p] = (partnerData[p] || 0) + parseFloat(t.fee || 0);
+                    clientData[c] = (clientData[c] || 0) + parseFloat(t.revenue || 0);
+                    tripsByDate[d] = (tripsByDate[d] || 0) + 1;
+                }
+            });
+
+            // تدمير الرسومات القديمة إن وجدت
+            if(window.c1) window.c1.destroy(); if(window.c2) window.c2.destroy(); if(window.c3) window.c3.destroy();
+
+            // رسم 1: الشركاء (بدون Animation عشان يظهر في الـ PDF فوراً)
+            window.c1 = new Chart(document.getElementById('chartPartners'), {
+                type: 'bar',
+                data: { labels: Object.keys(partnerData), datasets: [{ label: 'إيرادات الشركاء (EGP)', data: Object.values(partnerData), backgroundColor: '#e74c3c' }] },
+                options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'أكثر الشركاء تحقيقاً للإيرادات', font: {size: 18} } } }
+            });
+
+            // رسم 2: العملاء
+            window.c2 = new Chart(document.getElementById('chartClients'), {
+                type: 'bar',
+                data: { labels: Object.keys(clientData), datasets: [{ label: 'مبيعات العملاء (EGP)', data: Object.values(clientData), backgroundColor: '#27ae60' }] },
+                options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'أكثر العملاء طلباً للمشاوير', font: {size: 18} } } }
+            });
+
+            // رسم 3: المشاوير
+            window.c3 = new Chart(document.getElementById('chartTrips'), {
+                type: 'line',
+                data: { labels: Object.keys(tripsByDate).sort(), datasets: [{ label: 'عدد المشاوير', data: Object.keys(tripsByDate).sort().map(k=>tripsByDate[k]), borderColor: '#1e3c72', fill: false }] },
+                options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'معدل المشاوير خلال الفترة', font: {size: 18} } } }
+            });
+            return;
+        }
+
+        // ================== باقي التقارير العادية ==================
         if (type === 'net_profit') {
             let tRev = 0, fRev = 0, fExp = 0, mExp = 0;
             recentTripsDB.forEach(t => {
@@ -1093,8 +940,7 @@
             financesDB.forEach(f => {
                 const d = getCleanDay(f.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    if(f.type === 'Revenue') fRev += parseFloat(f.amount || 0);
-                    else fExp += parseFloat(f.amount || 0);
+                    if(f.type === 'Revenue') fRev += parseFloat(f.amount || 0); else fExp += parseFloat(f.amount || 0);
                 }
             });
             maintenanceDB.forEach(m => {
@@ -1102,10 +948,8 @@
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) mExp += parseFloat(m.amount || 0);
             });
 
-            let totalIncome = tRev + fRev;
-            let totalExpenses = fExp + mExp;
-            let net = totalIncome - totalExpenses;
-
+            let totalIncome = tRev + fRev; let totalExpenses = fExp + mExp; let net = totalIncome - totalExpenses;
+            tableWrapper.style.display = 'none';
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_net_profit} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
             document.getElementById('printReportTitle').style.display = 'block';
 
@@ -1123,34 +967,21 @@
         }
 
         if (type === 'finance') {
-            financesDB.forEach(f => {
-                const d = getCleanDay(f.date);
-                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) res.push(f);
-            });
+            financesDB.forEach(f => { const d = getCleanDay(f.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) res.push(f); });
         } else if (type === 'maintenance') {
-            maintenanceDB.forEach(m => {
-                const d = getCleanDay(m.date);
-                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) res.push(m);
-            });
+            maintenanceDB.forEach(m => { const d = getCleanDay(m.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) res.push(m); });
         } else {
             recentTripsDB.forEach(t => {
                 const d = getCleanDay(t.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    const cName = (t.client || "").trim();
-                    const pName = (t.driver || "").trim();
+                    const cName = (t.client || "").trim(); const pName = (t.driver || "").trim();
                     const tName = (t.trip || t.trip_name || "").trim();
-                    const rev = parseFloat(t.revenue || t.amount || 0);
-                    const fee = parseFloat(t.fee || t.driver_fee || 0);
+                    const rev = parseFloat(t.revenue || t.amount || 0); const fee = parseFloat(t.fee || t.driver_fee || 0);
 
-                    if (type === 'client' && cName.toLowerCase() === target) {
-                        res.push({ date: t.date, desc: tName, amt: rev });
-                    } else if (type === 'driver' && pName.toLowerCase() === target) {
-                        res.push({ date: t.date, desc: tName, amt: fee });
-                    } else if (type === 'trips') {
-                        res.push({ date: t.date, desc: `${tName} (${cName} - ${pName})`, amt: rev });
-                    } else if (type === 'trip_detailed' && tName.toLowerCase() === target) {
-                        res.push({ date: t.date, desc: `${cName} / ${pName}`, amt: rev });
-                    }
+                    if (type === 'client' && cName.toLowerCase() === target) { res.push({ date: t.date, desc: tName, amt: rev }); } 
+                    else if (type === 'driver' && pName.toLowerCase() === target) { res.push({ date: t.date, desc: tName, amt: fee }); } 
+                    else if (type === 'trips') { res.push({ date: t.date, desc: `${tName} (${cName} - ${pName})`, amt: rev }); } 
+                    else if (type === 'trip_detailed' && tName.toLowerCase() === target) { res.push({ date: t.date, desc: `${cName} / ${pName}`, amt: rev }); }
                 }
             });
         }
@@ -1158,28 +989,30 @@
         let tot = 0;
         
         if (type === 'finance') {
-            document.querySelector('#reportsTable thead').innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_cat}</th><th>${dL.rep_amt}</th></tr>`;
+            thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_cat}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { 
                 tot += (r.type === 'Revenue' ? parseFloat(r.amount) : -parseFloat(r.amount)); 
                 tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.category}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; 
             });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
+            // استخدام tfoot لحماية الإجمالي
+            tfoot.innerHTML = `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_fin} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else if (type === 'maintenance') {
-            document.querySelector('#reportsTable thead').innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_loc}</th><th>${dL.rep_amt}</th></tr>`;
+            thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_loc}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { 
                 tot += parseFloat(r.amount); 
                 tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.location}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; 
             });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
+            tfoot.innerHTML = `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_mnt} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else {
-            document.querySelector('#reportsTable thead').innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.th_desc}</th><th>${dL.rep_amt}</th></tr>`;
+            thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.th_desc}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { 
                 tot += parseFloat(r.amt); 
                 tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td></tr>`; 
             });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="3">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
+            // الإجمالي في الـ tfoot
+            tfoot.innerHTML = `<tr class="total-row"><td colspan="3">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
             document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.tab_rep}: ${target.toUpperCase()} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         }
         document.getElementById('printReportTitle').style.display = 'block';
