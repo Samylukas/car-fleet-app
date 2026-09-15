@@ -170,12 +170,7 @@
 
             <div class="grid-form">
                 <div class="form-group"><label data-tr="client">Client:</label><input type="text" id="tripClientSelect" list="clientList"></div>
-                <div class="form-group"><label data-tr="driver">Partner (حساب الشريك):</label><input type="text" id="tripDriverSelect" list="driverList"></div>
                 
-                <!-- إضافات السائق الفعلي والسيارة -->
-                <div class="form-group"><label>Actual Driver (السائق الفعلي):</label><input type="text" id="tripActualDriver" list="actualDriverList"></div>
-                <div class="form-group"><label>Vehicle Plate (رقم السيارة):</label><input type="text" id="tripVehiclePlate" list="plateList" style="direction: ltr;"></div>
-
                 <div class="form-group">
                     <label data-tr="vehicle">Vehicle Type:</label>
                     <select id="tripVehicleType" onchange="onTripSelected()">
@@ -186,8 +181,12 @@
                     </select>
                 </div>
                 <div class="form-group"><label data-tr="trip">Trip Name:</label><input type="text" id="tripNameSelect" list="tripList" oninput="onTripSelected()"></div>
+                
+                <!-- السائق الفعلي ورقم العربية (خانات إدخال ديناميكية مع قائمة منسدلة من الهيستوري) -->
+                <div class="form-group"><label>Driver Name (اسم السائق):</label><input type="text" id="tripDriverName" list="driverListHistory"></div>
+                <div class="form-group"><label>Vehicle Plate (رقم السيارة):</label><input type="text" id="tripVehiclePlate" list="plateListHistory" style="direction: ltr;"></div>
+                
                 <div class="form-group"><label data-tr="date">Date & Time:</label><input type="datetime-local" id="tripDate"></div>
-                <div class="form-group"><label data-tr="notes">Notes:</label><input type="text" id="tripNotes"></div>
             </div>
 
             <div class="grid-form" style="margin-top:20px; background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
@@ -196,18 +195,15 @@
                     <input type="number" id="revEGP" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">
                 </div>
                 <div class="form-group">
-                    <label style="color:#e74c3c;" data-tr="fee_driver">💵 Partner Fee (EGP):</label>
+                    <label style="color:#e74c3c;">💵 Driver Commission (عمولة السائق):</label>
                     <input type="number" id="tripDriverFee" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: bold; color: #e74c3c;">
                 </div>
-                <!-- حساب السائق الفعلي اللي بيتخصم من الصافي -->
-                <div class="form-group">
-                    <label style="color:#8e44ad;">🧑‍✈️ Actual Driver Fee (أجرة السائق):</label>
-                    <input type="number" id="tripActualDriverFee" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: bold; color: #8e44ad;">
-                </div>
             </div>
+            
+            <div class="form-group" style="margin-top: 15px;"><label data-tr="notes">Notes (ملاحظات):</label><input type="text" id="tripNotes"></div>
 
             <div style="margin-top:20px; padding:15px; background:#1e3c72; color:white; border-radius:10px; text-align:center;">
-                <span style="font-size:1.1rem;" data-tr="net">Net Commission (صافي العمولة): </span>
+                <span style="font-size:1.1rem;" data-tr="net">Net Profit (صافي الربح): </span>
                 <span id="netCommission" style="color:#f1c40f; font-size:1.8rem; font-weight:bold;">0.00</span>
             </div>
 
@@ -218,7 +214,7 @@
             <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px;" data-tr="recent_trips">🕒 Recent Trips</h3>
             <div class="table-responsive">
                 <table id="recentTripsTable" style="width:100%;">
-                    <thead><tr><th data-tr="th_num">#</th><th data-tr="date">Date</th><th data-tr="client">Client</th><th>Car Plate</th><th>Driver</th><th data-tr="trip">Trip</th><th data-tr="rev">Rev</th><th data-tr="fee">Fee</th><th>Action</th></tr></thead>
+                    <thead><tr><th data-tr="th_num">#</th><th data-tr="date">Date</th><th data-tr="client">Client</th><th>Car Plate</th><th>Driver</th><th data-tr="trip">Trip</th><th data-tr="rev">Rev</th><th>Comm.</th><th>Action</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -241,30 +237,18 @@
                     </div>
                 </div>
 
-                <div class="master-card">
-                    <h3 data-tr="lbl_partners">🤝 Partners & Phones</h3>
-                    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
-                        <input type="text" id="mDriverName" placeholder="..." style="padding:8px; border-radius:6px; border:1px solid #ccc;">
-                        <input type="text" id="mDriverPhone" placeholder="Phone (e.g. 201xxxx)" style="padding:8px; border-radius:6px; border:1px solid #ccc; direction:ltr;">
-                        <button id="addDriverBtn" class="btn btn-green" onclick="addMasterItem('driver', this)">Add / Update</button>
-                    </div>
-                    <div class="table-responsive" style="max-height:250px;">
-                        <table id="mDriverTable" style="width:100%;"><thead><tr><th data-tr="th_num">#</th><th data-tr="driver">Name</th><th>Phone</th><th>Action</th></tr></thead><tbody></tbody></table>
-                    </div>
-                </div>
-
                 <div class="master-card" style="grid-column: 1 / -1;">
-                    <h3 style="color:#27ae60;">🗺️ Add / Edit Trip Pricing</h3>
+                    <h3 style="color:#27ae60;">🗺️ Add / Edit Trip Pricing (التسعير التلقائي لأنواع السيارات)</h3>
                     <div class="grid-form" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
                         <div class="form-group" style="grid-column: 1/-1;"><label data-tr="trip">Trip Name:</label><input type="text" id="mTripName"></div>
                         <div class="form-group"><label>Limo (Client):</label><input type="number" id="mLimoP"></div>
-                        <div class="form-group"><label>Limo (Driver):</label><input type="number" id="mLimoR"></div>
+                        <div class="form-group"><label>Limo (Driver Comm):</label><input type="number" id="mLimoR"></div>
                         <div class="form-group"><label>Microbus (Client):</label><input type="number" id="mMicroP"></div>
-                        <div class="form-group"><label>Microbus (Driver):</label><input type="number" id="mMicroR"></div>
+                        <div class="form-group"><label>Microbus (Driver Comm):</label><input type="number" id="mMicroR"></div>
                         <div class="form-group"><label>Coaster (Client):</label><input type="number" id="mCoasterP"></div>
-                        <div class="form-group"><label>Coaster (Driver):</label><input type="number" id="mCoasterR"></div>
+                        <div class="form-group"><label>Coaster (Driver Comm):</label><input type="number" id="mCoasterR"></div>
                         <div class="form-group"><label>Bus (Client):</label><input type="number" id="mBusP"></div>
-                        <div class="form-group"><label>Bus (Driver):</label><input type="number" id="mBusR"></div>
+                        <div class="form-group"><label>Bus (Driver Comm):</label><input type="number" id="mBusR"></div>
                     </div>
                     <button class="btn btn-green" style="width:100%; margin-top:15px;" onclick="addMasterItem('trip', this)">Save Trip Type</button>
                     <div class="table-responsive" style="max-height:300px; margin-top:15px;">
@@ -304,32 +288,21 @@
 
     <!-- Tab: Maintenance -->
     <div id="maintenanceTab" class="tab-content admin-only">
-        
-        <!-- صندوق إنذارات الصيانة الذكي -->
         <div id="mntAlerts" class="alert-box"></div>
-
         <div class="card">
             <h2 class="section-title" data-tr="tab_mnt">🔧 Car Maintenance Log</h2>
             <div class="grid-form large-inputs" style="grid-template-columns: 1fr;">
                 <div class="form-group"><label data-tr="date">Date & Time:</label><input type="datetime-local" id="mntDate"></div>
-                
-                <!-- إضافات الصيانة -->
                 <div style="display:flex; gap:10px; width:100%;">
-                    <div class="form-group" style="flex:1;"><label>Vehicle Plate (رقم السيارة):</label><input type="text" id="mntVehiclePlate" list="plateList" style="direction: ltr;"></div>
-                    <div class="form-group" style="flex:1;">
-                        <label>Type:</label>
-                        <select id="mntVehicleType"><option>Limousine</option><option>Microbus</option><option>Coaster</option><option>Bus</option></select>
-                    </div>
+                    <div class="form-group" style="flex:1;"><label>Vehicle Plate (رقم السيارة):</label><input type="text" id="mntVehiclePlate" list="plateListHistory" style="direction: ltr;"></div>
+                    <div class="form-group" style="flex:1;"><label>Type:</label><select id="mntVehicleType"><option>Limousine</option><option>Microbus</option><option>Coaster</option><option>Bus</option></select></div>
                 </div>
-
                 <div class="form-group"><label>Maintenance Type (نوع الصيانة):</label><input type="text" id="mntType" placeholder="تغيير زيت، تيل فرامل، الخ..."></div>
                 <div class="form-group"><label data-tr="rep_amt">Cost (EGP):</label><input type="number" id="mntAmount"></div>
-                
                 <div style="display:flex; gap:10px; width:100%;">
                     <div class="form-group" style="flex:1;"><label>Current Odo (العداد الحالي):</label><input type="number" id="mntOdometer"></div>
                     <div class="form-group" style="flex:1;"><label>Next Odo (الصيانة القادمة):</label><input type="number" id="mntNextOdo"></div>
                 </div>
-
                 <div class="form-group"><label data-tr="notes">Notes:</label><input type="text" id="mntNotes"></div>
             </div>
             <div style="display:flex; gap:10px; margin-top:20px;">
@@ -357,9 +330,8 @@
                     <label data-tr="rep_type_select">Report Type:</label>
                     <select id="reportType" onchange="toggleReportTarget()">
                         <option value="client" data-tr="opt_client">Client Report (تقرير عميل)</option>
-                        <option value="driver" data-tr="opt_driver">Partner Report (تقرير شريك)</option>
-                        <option value="actual_driver" style="color: #8e44ad;">Driver Report (تقرير سائق فعلي)</option>
-                        <option value="vehicle_plate" style="color: #34495e;">Vehicle Report (تقرير إيراد سيارة)</option>
+                        <option value="driver" style="color: #8e44ad;">Driver Report (تقرير سائق وعمولاته)</option>
+                        <option value="vehicle_plate" style="color: #34495e;">Vehicle Report (تقرير إيرادات سيارة)</option>
                         <option value="trip_detailed" data-tr="opt_trip">Trip Report</option>
                         <option value="finance" data-tr="opt_fin">Finance Report</option>
                         <option value="maintenance" data-tr="opt_mnt">Maintenance Report</option>
@@ -382,7 +354,6 @@
             <div id="reportPrintArea" class="report-print-container" style="margin-top:20px; background:#fff; padding:15px;">
                 <h3 id="printReportTitle" class="report-title-header"></h3>
                 
-                <!-- الجداول العادية -->
                 <div class="table-responsive" id="tableWrapper">
                     <table id="reportsTable">
                         <thead></thead>
@@ -391,10 +362,8 @@
                     </table>
                 </div>
                 
-                <!-- ملخص الأرباح -->
                 <div id="netProfitSummary" style="display:none;"></div>
                 
-                <!-- منطقة الرسوم البيانية -->
                 <div id="chartsArea" style="display:none; flex-direction:column;">
                     <div class="chart-page"><canvas id="chartPartners"></canvas></div>
                     <div class="chart-page"><canvas id="chartClients"></canvas></div>
@@ -411,55 +380,18 @@
         <div class="card">
             <h2 class="section-title">🔑 Change Password</h2>
             <div class="grid-form" style="margin-top: 15px;">
-                <div class="form-group">
-                    <label>New Password:</label>
-                    <input type="password" id="chgNewPass" placeholder="Enter new password...">
-                </div>
-                <div class="form-group">
-                    <label>Confirm Password:</label>
-                    <input type="password" id="chgConfPass" placeholder="Confirm new password...">
-                </div>
+                <div class="form-group"><label>New Password:</label><input type="password" id="chgNewPass" placeholder="Enter new password..."></div>
+                <div class="form-group"><label>Confirm Password:</label><input type="password" id="chgConfPass" placeholder="Confirm new password..."></div>
             </div>
             <button class="btn btn-blue" style="margin-top: 15px; width: 100%;" onclick="changeMyPassword()">Update Password 🔑</button>
         </div>
-
-        <div class="card admin-only">
-            <h2 class="section-title">👤 Users & Roles Management</h2>
-            <div class="grid-form" style="margin-top: 15px;">
-                <div class="form-group">
-                    <label>Username:</label>
-                    <input type="text" id="newUsername" placeholder="e.g. Ahmed...">
-                </div>
-                <div class="form-group">
-                    <label>Password:</label>
-                    <input type="password" id="newUserPass" placeholder="Password...">
-                </div>
-                <div class="form-group">
-                    <label>Role (Role Access):</label>
-                    <select id="newUserRole">
-                        <option value="Admin">Admin (Full Access - أدمن صلاحيات كاملة)</option>
-                        <option value="User">User (Trips Only - مستخدم إضافة مشاوير فقط)</option>
-                    </select>
-                </div>
-            </div>
-            <button class="btn btn-green" style="margin-top: 15px; width: 100%;" onclick="createNewUser()">Create User ➕</button>
-
-            <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px; margin-top: 25px;">👥 Active System Users</h3>
-            <div class="table-responsive">
-                <table id="usersTable" style="width:100%;">
-                    <thead><tr><th>#</th><th>Username</th><th>Role</th><th>Action</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
     </div>
     
+    <!-- القوائم المنسدلة الديناميكية -->
     <datalist id="clientList"></datalist>
-    <datalist id="driverList"></datalist>
     <datalist id="tripList"></datalist>
-    <!-- قوائم استرشادية جديدة للسائق الفعلي وأرقام السيارات -->
-    <datalist id="actualDriverList"></datalist>
-    <datalist id="plateList"></datalist>
+    <datalist id="driverListHistory"></datalist>
+    <datalist id="plateListHistory"></datalist>
 </div>
 
 <script>
@@ -470,16 +402,16 @@
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH8WrOZiqBqwYVo5NGc_Rg0EMS_m7LoB2bi1n6-NSYg3P7_uVLRzzq4dJAuJ28SPsMww/exec"; 
     
     let loggedInUser = ''; let userRole = '';
-    let usersDB = [], clientsDB = [], driversDB = []; tripsDB = []; 
+    let usersDB = [], clientsDB = [], tripsDB = []; 
     let recentTripsDB = [], financesDB = [], maintenanceDB = [];
     let editingTripId = null; let editingFinId = null;
     let syncQueue = JSON.parse(localStorage.getItem('fleet_sync_queue') || '[]');
-    let isSyncing = false; let editingMasterIndex = { client: -1, driver: -1, trip: -1 };
+    let isSyncing = false; let editingMasterIndex = { client: -1, trip: -1 };
 
     let currentLang = 'en';
     const dict = {
-        'en': { username:"Username:", password:"Password:", logout:"Logout", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", tab_users:"🔐 Users", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Commission:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Fee", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_excel:"Excel 📊", btn_print:"Print / PDF 📄", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
-        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", tab_users:"🔐 الحسابات", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (السائق):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي العمولة:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_excel:"إكسيل 📊", btn_print:"طباعة / PDF 📄", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
+        'en': { username:"Username:", password:"Password:", logout:"Logout", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", tab_users:"🔐 Users", add_title:"📝 Add New Trip", client:"Client:", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", net:"Net Profit:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Comm.", lbl_clients:"👥 Clients List", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_excel:"Excel 📊", btn_print:"Print / PDF 📄", opt_client:"Client Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total" },
+        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", tab_users:"🔐 الحسابات", add_title:"📝 إضافة مشوار جديد", client:"العميل:", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", net:"صافي الربح:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"عمولة", lbl_clients:"👥 قائمة العملاء", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_excel:"إكسيل 📊", btn_print:"طباعة / PDF 📄", opt_client:"تقرير عميل", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي" }
     };
 
     function toggleLang() {
@@ -493,32 +425,19 @@
                 else el.innerText = dict[currentLang][key];
             }
         });
-        toggleReportTarget();
-        if(recentTripsDB.length > 0) renderRecentTrips();
+        toggleReportTarget(); if(recentTripsDB.length > 0) renderRecentTrips();
     }
 
-    // ==========================================
-    // دالة فرمتة الوقت الإجبارية لنظام 24 ساعة
-    // ==========================================
     function getCurrentLocalDateTime() { 
-        const now = new Date(); 
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
-        return now.toISOString().slice(0, 16); 
+        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); 
     }
-
     function formatDateDisplay(rawDate) { 
-        if(!rawDate) return ''; 
-        let dStr = String(rawDate).trim(); 
-        
-        // لو سيرفر جوجل رجع الوقت بصيغة ISO وفيها T أو Z، نفرمتها على توقيت الجهاز اللي فاتح الأبلكيشن (24 ساعة)
+        if(!rawDate) return ''; let dStr = String(rawDate).trim(); 
         if(dStr.includes('Z') || dStr.includes('T')) {
             let d = new Date(rawDate);
             if (!isNaN(d.getTime())) {
-                let yyyy = d.getFullYear();
-                let mm = String(d.getMonth()+1).padStart(2,'0');
-                let dd = String(d.getDate()).padStart(2,'0');
-                let hh = String(d.getHours()).padStart(2,'0');
-                let min = String(d.getMinutes()).padStart(2,'0');
+                let yyyy = d.getFullYear(); let mm = String(d.getMonth()+1).padStart(2,'0'); let dd = String(d.getDate()).padStart(2,'0');
+                let hh = String(d.getHours()).padStart(2,'0'); let min = String(d.getMinutes()).padStart(2,'0');
                 return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
             }
         }
@@ -526,28 +445,17 @@
     }
 
     function generateSequentialTripID() {
-        let maxNum = 0;
-        recentTripsDB.forEach(t => {
-            if(t.id && t.id.startsWith("TRIP-")) {
-                let numPart = parseInt(t.id.replace("TRIP-", ""), 10);
-                if(!isNaN(numPart) && numPart > maxNum) { maxNum = numPart; }
-            }
-        });
+        let maxNum = 0; recentTripsDB.forEach(t => { if(t.id && t.id.startsWith("TRIP-")) { let numPart = parseInt(t.id.replace("TRIP-", ""), 10); if(!isNaN(numPart) && numPart > maxNum) { maxNum = numPart; } } });
         return "TRIP-" + String(maxNum + 1).padStart(4, '0');
     }
-
     function generateID(prefix) { return prefix + "-" + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000); }
     
     function updateOnlineStatus() {
-        fetch("https://www.google.com/favicon.ico?t=" + new Date().getTime(), { mode: 'no-cors', cache: 'no-store' })
-        .then(() => {
+        fetch("https://www.google.com/favicon.ico?t=" + new Date().getTime(), { mode: 'no-cors', cache: 'no-store' }).then(() => {
             const badge = document.getElementById('networkStatus');
-            if(badge.innerHTML !== '🟢 Online' && !isSyncing) {
-                badge.className = 'network-badge network-online'; badge.innerHTML = '🟢 Online'; processSyncQueue();
-            }
+            if(badge.innerHTML !== '🟢 Online' && !isSyncing) { badge.className = 'network-badge network-online'; badge.innerHTML = '🟢 Online'; processSyncQueue(); }
         }).catch(() => {
-            const badge = document.getElementById('networkStatus');
-            badge.className = 'network-badge network-offline'; badge.innerHTML = '🔴 Offline';
+            const badge = document.getElementById('networkStatus'); badge.className = 'network-badge network-offline'; badge.innerHTML = '🔴 Offline';
         });
     }
     setInterval(updateOnlineStatus, 3000);
@@ -559,62 +467,37 @@
             document.getElementById('splashScreen').style.display = 'none'; 
             if (session) {
                 const u = JSON.parse(session); loggedInUser = u.username; userRole = u.role;
-                document.getElementById('mainApp').style.display = 'block';
-                document.getElementById('userInfo').textContent = `👤 ${u.username} (${u.role})`;
+                document.getElementById('mainApp').style.display = 'block'; document.getElementById('userInfo').textContent = `👤 ${u.username} (${u.role})`;
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = (u.role === 'Admin') ? '' : 'none');
             } else {
-                document.getElementById('loginOverlay').style.visibility = 'visible'; 
-                document.getElementById('loginOverlay').style.opacity = '1'; 
-                setTimeout(() => document.getElementById('loginPass').focus(), 100);
+                document.getElementById('loginOverlay').style.visibility = 'visible'; document.getElementById('loginOverlay').style.opacity = '1'; setTimeout(() => document.getElementById('loginPass').focus(), 100);
             }
         }, 500);
     }
 
     window.addEventListener('load', () => {
-        document.documentElement.dir = 'ltr'; document.documentElement.lang = 'en';
-        updateOnlineStatus();
-
-        document.getElementById('tripDate').value = getCurrentLocalDateTime();
-        document.getElementById('finDate').value = getCurrentLocalDateTime();
-        document.getElementById('mntDate').value = getCurrentLocalDateTime();
-        const firstDay = new Date(); firstDay.setDate(1);
-        document.getElementById('repFrom').value = firstDay.toISOString().slice(0, 10);
-        document.getElementById('repTo').value = new Date().toISOString().slice(0, 10);
+        document.documentElement.dir = 'ltr'; document.documentElement.lang = 'en'; updateOnlineStatus();
+        document.getElementById('tripDate').value = getCurrentLocalDateTime(); document.getElementById('finDate').value = getCurrentLocalDateTime(); document.getElementById('mntDate').value = getCurrentLocalDateTime();
+        const firstDay = new Date(); firstDay.setDate(1); document.getElementById('repFrom').value = firstDay.toISOString().slice(0, 10); document.getElementById('repTo').value = new Date().toISOString().slice(0, 10);
 
         let cached = localStorage.getItem('fleet_data_cache');
         if (cached) { try { loadDataToUI(JSON.parse(cached)); } catch(e) { localStorage.removeItem('fleet_data_cache'); cached = null; } } 
         else { usersDB = [{username: "SAMY", password: "852", role: "Admin"}]; }
         
-        if (cached) {
-            setTimeout(hideSplashScreen, 1200); forceAppSync(false);
-        } else {
-            document.getElementById('splashLoading').style.display = 'flex'; document.getElementById('splashMessage').innerText = "Loading..."; forceAppSync(true);
-        }
+        if (cached) { setTimeout(hideSplashScreen, 1200); forceAppSync(false); } else { document.getElementById('splashLoading').style.display = 'flex'; document.getElementById('splashMessage').innerText = "Loading..."; forceAppSync(true); }
     });
 
     function forceAppSync(isFirstLoad = false) {
-        fetch(GOOGLE_SCRIPT_URL + "?action=getInitialData")
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                localStorage.setItem('fleet_data_cache', JSON.stringify(data));
-                loadDataToUI(data); processSyncQueue();
-                if(!isFirstLoad) toast('🟢 Data Refreshed Live!', 'success');
-            }
+        fetch(GOOGLE_SCRIPT_URL + "?action=getInitialData").then(res => res.json()).then(data => {
+            if (data.status === 'success') { localStorage.setItem('fleet_data_cache', JSON.stringify(data)); loadDataToUI(data); processSyncQueue(); if(!isFirstLoad) toast('🟢 Data Refreshed Live!', 'success'); }
             if(isFirstLoad) hideSplashScreen();
-        }).catch(err => {
-            if(isFirstLoad) { document.getElementById('splashMessage').innerText = "Loading..."; setTimeout(hideSplashScreen, 2000); }
-        });
+        }).catch(err => { if(isFirstLoad) { document.getElementById('splashMessage').innerText = "Loading..."; setTimeout(hideSplashScreen, 2000); } });
     }
 
     function login() {
-        const u = document.getElementById('loginUser').value.trim().toLowerCase();
-        const p = document.getElementById('loginPass').value.trim();
-        if(!u || !p) return;
-        const matchedUser = usersDB.find(user => user.username.toLowerCase() === u && user.password === p);
-        if (matchedUser || (u === 'samy' && p === '852')) {
-            localStorage.setItem('samy_logged_in_user', JSON.stringify(matchedUser || { username: 'SAMY', role: 'Admin' })); location.reload();
-        } else { toast('❌ Incorrect Password', 'error'); }
+        const u = document.getElementById('loginUser').value.trim().toLowerCase(); const p = document.getElementById('loginPass').value.trim();
+        if(!u || !p) return; const matchedUser = usersDB.find(user => user.username.toLowerCase() === u && user.password === p);
+        if (matchedUser || (u === 'samy' && p === '852')) { localStorage.setItem('samy_logged_in_user', JSON.stringify(matchedUser || { username: 'SAMY', role: 'Admin' })); location.reload(); } else { toast('❌ Incorrect Password', 'error'); }
     }
     function logout() { localStorage.removeItem('samy_logged_in_user'); location.reload(); }
     function togglePasswordVisibility() { const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password'; }
@@ -622,37 +505,28 @@
 
     function loadDataToUI(data) {
         usersDB = data.users || [{username:"SAMY", password:"852", role:"Admin"}];
-        clientsDB = data.clients || []; driversDB = data.drivers || []; tripsDB = data.trips || [];
+        clientsDB = data.clients || []; tripsDB = data.trips || [];
         recentTripsDB = data.recent || []; financesDB = data.finances || []; maintenanceDB = data.maintenance || []; 
 
         document.getElementById('loginUser').innerHTML = usersDB.map(u => `<option value="${u.username}">${u.username}</option>`).join('');
         document.getElementById('clientList').innerHTML = clientsDB.map(i => `<option value="${i}">`).join('');
-        document.getElementById('driverList').innerHTML = driversDB.map(i => `<option value="${i.name}">`).join('');
         document.getElementById('tripList').innerHTML = tripsDB.map(i => `<option value="${i.name}">`).join('');
 
-        // تجهيز قوائم الإكمال التلقائي للسائق الفعلي وأرقام العربيات
         let uDrivers = new Set(); let uPlates = new Set();
-        recentTripsDB.forEach(t => {
-            if(t.actual_driver) uDrivers.add(t.actual_driver);
-            if(t.vehicle_plate) uPlates.add(t.vehicle_plate);
-        });
-        document.getElementById('actualDriverList').innerHTML = [...uDrivers].map(i => `<option value="${i}">`).join('');
-        document.getElementById('plateList').innerHTML = [...uPlates].map(i => `<option value="${i}">`).join('');
+        recentTripsDB.forEach(t => { if(t.driver) uDrivers.add(t.driver); if(t.vehicle_plate) uPlates.add(t.vehicle_plate); });
+        document.getElementById('driverListHistory').innerHTML = [...uDrivers].map(i => `<option value="${i}">`).join('');
+        document.getElementById('plateListHistory').innerHTML = [...uPlates].map(i => `<option value="${i}">`).join('');
 
         const cBody = document.querySelector('#mClientTable tbody');
         if(cBody) cBody.innerHTML = clientsDB.map((c, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('client', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Clients', '${c}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
-        const dBody = document.querySelector('#mDriverTable tbody');
-        if(dBody) dBody.innerHTML = driversDB.map((d, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${d.name}</td><td style="direction:ltr;">${d.phone||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('driver', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Drivers', '${d.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
         const mBody = document.querySelector('#mTripTable tbody');
         if(mBody) mBody.innerHTML = tripsDB.map((t, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${t.name}</td><td>${t.lp||0}/${t.lr||0}</td><td>${t.mp||0}/${t.mr||0}</td><td>${t.cp||0}/${t.cr||0}</td><td>${t.bp||0}/${t.br||0}</td><td><button class="btn btn-blue" onclick="loadMasterEdit('trip', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
 
-        renderUsersTable(); toggleReportTarget(); renderRecentTrips(); renderFinances(); renderMaintenance();
-        checkMaintenanceAlerts(); // فحص تنبيهات الصيانة فوراً
+        renderUsersTable(); toggleReportTarget(); renderRecentTrips(); renderFinances(); renderMaintenance(); checkMaintenanceAlerts();
     }
 
     function processSyncQueue() {
-        if (isSyncing || syncQueue.length === 0) return; isSyncing = true; 
-        document.getElementById('networkStatus').className = 'network-badge network-sync'; document.getElementById('networkStatus').innerHTML = '🔄 Syncing...';
+        if (isSyncing || syncQueue.length === 0) return; isSyncing = true; document.getElementById('networkStatus').className = 'network-badge network-sync'; document.getElementById('networkStatus').innerHTML = '🔄 Syncing...';
         const payload = syncQueue[0];
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         .then(() => { syncQueue.shift(); localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue)); isSyncing = false; updateOnlineStatus(); processSyncQueue(); })
@@ -661,61 +535,43 @@
     function addToSyncQueue(item) { syncQueue.push(item); localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue)); processSyncQueue(); }
 
     function onTripSelected() {
-        const tName = document.getElementById('tripNameSelect').value.trim(); const vType = document.getElementById('tripVehicleType').value;
-        const matched = tripsDB.find(t => t.name === tName);
+        const tName = document.getElementById('tripNameSelect').value.trim(); const vType = document.getElementById('tripVehicleType').value; const matched = tripsDB.find(t => t.name === tName);
         if (matched) { 
-            let p=0, r=0;
-            if(vType === 'Limousine') { p=matched.lp; r=matched.lr; } else if(vType === 'Microbus') { p=matched.mp; r=matched.mr; } else if(vType === 'Coaster') { p=matched.cp; r=matched.cr; } else if(vType === 'Bus') { p=matched.bp; r=matched.br; }
+            let p=0, r=0; if(vType === 'Limousine') { p=matched.lp; r=matched.lr; } else if(vType === 'Microbus') { p=matched.mp; r=matched.mr; } else if(vType === 'Coaster') { p=matched.cp; r=matched.cr; } else if(vType === 'Bus') { p=matched.bp; r=matched.br; }
             document.getElementById('revEGP').value = p || 0; document.getElementById('tripDriverFee').value = r || 0; calcTotals(); 
         }
     }
     function calcTotals() {
-        const rev = parseFloat(document.getElementById('revEGP').value) || 0; 
-        const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
-        const actFee = parseFloat(document.getElementById('tripActualDriverFee').value) || 0;
-        // صافي العمولة = الإيراد من العميل - حساب الشريك - أجرة السائق الفعلي
-        document.getElementById('netCommission').innerText = (rev - fee - actFee).toFixed(2);
+        const rev = parseFloat(document.getElementById('revEGP').value) || 0; const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0;
+        document.getElementById('netCommission').innerText = (rev - fee).toFixed(2);
     }
 
     function saveTrip() {
         const client = document.getElementById('tripClientSelect').value.trim(); 
-        const driverName = document.getElementById('tripDriverSelect').value.trim();
+        const driverName = document.getElementById('tripDriverName').value.trim();
         const tripName = document.getElementById('tripNameSelect').value.trim(); 
         const vType = document.getElementById('tripVehicleType').value;
+        const vehiclePlate = document.getElementById('tripVehiclePlate').value.trim();
         const tDate = document.getElementById('tripDate').value.replace('T', ' '); 
         const rev = parseFloat(document.getElementById('revEGP').value) || 0;
         const fee = parseFloat(document.getElementById('tripDriverFee').value) || 0; 
         const notes = document.getElementById('tripNotes').value;
         
-        // إضافات جديدة
-        const actualDriver = document.getElementById('tripActualDriver').value.trim();
-        const vehiclePlate = document.getElementById('tripVehiclePlate').value.trim();
-        const actualDriverFee = parseFloat(document.getElementById('tripActualDriverFee').value) || 0;
-        
         if (!client || !driverName || !tripName) return toast('⚠️ Please fill required fields!', 'warn');
 
-        let isMasterUpdated = false;
-        if (!clientsDB.includes(client)) { clientsDB.push(client); isMasterUpdated = true; }
-        if (!driversDB.find(d => d.name === driverName)) { driversDB.push({name: driverName, phone: ""}); isMasterUpdated = true; }
-
-        if (isMasterUpdated) { loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }); }
+        if (!clientsDB.includes(client)) { clientsDB.push(client); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: [], trips: tripsDB }); }
 
         const targetId = editingTripId || generateSequentialTripID();
-        const tripObj = { 
-            id: targetId, date: tDate, client: client, driver: driverName, vehicle: vType, trip: tripName, 
-            revenue: rev, fee: fee, notes: notes,
-            actual_driver: actualDriver, vehicle_plate: vehiclePlate, driver_fee: actualDriverFee 
-        };
+        const tripObj = { id: targetId, date: tDate, client: client, driver: driverName, vehicle: vType, vehicle_plate: vehiclePlate, trip: tripName, revenue: rev, fee: fee, notes: notes };
 
         if (editingTripId) { const idx = recentTripsDB.findIndex(t => t.id === editingTripId); if(idx > -1) recentTripsDB[idx] = tripObj; } else { recentTripsDB.push(tripObj); }
-        localStorage.setItem('fleet_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB}));
+        localStorage.setItem('fleet_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB}));
         
-        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); // لتحديث قوائم السيارات
+        loadDataToUI({users:usersDB, clients:clientsDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); 
         
+        // الخدعة: بنبعت السائق في خانة driver_name والمبلغ في driver_fee عشان جوجل سكريبت يكمل شغل عادي
         addToSyncQueue({ 
-            record_type: editingTripId ? "edit_trip" : "trip", trip_id: targetId, client_name: client, driver_name: driverName, vehicle_type: vType, trip_name: tripName, 
-            date: tDate, notes: notes, revenue: rev, driver_fee: fee,
-            actual_driver: actualDriver, vehicle_plate: vehiclePlate, actual_driver_fee: actualDriverFee
+            record_type: editingTripId ? "edit_trip" : "trip", trip_id: targetId, client_name: client, driver_name: driverName, vehicle_type: vType, trip_name: tripName, date: tDate, notes: notes, revenue: rev, driver_fee: fee, actual_driver: "", vehicle_plate: vehiclePlate, actual_driver_fee: 0
         });
         clearForm(); toast(`✅ Saved (${targetId})!`, 'success');
     }
@@ -723,46 +579,40 @@
     function renderRecentTrips() {
         const tbody = document.querySelector('#recentTripsTable tbody'); if(!tbody) return;
         if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="9">No trips</td></tr>'; return; }
-        tbody.innerHTML = recentTripsDB.map((t, i) => `<tr><td>${t.id || (i + 1)}</td><td style="direction:ltr;">${formatDateDisplay(t.date)}</td><td>${t.client}</td><td style="direction:ltr; font-weight:bold;">${t.vehicle_plate||'-'}</td><td>${t.actual_driver || t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px;" onclick="loadTrip(${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px;" onclick="delTrip(${i})">🗑️</button><button class="btn btn-whatsapp" style="padding:4px 8px;" onclick="sendWA(${i})" title="WhatsApp">💬</button></td></tr>`).join('');
+        tbody.innerHTML = recentTripsDB.map((t, i) => `<tr><td>${t.id || (i + 1)}</td><td style="direction:ltr;">${formatDateDisplay(t.date)}</td><td>${t.client}</td><td style="direction:ltr; font-weight:bold;">${t.vehicle_plate||'-'}</td><td>${t.driver}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#e74c3c;">${t.fee}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px;" onclick="loadTrip(${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px;" onclick="delTrip(${i})">🗑️</button><button class="btn btn-whatsapp" style="padding:4px 8px;" onclick="sendWA(${i})" title="WhatsApp">💬</button></td></tr>`).join('');
     }
 
     function sendWA(idx) {
-        let t = recentTripsDB[idx]; let driverObj = driversDB.find(d => d.name === t.driver); let phone = driverObj ? driverObj.phone : ""; let cleanPhone = phone.replace(/\D/g,'');
-        let txt = `Trip Details 🚘\nDate: ${formatDateDisplay(t.date)}\nClient: ${t.client}\nPlate: ${t.vehicle_plate||'-'}\nDriver: ${t.actual_driver || t.driver}\nTrip: ${t.trip}`;
-        if(cleanPhone) { window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(txt)}`, '_blank'); } else { window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
+        let t = recentTripsDB[idx]; let txt = `Trip Details 🚘\nDate: ${formatDateDisplay(t.date)}\nClient: ${t.client}\nPlate: ${t.vehicle_plate||'-'}\nDriver: ${t.driver}\nTrip: ${t.trip}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank');
     }
 
     function loadTrip(idx) {
         const t = recentTripsDB[idx]; editingTripId = t.id; let dateVal = String(t.date || '').replace(' ', 'T').slice(0,16);
-        document.getElementById('tripDate').value = dateVal; document.getElementById('tripClientSelect').value = t.client || ''; document.getElementById('tripDriverSelect').value = t.driver || ''; document.getElementById('tripVehicleType').value = t.vehicle || 'Limousine'; document.getElementById('tripNameSelect').value = t.trip || ''; document.getElementById('revEGP').value = t.revenue || 0; document.getElementById('tripDriverFee').value = t.fee || 0; document.getElementById('tripNotes').value = t.notes || '';
-        document.getElementById('tripActualDriver').value = t.actual_driver || '';
-        document.getElementById('tripVehiclePlate').value = t.vehicle_plate || '';
-        document.getElementById('tripActualDriverFee').value = t.driver_fee || 0;
-        calcTotals(); window.scrollTo({top: 0, behavior: 'smooth'});
+        document.getElementById('tripDate').value = dateVal; document.getElementById('tripClientSelect').value = t.client || ''; 
+        document.getElementById('tripDriverName').value = t.driver || ''; document.getElementById('tripVehicleType').value = t.vehicle || 'Limousine'; document.getElementById('tripNameSelect').value = t.trip || ''; document.getElementById('revEGP').value = t.revenue || 0; document.getElementById('tripDriverFee').value = t.fee || 0; document.getElementById('tripNotes').value = t.notes || ''; document.getElementById('tripVehiclePlate').value = t.vehicle_plate || ''; calcTotals(); window.scrollTo({top: 0, behavior: 'smooth'});
     }
     function delTrip(idx) { if(confirm('Delete this trip?')) { addToSyncQueue({record_type:"delete_trip", trip_id: recentTripsDB[idx].id}); recentTripsDB.splice(idx,1); renderRecentTrips(); } }
-    function clearForm() { editingTripId = null; document.getElementById('tripClientSelect').value=''; document.getElementById('tripDriverSelect').value=''; document.getElementById('tripNameSelect').value=''; document.getElementById('revEGP').value='0'; document.getElementById('tripDriverFee').value='0'; document.getElementById('tripNotes').value=''; document.getElementById('tripActualDriver').value=''; document.getElementById('tripVehiclePlate').value=''; document.getElementById('tripActualDriverFee').value='0'; document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals(); }
+    function clearForm() { editingTripId = null; document.getElementById('tripClientSelect').value=''; document.getElementById('tripDriverName').value=''; document.getElementById('tripNameSelect').value=''; document.getElementById('revEGP').value='0'; document.getElementById('tripDriverFee').value='0'; document.getElementById('tripNotes').value=''; document.getElementById('tripVehiclePlate').value=''; document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals(); }
 
     function loadMasterEdit(type, index) {
         if(type === 'client') { document.getElementById('mClientName').value = clientsDB[index]; editingMasterIndex.client = index; document.getElementById('addClientBtn').innerText = "Update"; } 
-        else if(type === 'driver') { document.getElementById('mDriverName').value = driversDB[index].name; document.getElementById('mDriverPhone').value = driversDB[index].phone||''; editingMasterIndex.driver = index; document.getElementById('addDriverBtn').innerText = "Update"; } 
         else if(type === 'trip') { let t = tripsDB[index]; document.getElementById('mTripName').value = t.name; document.getElementById('mLimoP').value=t.lp; document.getElementById('mLimoR').value=t.lr; document.getElementById('mMicroP').value=t.mp; document.getElementById('mMicroR').value=t.mr; document.getElementById('mCoasterP').value=t.cp; document.getElementById('mCoasterR').value=t.cr; document.getElementById('mBusP').value=t.bp; document.getElementById('mBusR').value=t.br; editingMasterIndex.trip = index; }
     }
     function addMasterItem(type, btn) {
         if(type === 'client') { let n = document.getElementById('mClientName').value.trim(); if(!n) return; if(editingMasterIndex.client > -1) clientsDB[editingMasterIndex.client] = n; else if(!clientsDB.includes(n)) clientsDB.push(n); document.getElementById('mClientName').value = ''; editingMasterIndex.client = -1; btn.innerText = "Add"; } 
-        else if(type === 'driver') { let n = document.getElementById('mDriverName').value.trim(); let p = document.getElementById('mDriverPhone').value.trim(); if(!n) return; if(editingMasterIndex.driver > -1) { driversDB[editingMasterIndex.driver].name = n; driversDB[editingMasterIndex.driver].phone = p; } else { driversDB.push({name:n, phone:p}); } document.getElementById('mDriverName').value = ''; document.getElementById('mDriverPhone').value = ''; editingMasterIndex.driver = -1; btn.innerText = "Add"; } 
         else if(type === 'trip') { 
             let n = document.getElementById('mTripName').value.trim(); if(!n) return;
             let lp = parseFloat(document.getElementById('mLimoP').value)||0, lr = parseFloat(document.getElementById('mLimoR').value)||0, mp = parseFloat(document.getElementById('mMicroP').value)||0, mr = parseFloat(document.getElementById('mMicroR').value)||0, cp = parseFloat(document.getElementById('mCoasterP').value)||0, cr = parseFloat(document.getElementById('mCoasterR').value)||0, bp = parseFloat(document.getElementById('mBusP').value)||0, br = parseFloat(document.getElementById('mBusR').value)||0;
             if(editingMasterIndex.trip > -1) { let ex = tripsDB[editingMasterIndex.trip]; ex.name=n; ex.lp=lp; ex.lr=lr; ex.mp=mp; ex.mr=mr; ex.cp=cp; ex.cr=cr; ex.bp=bp; ex.br=br; } else { let ex = tripsDB.find(t => t.name === n); if(ex) { ex.lp=lp; ex.lr=lr; ex.mp=mp; ex.mr=mr; ex.cp=cp; ex.cr=cr; ex.bp=bp; ex.br=br; } else { tripsDB.push({name:n, lp:lp, lr:lr, mp:mp, mr:mr, cp:cp, cr:cr, bp:bp, br:br}); } }
             document.querySelectorAll('#mastersTab input[type="number"]').forEach(i => i.value=''); document.getElementById('mTripName').value=''; editingMasterIndex.trip = -1;
         }
-        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }); toast('Saved!');
+        loadDataToUI({users:usersDB, clients:clientsDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: [], trips: tripsDB }); toast('Saved!');
     }
     function removeMasterItem(sheetName, name, idx) {
         if(!confirm('Delete?')) return;
-        if(sheetName === 'Clients') clientsDB.splice(idx, 1); if(sheetName === 'Drivers') driversDB.splice(idx, 1); if(sheetName === 'Trip_Types') tripsDB.splice(idx, 1);
-        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, trips: tripsDB }); toast('Deleted');
+        if(sheetName === 'Clients') clientsDB.splice(idx, 1); if(sheetName === 'Trip_Types') tripsDB.splice(idx, 1);
+        loadDataToUI({users:usersDB, clients:clientsDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: [], trips: tripsDB }); toast('Deleted');
     }
 
     function renderFinances() {
@@ -778,8 +628,7 @@
     }
     function loadFinance(idx) {
         const f = financesDB[idx]; editingFinId = f.id;
-        document.getElementById('finType').value = f.type || 'Expense'; document.getElementById('finCategory').value = f.category || ''; document.getElementById('finAmount').value = f.amount || ''; document.getElementById('finDate').value = String(f.date || '').replace(' ', 'T').slice(0, 16); document.getElementById('finNotes').value = f.notes || '';
-        window.scrollTo({top: 0, behavior: 'smooth'});
+        document.getElementById('finType').value = f.type || 'Expense'; document.getElementById('finCategory').value = f.category || ''; document.getElementById('finAmount').value = f.amount || ''; document.getElementById('finDate').value = String(f.date || '').replace(' ', 'T').slice(0, 16); document.getElementById('finNotes').value = f.notes || ''; window.scrollTo({top: 0, behavior: 'smooth'});
     }
     function deleteFinance(i) { if(confirm('Delete finance record?')) { addToSyncQueue({record_type:"delete_finance", fin_id: financesDB[i].id}); financesDB.splice(i,1); renderFinances(); } }
     function clearFinanceForm() { editingFinId = null; document.getElementById('finCategory').value=''; document.getElementById('finAmount').value=''; document.getElementById('finNotes').value=''; document.getElementById('finDate').value = getCurrentLocalDateTime(); }
@@ -788,388 +637,165 @@
         const p1 = document.getElementById('chgNewPass').value.trim(); const p2 = document.getElementById('chgConfPass').value.trim();
         if(!p1) return toast('⚠️ Please enter password!', 'warn'); if(p1 !== p2) return toast('❌ Passwords do not match!', 'error');
         addToSyncQueue({ record_type: "change_password", username: loggedInUser, new_password: p1 });
-        const userObj = usersDB.find(u => u.username.toLowerCase() === loggedInUser.toLowerCase()); if(userObj) userObj.password = p1;
-        document.getElementById('chgNewPass').value = ''; document.getElementById('chgConfPass').value = ''; toast('✅ Password Updated Successfully!', 'success');
+        const userObj = usersDB.find(u => u.username.toLowerCase() === loggedInUser.toLowerCase()); if(userObj) userObj.password = p1; document.getElementById('chgNewPass').value = ''; document.getElementById('chgConfPass').value = ''; toast('✅ Password Updated Successfully!', 'success');
     }
     function createNewUser() {
         const u = document.getElementById('newUsername').value.trim(); const p = document.getElementById('newUserPass').value.trim(); const r = document.getElementById('newUserRole').value;
         if(!u || !p) return toast('⚠️ Please fill username and password!', 'warn'); if(usersDB.find(x => x.username.toLowerCase() === u.toLowerCase())) return toast('❌ Username already exists!', 'error');
-        usersDB.push({ username: u, password: p, role: r }); addToSyncQueue({ record_type: "add_user", username: u, password: p, role: r });
-        renderUsersTable(); document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join('');
-        document.getElementById('newUsername').value = ''; document.getElementById('newUserPass').value = ''; toast('✅ New User Added!', 'success');
+        usersDB.push({ username: u, password: p, role: r }); addToSyncQueue({ record_type: "add_user", username: u, password: p, role: r }); renderUsersTable(); document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join(''); document.getElementById('newUsername').value = ''; document.getElementById('newUserPass').value = ''; toast('✅ New User Added!', 'success');
     }
     function deleteUser(idx) {
         const u = usersDB[idx]; if(u.username.toUpperCase() === 'SAMY') return toast('❌ Cannot delete primary Admin SAMY!', 'error');
         if(confirm(`Delete user ${u.username}?`)) { addToSyncQueue({ record_type: "delete_user", username: u.username }); usersDB.splice(idx, 1); renderUsersTable(); document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join(''); toast('User Deleted'); }
     }
     function renderUsersTable() {
-        const tbody = document.querySelector('#usersTable tbody'); if(!tbody) return;
-        tbody.innerHTML = usersDB.map((u, i) => `<tr><td>${i + 1}</td><td>${u.username}</td><td><span style="font-weight:bold; color:${u.role==='Admin'?'#27ae60':'#1e3c72'}">${u.role}</span></td><td>${u.username.toUpperCase() !== 'SAMY' ? `<button class="btn btn-red" onclick="deleteUser(${i})" style="padding:4px 8px;">🗑️ Delete</button>` : 'System Default'}</td></tr>`).join('');
+        const tbody = document.querySelector('#usersTable tbody'); if(!tbody) return; tbody.innerHTML = usersDB.map((u, i) => `<tr><td>${i + 1}</td><td>${u.username}</td><td><span style="font-weight:bold; color:${u.role==='Admin'?'#27ae60':'#1e3c72'}">${u.role}</span></td><td>${u.username.toUpperCase() !== 'SAMY' ? `<button class="btn btn-red" onclick="deleteUser(${i})" style="padding:4px 8px;">🗑️ Delete</button>` : 'System Default'}</td></tr>`).join('');
     }
 
-    // ==========================================
-    // الصيانة المتقدمة + نظام التنبيهات
-    // ==========================================
     function checkMaintenanceAlerts() {
-        let vehicles = {};
-        // فرز الصيانة من القديم للجديد لمعرفة آخر حالة للعداد
-        let sorted = [...maintenanceDB].sort((a,b) => new Date(a.date) - new Date(b.date));
+        let vehicles = {}; let sorted = [...maintenanceDB].sort((a,b) => new Date(a.date) - new Date(b.date));
         sorted.forEach(m => {
-            let p = (m.vehicle_plate || '').trim();
-            if(!p) return;
-            if(!vehicles[p]) vehicles[p] = {};
-            vehicles[p].currentOdo = parseFloat(m.odometer) || 0;
-            if(m.next_odometer) vehicles[p].nextOdo = parseFloat(m.next_odometer) || Infinity;
+            let p = (m.vehicle_plate || '').trim(); if(!p) return; if(!vehicles[p]) vehicles[p] = {}; vehicles[p].currentOdo = parseFloat(m.odometer) || 0; if(m.next_odometer) vehicles[p].nextOdo = parseFloat(m.next_odometer) || Infinity;
         });
-        
         let alertHtml = '';
         for(let p in vehicles) {
             let v = vehicles[p];
             if(v.nextOdo && v.nextOdo !== Infinity) {
                 let diff = v.nextOdo - v.currentOdo;
-                if(diff <= 500 && diff > 0) {
-                    alertHtml += `<div class="alert-item"><span style="color:#f39c12;">⚠️ السيارة [${p}]</span><span>باقي ${diff} كم للصيانة</span></div>`;
-                } else if (diff <= 0) {
-                    alertHtml += `<div class="alert-item"><span style="color:#c0392b;">🚨 السيارة [${p}]</span><span style="color:#c0392b;">تجاوزت الصيانة! (${-diff} كم)</span></div>`;
-                }
+                if(diff <= 500 && diff > 0) alertHtml += `<div class="alert-item"><span style="color:#f39c12;">⚠️ السيارة [${p}]</span><span>باقي ${diff} كم للصيانة</span></div>`;
+                else if (diff <= 0) alertHtml += `<div class="alert-item"><span style="color:#c0392b;">🚨 السيارة [${p}]</span><span style="color:#c0392b;">تجاوزت الصيانة! (${-diff} كم)</span></div>`;
             }
         }
-        
         const alertBox = document.getElementById('mntAlerts');
-        if(alertHtml) {
-            alertBox.style.display = 'block';
-            alertBox.innerHTML = `<h4>🔔 تنبيهات الصيانة العاجلة:</h4>` + alertHtml;
-        } else {
-            alertBox.style.display = 'none';
-        }
+        if(alertHtml) { alertBox.style.display = 'block'; alertBox.innerHTML = `<h4>🔔 تنبيهات الصيانة العاجلة:</h4>` + alertHtml; } else { alertBox.style.display = 'none'; }
     }
 
     function renderMaintenance() {
         const tbody = document.querySelector('#maintenanceTable tbody'); if(!tbody) return; if(maintenanceDB.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No records</td></tr>'; return; }
-        tbody.innerHTML = maintenanceDB.map((m, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(m.date)}</td><td style="direction:ltr; font-weight:bold;">${m.vehicle_plate||'-'}</td><td>${m.type}</td><td style="color:#e74c3c;">${m.amount}</td><td>${m.odometer||'-'}</td><td>${m.next_odometer||'-'}</td><td style="white-space:nowrap;"><button class="btn btn-red" onclick="deleteMaintenance(${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
-        checkMaintenanceAlerts();
+        tbody.innerHTML = maintenanceDB.map((m, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(m.date)}</td><td style="direction:ltr; font-weight:bold;">${m.vehicle_plate||'-'}</td><td>${m.type}</td><td style="color:#e74c3c;">${m.amount}</td><td>${m.odometer||'-'}</td><td>${m.next_odometer||'-'}</td><td style="white-space:nowrap;"><button class="btn btn-red" onclick="deleteMaintenance(${i})" style="padding:4px">🗑️</button></td></tr>`).join(''); checkMaintenanceAlerts();
     }
-    
     function saveMaintenance() {
-        const mDate = document.getElementById('mntDate').value.replace('T', ' '); 
-        const vPlate = document.getElementById('mntVehiclePlate').value.trim();
-        const vType = document.getElementById('mntVehicleType').value;
-        const type = document.getElementById('mntType').value; 
-        const amt = parseFloat(document.getElementById('mntAmount').value); 
-        const odo = document.getElementById('mntOdometer').value; 
-        const nOdo = document.getElementById('mntNextOdo').value; 
-        const notes = document.getElementById('mntNotes').value;
-
+        const mDate = document.getElementById('mntDate').value.replace('T', ' '); const vPlate = document.getElementById('mntVehiclePlate').value.trim(); const vType = document.getElementById('mntVehicleType').value; const type = document.getElementById('mntType').value; const amt = parseFloat(document.getElementById('mntAmount').value); const odo = document.getElementById('mntOdometer').value; const nOdo = document.getElementById('mntNextOdo').value; const notes = document.getElementById('mntNotes').value;
         if(!amt || !type || !vPlate) return toast('⚠️ الرجاء إدخال رقم السيارة ونوع الصيانة والتكلفة', 'warn'); 
-        
-        let targetId = generateID("MNT"); 
-        maintenanceDB.push({ id: targetId, date: mDate, vehicle_plate: vPlate, vehicle_type: vType, type: type, amount: amt, odometer: odo, next_odometer: nOdo, notes: notes });
-        renderMaintenance(); 
-        addToSyncQueue({ record_type: "maintenance", mnt_id: targetId, vehicle_plate: vPlate, vehicle_type: vType, type: type, amount: amt, odometer: odo, next_odometer: nOdo, date: mDate, notes: notes, added_by: loggedInUser }); 
-        toast('Saved'); clearMaintenanceForm();
+        let targetId = generateID("MNT"); maintenanceDB.push({ id: targetId, date: mDate, vehicle_plate: vPlate, vehicle_type: vType, type: type, amount: amt, odometer: odo, next_odometer: nOdo, notes: notes }); renderMaintenance(); addToSyncQueue({ record_type: "maintenance", mnt_id: targetId, vehicle_plate: vPlate, vehicle_type: vType, type: type, amount: amt, odometer: odo, next_odometer: nOdo, date: mDate, notes: notes, added_by: loggedInUser }); toast('Saved'); clearMaintenanceForm();
     }
     function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; document.getElementById('mntVehiclePlate').value=''; document.getElementById('mntOdometer').value=''; document.getElementById('mntNextOdo').value='';}
 
-    // ==========================================
-    // صندوق حواري للسجلات ودالة الـ PDF
-    // ==========================================
     async function downloadDirectPDF() {
-        const element = document.getElementById('reportPrintArea');
-        const titleText = document.getElementById('printReportTitle').innerText || 'Fleet_Report';
-        
-        if (!element || element.innerText.trim() === '') {
-            return toast('⚠️ اختر التقرير أولاً!', 'warn');
-        }
+        const element = document.getElementById('reportPrintArea'); const titleText = document.getElementById('printReportTitle').innerText || 'Fleet_Report';
+        if (!element || element.innerText.trim() === '') return toast('⚠️ اختر التقرير أولاً!', 'warn');
 
         const isCharts = document.getElementById('reportType').value === 'charts';
-
-        // إظهار صندوق حواري لسؤال المستخدم عن عدد السجلات لو كان تقرير جداول
         if (!isCharts) {
             let rowInput = prompt("كم عدد السجلات التي تريدها في الصفحة الواحدة؟ (أدخل رقم من 1 إلى 50)", "50");
-            let rowsPerPage = parseInt(rowInput);
-            
-            if (isNaN(rowsPerPage) || rowsPerPage < 1) rowsPerPage = 50;
-            if (rowsPerPage > 50) rowsPerPage = 50;
-
-            // تنظيف أي فواصل صفحات قديمة
+            let rowsPerPage = parseInt(rowInput); if (isNaN(rowsPerPage) || rowsPerPage < 1) rowsPerPage = 50; if (rowsPerPage > 50) rowsPerPage = 50;
             document.querySelectorAll('.page-break-row').forEach(el => el.classList.remove('page-break-row'));
-
-            // تطبيق فواصل الصفحات الجديدة بناءً على اختيار المستخدم
             const rows = document.querySelectorAll('#reportsTable tbody tr');
-            rows.forEach((row, index) => {
-                if ((index + 1) % rowsPerPage === 0 && index !== rows.length - 1) {
-                    row.classList.add('page-break-row');
-                }
-            });
-            
+            rows.forEach((row, index) => { if ((index + 1) % rowsPerPage === 0 && index !== rows.length - 1) row.classList.add('page-break-row'); });
             element.classList.add('pdf-compact');
         }
-
-        toast('⏳ جاري تجهيز التقرير...', 'info');
-        await new Promise(r => setTimeout(r, 200));
+        toast('⏳ جاري تجهيز التقرير...', 'info'); await new Promise(r => setTimeout(r, 200));
 
         const fileName = `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
-
-        const opt = {
-            margin:       0.2, 
-            filename:     fileName,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: isCharts ? 'landscape' : 'portrait' },
-            pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr', '.chart-page'] } 
-        };
+        const opt = { margin: 0.2, filename: fileName, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: isCharts ? 'landscape' : 'portrait' }, pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.chart-page'] } };
 
         try {
             if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
                 try {
                     let pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
                     let cleanBase64 = pdfDataUri.replace(/^data:application\/[a-z]+;base64,/, "");
-                    
-                    const savedFile = await window.Capacitor.Plugins.Filesystem.writeFile({
-                        path: fileName,
-                        data: cleanBase64,
-                        directory: 'CACHE'
-                    });
-
-                    await window.Capacitor.Plugins.Share.share({
-                        title: titleText,
-                        url: savedFile.uri,
-                        dialogTitle: 'حفظ أو طباعة التقرير 📄'
-                    });
+                    const savedFile = await window.Capacitor.Plugins.Filesystem.writeFile({ path: fileName, data: cleanBase64, directory: 'CACHE' });
+                    await window.Capacitor.Plugins.Share.share({ title: titleText, url: savedFile.uri, dialogTitle: 'حفظ أو طباعة التقرير 📄' });
                     toast('✅ تم فتح شاشة المشاركة!', 'success');
-                } catch (shareErr) {
-                    console.error('Share Plugin Failed:', shareErr);
-                    window.print();
-                }
+                } catch (shareErr) { console.error('Share Plugin Failed:', shareErr); window.print(); }
             } else {
-                const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
-                const blobUrl = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = blobUrl;
-                a.download = opt.filename;
-                document.body.appendChild(a);
-                a.click();
-                URL.revokeObjectURL(blobUrl);
-                a.remove();
-                toast('✅ تم تنزيل الملف!', 'success');
+                const blob = await html2pdf().set(opt).from(element).outputPdf('blob'); const blobUrl = URL.createObjectURL(blob); const a = document.createElement('a'); a.style.display = 'none'; a.href = blobUrl; a.download = opt.filename; document.body.appendChild(a); a.click(); URL.revokeObjectURL(blobUrl); a.remove(); toast('✅ تم تنزيل الملف!', 'success');
             }
-        } catch (err) {
-            console.error('PDF Error:', err);
-            window.print();
-        } finally {
-            if (!isCharts) element.classList.remove('pdf-compact');
-        }
+        } catch (err) { console.error('PDF Error:', err); window.print(); } finally { if (!isCharts) element.classList.remove('pdf-compact'); }
     }
 
     function shareReportText() {
-        const title = document.getElementById('printReportTitle').innerText;
-        const table = document.getElementById('reportsTable');
-        const summary = document.getElementById('netProfitSummary');
-        let reportText = `🚘 ${title}\n\n`;
-        if (table && table.rows.length > 1) {
-            for (let i = 0; i < table.rows.length; i++) {
-                let cells = table.rows[i].cells; let rowTxt = [];
-                for (let j = 0; j < cells.length; j++) { rowTxt.push(cells[j].innerText.trim()); }
-                reportText += rowTxt.join(' | ') + '\n';
-            }
-        }
-        if (summary.style.display !== 'none') { reportText += `\n` + summary.innerText; }
-        window.open(`https://wa.me/?text=${encodeURIComponent(reportText)}`, '_blank');
+        const title = document.getElementById('printReportTitle').innerText; const table = document.getElementById('reportsTable'); const summary = document.getElementById('netProfitSummary'); let reportText = `🚘 ${title}\n\n`;
+        if (table && table.rows.length > 1) { for (let i = 0; i < table.rows.length; i++) { let cells = table.rows[i].cells; let rowTxt = []; for (let j = 0; j < cells.length; j++) { rowTxt.push(cells[j].innerText.trim()); } reportText += rowTxt.join(' | ') + '\n'; } }
+        if (summary.style.display !== 'none') reportText += `\n` + summary.innerText; window.open(`https://wa.me/?text=${encodeURIComponent(reportText)}`, '_blank');
     }
 
     function exportToExcel() {
-        const table = document.getElementById('reportsTable');
-        if (!table || table.rows.length <= 1) return toast('⚠️ No report data!', 'warn');
-        try {
-            const wb = XLSX.utils.table_to_book(table, { sheet: "Fleet_Report" });
-            XLSX.writeFile(wb, "Fleet_Report_" + Date.now() + ".xlsx");
-            toast('✅ Excel Downloaded!', 'success');
-        } catch(e) { toast('❌ Export Error: ' + e.message, 'error'); }
+        const table = document.getElementById('reportsTable'); if (!table || table.rows.length <= 1) return toast('⚠️ No report data!', 'warn');
+        try { const wb = XLSX.utils.table_to_book(table, { sheet: "Fleet_Report" }); XLSX.writeFile(wb, "Fleet_Report_" + Date.now() + ".xlsx"); toast('✅ Excel Downloaded!', 'success'); } catch(e) { toast('❌ Export Error: ' + e.message, 'error'); }
     }
 
     function toast(msg, type='info') {
-        const stack = document.getElementById('toastStack'); const el = document.createElement('div'); el.className = 'toast';
-        el.style.backgroundColor = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : '#1e3c72');
+        const stack = document.getElementById('toastStack'); const el = document.createElement('div'); el.className = 'toast'; el.style.backgroundColor = type === 'error' ? '#e74c3c' : (type === 'success' ? '#27ae60' : '#1e3c72');
         el.innerHTML = msg; stack.appendChild(el); setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 4000);
     }
 
     function toggleReportTarget() {
-        const type = document.getElementById('reportType').value;
-        const targetContainer = document.getElementById('targetContainer');
-        const sel = document.getElementById('reportTarget'); 
-        sel.innerHTML = '';
-        const lbl = document.getElementById('targetLabel');
-        let dL = dict[currentLang];
-        
-        targetContainer.style.display = 'flex';
+        const type = document.getElementById('reportType').value; const targetContainer = document.getElementById('targetContainer'); const sel = document.getElementById('reportTarget'); sel.innerHTML = ''; const lbl = document.getElementById('targetLabel'); let dL = dict[currentLang]; targetContainer.style.display = 'flex';
 
-        if(type === 'client') {
-            lbl.innerText = dL.client; clientsDB.forEach(i => sel.innerHTML += `<option>${i}</option>`);
-        } else if(type === 'driver') {
-            lbl.innerText = dL.driver; driversDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`);
-        } else if(type === 'trip_detailed') {
-            lbl.innerText = dL.trip; tripsDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`);
-        } else if(type === 'actual_driver') {
-            lbl.innerText = "Driver Name:";
-            let uDrivers = new Set(); recentTripsDB.forEach(t => { if(t.actual_driver) uDrivers.add(t.actual_driver); });
-            uDrivers.forEach(i => sel.innerHTML += `<option>${i}</option>`);
-        } else if(type === 'vehicle_plate') {
-            lbl.innerText = "Vehicle Plate:";
-            let uPlates = new Set(); recentTripsDB.forEach(t => { if(t.vehicle_plate) uPlates.add(t.vehicle_plate); });
-            uPlates.forEach(i => sel.innerHTML += `<option>${i}</option>`);
-        } else if (type === 'finance' || type === 'maintenance' || type === 'net_profit' || type === 'charts') {
-            targetContainer.style.display = 'none'; 
-        } else { lbl.innerText = dL.target; }
+        if(type === 'client') { lbl.innerText = dL.client; clientsDB.forEach(i => sel.innerHTML += `<option>${i}</option>`); } 
+        else if(type === 'driver') { lbl.innerText = "Driver Name (اسم السائق):"; let uDrivers = new Set(); recentTripsDB.forEach(t => { if(t.driver) uDrivers.add(t.driver); }); uDrivers.forEach(i => sel.innerHTML += `<option>${i}</option>`); } 
+        else if(type === 'vehicle_plate') { lbl.innerText = "Vehicle Plate (رقم السيارة):"; let uPlates = new Set(); recentTripsDB.forEach(t => { if(t.vehicle_plate) uPlates.add(t.vehicle_plate); }); uPlates.forEach(i => sel.innerHTML += `<option>${i}</option>`); } 
+        else if(type === 'trip_detailed') { lbl.innerText = dL.trip; tripsDB.forEach(i => sel.innerHTML += `<option>${i.name}</option>`); } 
+        else if (type === 'finance' || type === 'maintenance' || type === 'net_profit' || type === 'charts') { targetContainer.style.display = 'none'; } 
+        else { lbl.innerText = dL.target; }
     }
 
     function fetchReports() {
-        const type = document.getElementById('reportType').value;
-        const target = (document.getElementById('reportTarget').value || "").toLowerCase().trim();
-        const fDate = document.getElementById('repFrom').value; 
-        const tDate = document.getElementById('repTo').value;   
+        const type = document.getElementById('reportType').value; const target = (document.getElementById('reportTarget').value || "").toLowerCase().trim(); const fDate = document.getElementById('repFrom').value; const tDate = document.getElementById('repTo').value;   
+        const tbody = document.querySelector('#reportsTable tbody'); const thead = document.querySelector('#reportsTable thead'); const tfoot = document.querySelector('#reportsTable tfoot'); const summaryCard = document.getElementById('netProfitSummary'); const chartsArea = document.getElementById('chartsArea'); const tableWrapper = document.getElementById('tableWrapper');
+        tbody.innerHTML = ''; thead.innerHTML = ''; tfoot.innerHTML = ''; summaryCard.style.display = 'none'; summaryCard.innerHTML = ''; chartsArea.style.display = 'none'; tableWrapper.style.display = 'block';
 
-        const tbody = document.querySelector('#reportsTable tbody');
-        const thead = document.querySelector('#reportsTable thead');
-        const tfoot = document.querySelector('#reportsTable tfoot');
-        const summaryCard = document.getElementById('netProfitSummary');
-        const chartsArea = document.getElementById('chartsArea');
-        const tableWrapper = document.getElementById('tableWrapper');
-        
-        tbody.innerHTML = ''; thead.innerHTML = ''; tfoot.innerHTML = '';
-        summaryCard.style.display = 'none'; summaryCard.innerHTML = '';
-        chartsArea.style.display = 'none'; tableWrapper.style.display = 'block';
-
-        let res = []; let dL = dict[currentLang];
-
-        function getCleanDay(rawDate) {
-            if (!rawDate) return "";
-            return String(rawDate).trim().slice(0, 10);
-        }
+        let res = []; let dL = dict[currentLang]; function getCleanDay(rawDate) { if (!rawDate) return ""; return String(rawDate).trim().slice(0, 10); }
 
         if (type === 'charts') {
-            tableWrapper.style.display = 'none';
-            chartsArea.style.display = 'flex';
-            document.getElementById('printReportTitle').innerHTML = `📊 لوحة المؤشرات البيانية (Dashboard) <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
-            document.getElementById('printReportTitle').style.display = 'block';
-
+            tableWrapper.style.display = 'none'; chartsArea.style.display = 'flex'; document.getElementById('printReportTitle').innerHTML = `📊 لوحة المؤشرات البيانية (Dashboard) <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`; document.getElementById('printReportTitle').style.display = 'block';
             let partnerData = {}; let clientData = {}; let tripsByDate = {}; let tripNameData = {};
             recentTripsDB.forEach(t => {
                 const d = getCleanDay(t.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    let p = t.driver || 'Unknown'; let c = t.client || 'Unknown';
-                    let tName = (t.trip || t.trip_name || 'Unknown').trim();
-                    partnerData[p] = (partnerData[p] || 0) + parseFloat(t.fee || 0);
-                    clientData[c] = (clientData[c] || 0) + parseFloat(t.revenue || 0);
-                    tripsByDate[d] = (tripsByDate[d] || 0) + 1;
-                    tripNameData[tName] = (tripNameData[tName] || 0) + 1;
+                    let p = t.driver || 'Unknown'; let c = t.client || 'Unknown'; let tName = (t.trip || t.trip_name || 'Unknown').trim();
+                    partnerData[p] = (partnerData[p] || 0) + parseFloat(t.fee || 0); clientData[c] = (clientData[c] || 0) + parseFloat(t.revenue || 0); tripsByDate[d] = (tripsByDate[d] || 0) + 1; tripNameData[tName] = (tripNameData[tName] || 0) + 1;
                 }
             });
-
             if(window.c1) window.c1.destroy(); if(window.c2) window.c2.destroy(); if(window.c3) window.c3.destroy(); if(window.c4) window.c4.destroy();
 
-            window.c1 = new Chart(document.getElementById('chartPartners'), {
-                type: 'bar',
-                data: { labels: Object.keys(partnerData), datasets: [{ label: 'إيرادات الشركاء (EGP)', data: Object.values(partnerData), backgroundColor: 'rgba(231, 76, 60, 0.8)', borderColor: '#c0392b', borderWidth: 2, borderRadius: 8, barPercentage: 0.6 }] },
-                options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'أكثر الشركاء تحقيقاً للإيرادات', font: {size: 18} } } }
-            });
-
-            window.c2 = new Chart(document.getElementById('chartClients'), {
-                type: 'bar',
-                data: { labels: Object.keys(clientData), datasets: [{ label: 'مبيعات العملاء (EGP)', data: Object.values(clientData), backgroundColor: 'rgba(39, 174, 96, 0.8)', borderColor: '#229954', borderWidth: 2, borderRadius: 8, barPercentage: 0.6 }] },
-                options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'أكثر العملاء طلباً للمشاوير', font: {size: 18} } } }
-            });
-
-            window.c3 = new Chart(document.getElementById('chartTrips'), {
-                type: 'line',
-                data: { labels: Object.keys(tripsByDate).sort(), datasets: [{ label: 'عدد المشاوير', data: Object.keys(tripsByDate).sort().map(k=>tripsByDate[k]), borderColor: '#1e3c72', backgroundColor: 'rgba(30, 60, 114, 0.15)', fill: true, tension: 0.4, pointBackgroundColor: '#f39c12', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5 }] },
-                options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'معدل المشاوير خلال الفترة', font: {size: 18} } } }
-            });
-
+            window.c1 = new Chart(document.getElementById('chartPartners'), { type: 'bar', data: { labels: Object.keys(partnerData), datasets: [{ label: 'عمولات السائقين (EGP)', data: Object.values(partnerData), backgroundColor: 'rgba(231, 76, 60, 0.8)', borderColor: '#c0392b', borderWidth: 2, borderRadius: 8, barPercentage: 0.6 }] }, options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'أكثر السائقين تحقيقاً للعمولة', font: {size: 18} } } } });
+            window.c2 = new Chart(document.getElementById('chartClients'), { type: 'bar', data: { labels: Object.keys(clientData), datasets: [{ label: 'مبيعات العملاء (EGP)', data: Object.values(clientData), backgroundColor: 'rgba(39, 174, 96, 0.8)', borderColor: '#229954', borderWidth: 2, borderRadius: 8, barPercentage: 0.6 }] }, options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'أكثر العملاء طلباً للمشاوير', font: {size: 18} } } } });
+            window.c3 = new Chart(document.getElementById('chartTrips'), { type: 'line', data: { labels: Object.keys(tripsByDate).sort(), datasets: [{ label: 'عدد المشاوير', data: Object.keys(tripsByDate).sort().map(k=>tripsByDate[k]), borderColor: '#1e3c72', backgroundColor: 'rgba(30, 60, 114, 0.15)', fill: true, tension: 0.4, pointBackgroundColor: '#f39c12', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5 }] }, options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'معدل المشاوير خلال الفترة', font: {size: 18} } } } });
+            
             const niceColors = ['#3498db', '#9b59b6', '#e67e22', '#1abc9c', '#f1c40f', '#e74c3c', '#34495e', '#16a085', '#27ae60', '#2980b9', '#d35400', '#c0392b', '#7f8c8d', '#8e44ad', '#2c3e50'];
-            let sortedTrips = Object.entries(tripNameData).sort((a, b) => b[1] - a[1]);
-            let topTrips = sortedTrips.slice(0, 10);
-            let othersCount = sortedTrips.slice(10).reduce((sum, item) => sum + item[1], 0);
-            let finalLabels = topTrips.map(item => item[0]);
-            let finalData = topTrips.map(item => item[1]);
-            if(othersCount > 0) { finalLabels.push('أخرى (Others)'); finalData.push(othersCount); }
-
-            window.c4 = new Chart(document.getElementById('chartTripNames'), {
-                type: 'doughnut',
-                data: { labels: finalLabels, datasets: [{ data: finalData, backgroundColor: niceColors, borderWidth: 2, borderColor: '#fff' }] },
-                options: { 
-                    animation: false, responsive: true, maintainAspectRatio: false, layout: { padding: 10 },
-                    plugins: { title: { display: true, text: 'أكثر المشاوير طلباً (بالاسم)', font: {size: 18} }, legend: { position: 'bottom', labels: { font: { size: 12 }, boxWidth: 15 } } } 
-                }
-            });
+            let sortedTrips = Object.entries(tripNameData).sort((a, b) => b[1] - a[1]); let topTrips = sortedTrips.slice(0, 10); let othersCount = sortedTrips.slice(10).reduce((sum, item) => sum + item[1], 0); let finalLabels = topTrips.map(item => item[0]); let finalData = topTrips.map(item => item[1]); if(othersCount > 0) { finalLabels.push('أخرى (Others)'); finalData.push(othersCount); }
+            window.c4 = new Chart(document.getElementById('chartTripNames'), { type: 'doughnut', data: { labels: finalLabels, datasets: [{ data: finalData, backgroundColor: niceColors, borderWidth: 2, borderColor: '#fff' }] }, options: { animation: false, responsive: true, maintainAspectRatio: false, layout: { padding: 10 }, plugins: { title: { display: true, text: 'أكثر المشاوير طلباً (بالاسم)', font: {size: 18} }, legend: { position: 'bottom', labels: { font: { size: 12 }, boxWidth: 15 } } } } });
             return;
         }
 
-        // ================== حل مشكلة صافي الربح الدقيقة ==================
         if (type === 'net_profit') {
             let comm = 0, fRev = 0, fExp = 0, mExp = 0;
-            recentTripsDB.forEach(t => {
-                const d = getCleanDay(t.date);
-                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    let r = parseFloat(t.revenue || 0);
-                    let f = parseFloat(t.fee || 0);
-                    let actF = parseFloat(t.driver_fee || 0);
-                    // صافي عمولة المشوار = إيراد العميل - الشريك - السائق الفعلي
-                    comm += (r - f - actF); 
-                }
-            });
-            financesDB.forEach(f => {
-                const d = getCleanDay(f.date);
-                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    if(f.type === 'Revenue') fRev += parseFloat(f.amount || 0);
-                    else fExp += parseFloat(f.amount || 0);
-                }
-            });
-            maintenanceDB.forEach(m => {
-                const d = getCleanDay(m.date);
-                if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) mExp += parseFloat(m.amount || 0);
-            });
+            recentTripsDB.forEach(t => { const d = getCleanDay(t.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) { comm += (parseFloat(t.revenue || 0) - parseFloat(t.fee || 0)); } });
+            financesDB.forEach(f => { const d = getCleanDay(f.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) { if(f.type === 'Revenue') fRev += parseFloat(f.amount || 0); else fExp += parseFloat(f.amount || 0); } });
+            maintenanceDB.forEach(m => { const d = getCleanDay(m.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) mExp += parseFloat(m.amount || 0); });
 
-            let totalIncome = comm + fRev;
-            let totalExpenses = fExp + mExp;
-            let net = totalIncome - totalExpenses;
-
-            tableWrapper.style.display = 'none';
-            document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_net_profit} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
-            document.getElementById('printReportTitle').style.display = 'block';
-
-            summaryCard.style.display = 'block';
-            summaryCard.innerHTML = `
-                <div class="net-profit-card">
-                    <p style="font-size:1.1rem; margin-bottom:5px;">إجمالي الدخل (صافي عمولات المشاوير + إيرادات خارجية): <strong>${totalIncome.toFixed(2)}</strong></p>
-                    <p style="font-size:1.1rem; margin-bottom:15px; color:#ffcccc;">إجمالي المصروفات (الصيانة + المصروفات الخارجية): <strong>${totalExpenses.toFixed(2)}</strong></p>
-                    <hr style="border-color:rgba(255,255,255,0.2); margin-bottom:15px;">
-                    <p style="font-size:1.3rem;">NET PROFIT / صافي الربح الحقيقي</p>
-                    <h2>${net.toFixed(2)} EGP</h2>
-                </div>
-            `;
+            let totalIncome = comm + fRev; let totalExpenses = fExp + mExp; let net = totalIncome - totalExpenses;
+            tableWrapper.style.display = 'none'; document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_net_profit} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`; document.getElementById('printReportTitle').style.display = 'block';
+            summaryCard.style.display = 'block'; summaryCard.innerHTML = `<div class="net-profit-card"><p style="font-size:1.1rem; margin-bottom:5px;">إجمالي الدخل (صافي عمولات المشاوير + إيرادات خارجية): <strong>${totalIncome.toFixed(2)}</strong></p><p style="font-size:1.1rem; margin-bottom:15px; color:#ffcccc;">إجمالي المصروفات (الصيانة + المصروفات الخارجية): <strong>${totalExpenses.toFixed(2)}</strong></p><hr style="border-color:rgba(255,255,255,0.2); margin-bottom:15px;"><p style="font-size:1.3rem;">NET PROFIT / صافي الربح الحقيقي</p><h2>${net.toFixed(2)} EGP</h2></div>`;
             return;
         }
 
-        if (type === 'finance') {
-            financesDB.forEach(f => { const d = getCleanDay(f.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) res.push(f); });
-        } else if (type === 'maintenance') {
-            maintenanceDB.forEach(m => { const d = getCleanDay(m.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) res.push(m); });
-        } else {
+        if (type === 'finance') { financesDB.forEach(f => { const d = getCleanDay(f.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) res.push(f); }); } 
+        else if (type === 'maintenance') { maintenanceDB.forEach(m => { const d = getCleanDay(m.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) res.push(m); }); } 
+        else {
             recentTripsDB.forEach(t => {
                 const d = getCleanDay(t.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    const cName = (t.client || "").trim(); const pName = (t.driver || "").trim(); const tName = (t.trip || t.trip_name || "").trim();
-                    const aDriver = (t.actual_driver || "").trim(); const vPlate = (t.vehicle_plate || "").trim();
-                    const rev = parseFloat(t.revenue || t.amount || 0); const fee = parseFloat(t.fee || t.driver_fee || 0); const actFee = parseFloat(t.actual_driver_fee || t.driver_fee || 0);
+                    const cName = (t.client || "").trim(); const dName = (t.driver || "").trim(); const tName = (t.trip || t.trip_name || "").trim(); const vPlate = (t.vehicle_plate || "").trim();
+                    const rev = parseFloat(t.revenue || t.amount || 0); const fee = parseFloat(t.fee || t.driver_fee || 0);
 
-                    if (type === 'client' && cName.toLowerCase() === target) { res.push({ date: t.date, desc: tName, amt: rev }); } 
-                    else if (type === 'driver' && pName.toLowerCase() === target) { res.push({ date: t.date, desc: tName, amt: fee }); } 
-                    else if (type === 'actual_driver' && aDriver.toLowerCase() === target) { res.push({ date: t.date, desc: `${tName} (${vPlate})`, amt: actFee }); } 
+                    if (type === 'client' && cName.toLowerCase() === target) { res.push({ date: t.date, desc: `${tName} (${vPlate})`, amt: rev }); } 
+                    else if (type === 'driver' && dName.toLowerCase() === target) { res.push({ date: t.date, desc: `${tName} (${vPlate})`, amt: fee }); } 
                     else if (type === 'vehicle_plate' && vPlate.toLowerCase() === target) { res.push({ date: t.date, desc: `${tName} (${cName})`, amt: rev }); } 
-                    else if (type === 'trips') { res.push({ date: t.date, desc: `${tName} (${cName} - ${pName})`, amt: rev }); } 
-                    else if (type === 'trip_detailed' && tName.toLowerCase() === target) { res.push({ date: t.date, desc: `${cName} / ${pName}`, amt: rev }); }
+                    else if (type === 'trip_detailed' && tName.toLowerCase() === target) { res.push({ date: t.date, desc: `${cName} / ${dName}`, amt: rev }); }
                 }
             });
         }
@@ -1179,18 +805,15 @@
         if (type === 'finance') {
             thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_cat}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { tot += (r.type === 'Revenue' ? parseFloat(r.amount) : -parseFloat(r.amount)); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.category}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; });
-            tfoot.innerHTML = `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
-            document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_fin} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
+            tfoot.innerHTML = `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_fin} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else if (type === 'maintenance') {
             thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_loc}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { tot += parseFloat(r.amount); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.location}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; });
-            tfoot.innerHTML = `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
-            document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_mnt} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
+            tfoot.innerHTML = `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_mnt} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else {
             thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.th_desc}</th><th>${dL.rep_amt}</th></tr>`;
             res.forEach((r, i) => { tot += parseFloat(r.amt); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td></tr>`; });
-            tfoot.innerHTML = `<tr class="total-row"><td colspan="3">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`;
-            document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.tab_rep}: ${target.toUpperCase()} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
+            tfoot.innerHTML = `<tr class="total-row"><td colspan="3">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.tab_rep}: ${target.toUpperCase()} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         }
         document.getElementById('printReportTitle').style.display = 'block';
     }
