@@ -5,19 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Samy Fleet Pro 2026</title>
     
+    <!-- خطوط جوجل المودرن (Cairo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <!-- المكتبات: إكسيل، PDF، ورسوم بيانية (Charts) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        /* تطبيق الخط المودرن على كل الأبلكيشن */
+        * { box-sizing: border-box; font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
         body { background-color: #f4f7f6; color: #333; overflow-x: hidden; scroll-behavior: smooth; }
 
         #splashScreen { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; color: #1e3c72; transition: opacity 0.5s ease, visibility 0.5s ease; }
         @keyframes driveForward { 0% { transform: scale(0.1) translateY(-100px); opacity: 0; } 80% { transform: scale(1.1) translateY(10px); opacity: 1; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
         .splash-logo { font-size: 5rem; margin-bottom: 10px; animation: driveForward 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
-        .splash-title { font-size: 2.2rem; font-weight: bold; margin-bottom: 15px; }
+        .splash-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 15px; }
         
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #f39c12; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 10px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -25,25 +31,25 @@
 
         #loginOverlay { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(30,60,114,0.95), rgba(42,82,152,0.95)); display: flex; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.5s ease; visibility: hidden; opacity: 0; }
         .login-card { background: #ffffff; padding: 35px 25px; border-radius: 16px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .login-card h2 { color: #1e3c72; margin-bottom: 8px; font-size: 1.6rem; }
+        .login-card h2 { color: #1e3c72; margin-bottom: 8px; font-size: 1.6rem; font-weight: 800; }
         
         .app-container { max-width: 1200px; margin: 20px auto; background: transparent; padding: 0 15px; min-height: 90vh; padding-bottom: 80px; }
         .header-bar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); flex-wrap: wrap; gap: 10px; }
         
-        .network-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-top: 5px; cursor: pointer; transition: 0.3s; }
+        .network-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-top: 5px; cursor: pointer; transition: 0.3s; }
         .network-online { background: #eafaf1; color: #27ae60; border: 1px solid #27ae60; }
         .network-sync { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .network-offline { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .nav-tabs::-webkit-scrollbar { display: none; }
-        .tab-btn { background: #fff; color: #7f8c8d; border: 1px solid #e0e0e0; padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.95rem; flex-shrink: 0; white-space: nowrap; }
+        .tab-btn { background: #fff; color: #7f8c8d; border: 1px solid #e0e0e0; padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 1rem; flex-shrink: 0; white-space: nowrap; }
         .tab-btn.active { background: #1e3c72; color: #fff; border-color: #1e3c72; box-shadow: 0 4px 10px rgba(30,60,114,0.3); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
         .card { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); width: 100%; overflow: hidden; }
-        .section-title { font-weight: bold; color: #1e3c72; font-size: 1.2rem; margin:0; }
+        .section-title { font-weight: 800; color: #1e3c72; font-size: 1.3rem; margin:0; }
         
         .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; width: 100%; }
         @media (max-width: 600px) { .grid-form { grid-template-columns: 1fr; } }
@@ -52,8 +58,8 @@
 
         .form-group { display: flex; flex-direction: column; text-align: left; width: 100%; overflow: hidden; }
         html[dir="rtl"] .form-group { text-align: right; }
-        .form-group label { font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #2c3e50; }
-        .form-group input, .form-group select { padding: 11px; border: 1px solid #dcdde1; border-radius: 8px; font-size: 0.95rem; outline: none; background: #f8f9fa; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .form-group label { font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; color: #2c3e50; }
+        .form-group input, .form-group select { padding: 10px 12px; border: 1px solid #dcdde1; border-radius: 8px; font-size: 1rem; outline: none; background: #f8f9fa; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;}
 
         .pass-wrapper { position: relative; width: 100%; }
         .pass-wrapper input { width: 100%; padding-right: 40px; }
@@ -61,7 +67,7 @@
         .pass-toggle-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem; }
         html[dir="rtl"] .pass-toggle-btn { right: auto; left: 10px; }
 
-        .btn { border: none; padding: 10px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; font-size: 0.9rem; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;}
+        .btn { border: none; padding: 10px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center; font-size: 0.95rem; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;}
         .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } .btn-purple { background: #8e44ad; } .btn-dark { background: #2c3e50; }
         .btn-whatsapp { background: #25D366; color: white; }
         .btn-gray { background: #7f8c8d; } .btn-outline { background: #fff; color: #1e3c72; border: 1px solid #1e3c72; }
@@ -73,16 +79,16 @@
         .scroll-btn { width: 45px; height: 45px; border-radius: 50%; background: #f39c12; color: white; border: 2px solid #fff; font-size: 1.2rem; cursor: pointer; opacity: 0.85; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
 
         #toastStack { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
-        .toast { color: white; padding: 15px; border-radius: 8px; font-weight: bold; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .toast { color: white; padding: 15px; border-radius: 8px; font-weight: 700; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         
         .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid #eee; -webkit-overflow-scrolling: touch; }
-        table { width: 100%; border-collapse: collapse; background: #fff; text-align: center; white-space: nowrap; font-size: 0.9rem; }
-        th, td { padding: 12px 10px; border-bottom: 1px solid #eee; text-align: center; }
+        table { width: 100%; border-collapse: collapse; background: #fff; text-align: center; white-space: nowrap; font-size: 0.95rem; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid #eee; text-align: center; font-weight: 600;}
         tr { page-break-inside: avoid; break-inside: avoid; } 
-        th { background: #f39c12; color: white; position: sticky; top: 0; font-weight: 600; }
+        th { background: #f39c12; color: white; position: sticky; top: 0; font-weight: 800; }
         
         tfoot { display: table-row-group; }
-        .total-row td { background: #eafaf1 !important; font-weight: bold; font-size: 1.1rem; text-align: left; border-top: 2px solid #27ae60; }
+        .total-row td { background: #eafaf1 !important; font-weight: 800; font-size: 1.1rem; text-align: left; border-top: 2px solid #27ae60; }
         html[dir="rtl"] .total-row td { text-align: right; }
 
         .page-break-row { page-break-after: always !important; break-after: page !important; }
@@ -91,19 +97,20 @@
         .master-card { background: #f9fbfd; border: 1px solid #e1e8ed; padding: 15px; border-radius: 10px; width: 100%; overflow: hidden; }
 
         .report-print-container { background: #fff; padding: 15px; border-radius: 8px; width: 100%; overflow-x: auto; } 
-        .report-title-header { text-align: center; color: #1e3c72; margin-bottom: 15px; font-size: 1.4rem; display: none; border-bottom: 3px solid #f39c12; padding-bottom: 8px; font-weight: bold; }
+        .report-title-header { text-align: center; color: #1e3c72; margin-bottom: 15px; font-size: 1.5rem; display: none; border-bottom: 3px solid #f39c12; padding-bottom: 8px; font-weight: 800; }
 
         .net-profit-card { background: #1e3c72; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .net-profit-card h2 { font-size: 2rem; margin: 10px 0; color: #f1c40f; }
+        .net-profit-card h2 { font-size: 2.2rem; font-weight: 800; margin: 10px 0; color: #f1c40f; }
 
         /* صندوق إنذارات الصيانة */
         .alert-box { background: #fdf2e9; border: 1px solid #f39c12; padding: 15px; border-radius: 10px; margin-bottom: 15px; display: none; }
-        .alert-box h4 { color: #d35400; margin-bottom: 10px; }
-        .alert-item { background: #fff; padding: 10px; border-radius: 6px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-weight: bold; display: flex; justify-content: space-between;}
+        .alert-box h4 { color: #d35400; margin-bottom: 10px; font-weight: 800;}
+        .alert-item { background: #fff; padding: 10px; border-radius: 6px; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-weight: 700; display: flex; justify-content: space-between;}
 
-        .pdf-compact table { font-size: 11px !important; line-height: 1.2 !important; }
+        /* تنسيقات الطباعة والتصغير */
+        .pdf-compact table { font-size: 11px !important; line-height: 1.3 !important; }
         .pdf-compact th, .pdf-compact td { padding: 6px 5px !important; height: auto !important; }
-        .pdf-compact .report-title-header { font-size: 1.2rem !important; margin-bottom: 10px !important; padding-bottom: 5px !important; }
+        .pdf-compact .report-title-header { font-size: 1.3rem !important; margin-bottom: 10px !important; padding-bottom: 5px !important; }
         
         .chart-page { width: 100%; height: 500px; margin-bottom: 40px; display: flex; justify-content: center; align-items: center; page-break-after: always; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .chart-page canvas { max-height: 100% !important; max-width: 100% !important; }
@@ -123,14 +130,14 @@
     <div class="splash-title">Samy Fleet Pro</div>
     <div id="splashLoading" style="display:none;">
         <div class="loader"></div>
-        <p id="splashMessage" style="margin-top: 10px; font-weight: bold; color: #1e3c72; font-size: 1.1rem; text-align: center; padding: 0 20px;"></p>
+        <p id="splashMessage" style="margin-top: 10px; font-weight: 700; color: #1e3c72; font-size: 1.1rem; text-align: center; padding: 0 20px;"></p>
     </div>
 </div>
 
 <div id="loginOverlay">
     <div class="login-card">
         <h2>Login</h2><p>Secured Fleet Management</p>
-        <div class="form-group"><label data-tr="username">Username:</label><select id="loginUser" style="text-align:center; font-weight: bold;"><option value="SAMY" selected>SAMY</option></select></div>
+        <div class="form-group"><label data-tr="username">Username:</label><select id="loginUser" style="text-align:center; font-weight: 700;"><option value="SAMY" selected>SAMY</option></select></div>
         <div class="form-group" style="margin-top:15px; margin-bottom: 25px;"><label data-tr="password">Password:</label><div class="pass-wrapper"><input type="password" id="loginPass" placeholder="..." style="text-align:center; letter-spacing: 2px;" onkeypress="if(event.key === 'Enter') login()"><button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility()">👁️</button></div></div>
         <button id="loginBtn" class="btn btn-blue" style="width:100%;" onclick="login()">Login 🚀</button>
     </div>
@@ -139,7 +146,7 @@
 <div class="app-container" id="mainApp" style="display:none;">
     <div class="header-bar">
         <div style="display:flex; align-items:center; gap:10px;">
-            <span id="userInfo">👤 Welcome</span>
+            <span id="userInfo" style="font-weight: 700;">👤 Welcome</span>
             <div id="networkStatus" class="network-badge network-online" onclick="forceAppSync()">🟢 Online</div>
         </div>
         <div style="display:flex; gap:10px;">
@@ -160,7 +167,7 @@
     <!-- Tab 1: Add Trip -->
     <div id="addTripTab" class="tab-content active">
         <div class="card">
-            <!-- شريط التنقل الجديد (أول، أخير، سابق، لاحق) -->
+            <!-- شريط التنقل -->
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                 <h2 class="section-title" data-tr="add_title">📝 Add New Trip</h2>
                 <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
@@ -198,28 +205,28 @@
             <div class="grid-form" style="margin-top:20px; background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
                 <div class="form-group">
                     <label style="color:#27ae60;" data-tr="rev_client">💰 Revenue from Client (EGP):</label>
-                    <input type="number" id="revEGP" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">
+                    <input type="number" id="revEGP" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: 800; color: #27ae60;">
                 </div>
                 <div class="form-group">
                     <label style="color:#e74c3c;" data-tr="fee_driver">💵 Partner Fee (EGP):</label>
-                    <input type="number" id="tripDriverFee" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: bold; color: #e74c3c;">
+                    <input type="number" id="tripDriverFee" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: 800; color: #e74c3c;">
                 </div>
                 <div class="form-group">
                     <label style="color:#8e44ad;">🧑‍✈️ Actual Driver Fee (عمولة السائق):</label>
-                    <input type="number" id="tripActualDriverFee" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: bold; color: #8e44ad;" placeholder="0">
+                    <input type="number" id="tripActualDriverFee" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: 800; color: #8e44ad;" placeholder="0">
                 </div>
             </div>
 
             <div style="margin-top:20px; padding:15px; background:#1e3c72; color:white; border-radius:10px; text-align:center;">
-                <span style="font-size:1.1rem;" data-tr="net">Net Profit (صافي الربح): </span>
-                <span id="netCommission" style="color:#f1c40f; font-size:1.8rem; font-weight:bold;">0.00</span>
+                <span style="font-size:1.1rem; font-weight:700;" data-tr="net">Net Profit (صافي الربح): </span>
+                <span id="netCommission" style="color:#f1c40f; font-size:2rem; font-weight:800;">0.00</span>
             </div>
 
             <button id="saveTripBtn" class="btn btn-green" style="width:100%; margin-top:20px; font-size:1.1rem;" onclick="saveTrip()" data-tr="save_trip">Save Trip 💾</button>
         </div>
 
         <div class="card">
-            <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px;" data-tr="recent_trips">🕒 Recent Trips</h3>
+            <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px; font-weight:800;" data-tr="recent_trips">🕒 Recent Trips</h3>
             <div class="table-responsive">
                 <table id="recentTripsTable" style="width:100%;">
                     <thead><tr><th data-tr="th_num">#</th><th data-tr="date">Date</th><th data-tr="client">Client</th><th data-tr="driver">Partner</th><th>Actual Driver</th><th>Car Plate</th><th data-tr="trip">Trip</th><th data-tr="rev">Rev</th><th>Net</th><th>Action</th></tr></thead>
@@ -381,13 +388,13 @@
                     <select id="reportType" onchange="toggleReportTarget()">
                         <option value="client" data-tr="opt_client">Client Report (تقرير عميل)</option>
                         <option value="driver" data-tr="opt_driver">Partner Report (تقرير شريك)</option>
-                        <option value="actual_driver" style="color: #8e44ad;">Driver Report (تقرير سائق فعلي وعمولته)</option>
-                        <option value="vehicle_plate" style="color: #34495e;">Vehicle Report (تقرير إيرادات سيارة)</option>
+                        <option value="actual_driver" style="color: #8e44ad; font-weight: 700;">Driver Report (تقرير سائق فعلي وعمولته)</option>
+                        <option value="vehicle_plate" style="color: #34495e; font-weight: 700;">Vehicle Report (تقرير إيرادات سيارة)</option>
                         <option value="trip_detailed" data-tr="opt_trip">Trip Report</option>
                         <option value="finance" data-tr="opt_fin">Finance Report</option>
                         <option value="maintenance" data-tr="opt_mnt">Maintenance Report</option>
-                        <option value="net_profit" data-tr="opt_net_profit" style="font-weight:bold; color:#1e3c72;">Net Profit Summary 💰</option>
-                        <option value="charts" style="font-weight:bold; color:#e74c3c;">📊 الرسم البياني الشامل (Dashboard)</option>
+                        <option value="net_profit" data-tr="opt_net_profit" style="font-weight:800; color:#1e3c72;">Net Profit Summary 💰</option>
+                        <option value="charts" style="font-weight:800; color:#e74c3c;">📊 الرسم البياني الشامل (Dashboard)</option>
                     </select>
                 </div>
                 <div class="form-group" id="targetContainer"><label id="targetLabel" data-tr="target">Target:</label><select id="reportTarget"></select></div>
@@ -446,7 +453,7 @@
             </div>
             <button class="btn btn-green" style="margin-top: 15px; width: 100%;" onclick="createNewUser()">Create User ➕</button>
 
-            <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px; margin-top: 25px;">👥 Active System Users</h3>
+            <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px; margin-top: 25px; font-weight: 800;">👥 Active System Users</h3>
             <div class="table-responsive">
                 <table id="usersTable" style="width:100%;">
                     <thead><tr><th>#</th><th>Username</th><th>Role</th><th>Action</th></tr></thead>
@@ -465,7 +472,8 @@
 </div>
 
 <script>
-    Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    // تفعيل الخط الجديد على جميع رسومات Chart.js
+    Chart.defaults.font.family = "'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
     Chart.defaults.color = '#333';
     Chart.defaults.scale.grid.color = 'rgba(0, 0, 0, 0.05)';
 
@@ -479,7 +487,6 @@
     let syncQueue = JSON.parse(localStorage.getItem('fleet_sync_queue') || '[]');
     let isSyncing = false; let editingMasterIndex = { client: -1, driver: -1, trip: -1, actual_driver: -1, vehicle: -1 };
     
-    // متغير لتتبع التنقل بين السجلات
     let currentTripViewIndex = -1;
 
     let currentLang = 'en';
@@ -656,30 +663,17 @@
         if(cleanPhone) { window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(txt)}`, '_blank'); } else { window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
     }
 
-    // ==========================================
-    // دالة أزرار التنقل (الأول، السابق، التالي، الأخير)
-    // ==========================================
     function navTrip(action) {
         if (recentTripsDB.length === 0) return toast('⚠️ لا توجد بيانات!', 'warn');
-
-        if (action === 'first') {
-            currentTripViewIndex = 0;
-        } else if (action === 'last') {
-            currentTripViewIndex = recentTripsDB.length - 1;
-        } else if (action === 'prev') {
-            if (currentTripViewIndex > 0) currentTripViewIndex--;
-            else return toast('⚠️ هذا هو السجل الأول', 'info');
-        } else if (action === 'next') {
-            if (currentTripViewIndex < recentTripsDB.length - 1 && currentTripViewIndex !== -1) currentTripViewIndex++;
-            else if (currentTripViewIndex === -1) currentTripViewIndex = 0; 
-            else return toast('⚠️ هذا هو السجل الأخير', 'info');
-        }
-
+        if (action === 'first') { currentTripViewIndex = 0; } 
+        else if (action === 'last') { currentTripViewIndex = recentTripsDB.length - 1; } 
+        else if (action === 'prev') { if (currentTripViewIndex > 0) currentTripViewIndex--; else return toast('⚠️ هذا هو السجل الأول', 'info'); } 
+        else if (action === 'next') { if (currentTripViewIndex < recentTripsDB.length - 1 && currentTripViewIndex !== -1) currentTripViewIndex++; else if (currentTripViewIndex === -1) currentTripViewIndex = 0; else return toast('⚠️ هذا هو السجل الأخير', 'info'); }
         loadTrip(currentTripViewIndex);
     }
 
     function loadTrip(idx) {
-        currentTripViewIndex = idx; // تذكر موقع السجل الحالي
+        currentTripViewIndex = idx; 
         const t = recentTripsDB[idx]; editingTripId = t.id; let dateVal = String(t.date || '').replace(' ', 'T').slice(0,16);
         document.getElementById('tripDate').value = dateVal; document.getElementById('tripClientSelect').value = t.client || ''; 
         document.getElementById('tripDriverSelect').value = t.driver || ''; document.getElementById('tripVehicleType').value = t.vehicle || 'Limousine'; document.getElementById('tripNameSelect').value = t.trip || ''; document.getElementById('revEGP').value = t.revenue || 0; document.getElementById('tripDriverFee').value = t.fee || 0; document.getElementById('tripNotes').value = t.notes || '';
@@ -689,8 +683,7 @@
     function delTrip(idx) { if(confirm('Delete this trip?')) { addToSyncQueue({record_type:"delete_trip", trip_id: recentTripsDB[idx].id}); recentTripsDB.splice(idx,1); renderRecentTrips(); } }
     
     function clearForm() { 
-        currentTripViewIndex = -1; // تصفير موقع السجل عند الضغط على جديد أو مسح
-        editingTripId = null; document.getElementById('tripClientSelect').value=''; document.getElementById('tripDriverSelect').value=''; document.getElementById('tripNameSelect').value=''; document.getElementById('revEGP').value='0'; document.getElementById('tripDriverFee').value='0'; document.getElementById('tripNotes').value=''; document.getElementById('tripActualDriver').value=''; document.getElementById('tripVehiclePlate').value=''; document.getElementById('tripActualDriverFee').value='0'; document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals(); 
+        currentTripViewIndex = -1; editingTripId = null; document.getElementById('tripClientSelect').value=''; document.getElementById('tripDriverSelect').value=''; document.getElementById('tripNameSelect').value=''; document.getElementById('revEGP').value='0'; document.getElementById('tripDriverFee').value='0'; document.getElementById('tripNotes').value=''; document.getElementById('tripActualDriver').value=''; document.getElementById('tripVehiclePlate').value=''; document.getElementById('tripActualDriverFee').value='0'; document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals(); 
     }
 
     function loadMasterEdit(type, index) {
