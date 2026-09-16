@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -55,16 +55,13 @@
         
         .large-inputs .form-group input, .large-inputs .form-group select { padding: 14px; font-size: 1.05rem; }
 
-        .form-group { display: flex; flex-direction: column; text-align: left; width: 100%; overflow: hidden; }
-        html[dir="rtl"] .form-group { text-align: right; }
+        .form-group { display: flex; flex-direction: column; text-align: right; width: 100%; overflow: hidden; }
         .form-group label { font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; color: #2c3e50; }
         .form-group input, .form-group select { padding: 10px 12px; border: 1px solid #dcdde1; border-radius: 8px; font-size: 1rem; outline: none; background: #f8f9fa; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;}
 
         .pass-wrapper { position: relative; width: 100%; }
-        .pass-wrapper input { width: 100%; padding-right: 40px; }
-        html[dir="rtl"] .pass-wrapper input { padding-right: 11px; padding-left: 40px; }
-        .pass-toggle-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem; }
-        html[dir="rtl"] .pass-toggle-btn { right: auto; left: 10px; }
+        .pass-wrapper input { width: 100%; padding-right: 11px; padding-left: 40px; }
+        .pass-toggle-btn { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem; }
 
         .btn { border: none; padding: 10px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; text-align: center; font-size: 0.95rem; color: white; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;}
         .btn-green { background: #27ae60; } .btn-blue { background: #1e3c72; } .btn-red { background: #e74c3c; } .btn-purple { background: #8e44ad; } .btn-dark { background: #2c3e50; }
@@ -73,8 +70,7 @@
 
         .btn-grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 20px; width: 100%; }
 
-        .scroll-btn-group { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
-        html[dir="rtl"] .scroll-btn-group { right: auto; left: 20px; }
+        .scroll-btn-group { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
         .scroll-btn { width: 45px; height: 45px; border-radius: 50%; background: #f39c12; color: white; border: 2px solid #fff; font-size: 1.2rem; cursor: pointer; opacity: 0.85; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
 
         #toastStack { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; }
@@ -86,10 +82,9 @@
         tr { page-break-inside: avoid; break-inside: avoid; } 
         th { background: #f39c12; color: white; position: sticky; top: 0; font-weight: 800; }
         
-        /* نقل الإجمالي عشان ميهربش من الـ PDF */
-        .total-row td { background: #eafaf1 !important; font-weight: 800; font-size: 1.1rem; text-align: left; border-top: 2px solid #27ae60; }
-        html[dir="rtl"] .total-row td { text-align: right; }
-
+        tfoot { display: table-row-group; }
+        .total-row td { background: #eafaf1 !important; font-weight: 800; font-size: 1.1rem; text-align: right; border-top: 2px solid #27ae60; }
+        
         .page-break-row { page-break-after: always !important; break-after: page !important; }
         
         .master-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; width: 100%; }
@@ -112,6 +107,16 @@
         .chart-page { width: 100%; height: 500px; margin-bottom: 40px; display: flex; justify-content: center; align-items: center; page-break-after: always; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .chart-page canvas { max-height: 100% !important; max-width: 100% !important; }
         .chart-page.doughnut-page { min-height: 600px; }
+
+        /* ستايل أزرار التنقل المودرن (دوائر) */
+        .nav-icon-btn { 
+            background: #f8f9fa; color: #1e3c72; border: 1px solid #dcdde1; 
+            border-radius: 50%; width: 42px; height: 42px; 
+            display: flex; justify-content: center; align-items: center; 
+            font-size: 1.2rem; cursor: pointer; transition: 0.3s; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .nav-icon-btn:hover { background: #1e3c72; color: #fff; transform: scale(1.1); border-color: #1e3c72; }
     </style>
 </head>
 <body>
@@ -133,99 +138,99 @@
 
 <div id="loginOverlay">
     <div class="login-card">
-        <h2>Login</h2><p>Secured Fleet Management</p>
-        <div class="form-group"><label data-tr="username">Username:</label><select id="loginUser" style="text-align:center; font-weight: 700;"><option value="SAMY" selected>SAMY</option></select></div>
-        <div class="form-group" style="margin-top:15px; margin-bottom: 25px;"><label data-tr="password">Password:</label><div class="pass-wrapper"><input type="password" id="loginPass" placeholder="..." style="text-align:center; letter-spacing: 2px;" onkeypress="if(event.key === 'Enter') login()"><button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility()">👁️</button></div></div>
-        <button id="loginBtn" class="btn btn-blue" style="width:100%;" onclick="login()">Login 🚀</button>
+        <h2>تسجيل الدخول</h2><p>نظام إدارة الأسطول</p>
+        <div class="form-group"><label>اسم المستخدم:</label><select id="loginUser" style="text-align:center; font-weight: 700;"><option value="SAMY" selected>SAMY</option></select></div>
+        <div class="form-group" style="margin-top:15px; margin-bottom: 25px;"><label>كلمة المرور:</label><div class="pass-wrapper"><input type="password" id="loginPass" placeholder="..." style="text-align:center; letter-spacing: 2px;" onkeypress="if(event.key === 'Enter') login()"><button type="button" class="pass-toggle-btn" onclick="togglePasswordVisibility()">👁️</button></div></div>
+        <button id="loginBtn" class="btn btn-blue" style="width:100%;" onclick="login()">دخول 🚀</button>
     </div>
 </div>
 
 <div class="app-container" id="mainApp" style="display:none;">
     <div class="header-bar">
         <div style="display:flex; align-items:center; gap:10px;">
-            <span id="userInfo" style="font-weight: 700;">👤 Welcome</span>
-            <div id="networkStatus" class="network-badge network-online" onclick="forceAppSync()">🟢 Online</div>
+            <span id="userInfo" style="font-weight: 700;">👤 مرحباً</span>
+            <div id="networkStatus" class="network-badge network-online" onclick="forceAppSync()">🟢 متصل</div>
         </div>
         <div style="display:flex; gap:10px;">
-            <button class="btn btn-outline" onclick="toggleLang()">🌐 AR/EN</button>
-            <button class="btn btn-red" onclick="logout()" data-tr="logout">Logout 🚪</button>
+            <button class="btn btn-red" onclick="logout()">تسجيل الخروج 🚪</button>
         </div>
     </div>
 
     <div class="nav-tabs">
-        <button class="tab-btn active" onclick="showTab('addTripTab', this)" data-tr="tab_add">📝 Add Trip</button>
-        <button class="tab-btn admin-only" onclick="showTab('mastersTab', this)" data-tr="tab_masters">⚙️ Masters</button>
-        <button class="tab-btn admin-only" onclick="showTab('financeTab', this)" data-tr="tab_fin">💵 Finance</button>
-        <button class="tab-btn admin-only" onclick="showTab('maintenanceTab', this)" data-tr="tab_mnt">🔧 Maintenance</button>
-        <button class="tab-btn admin-only" onclick="showTab('reportsTab', this)" data-tr="tab_rep">📊 Reports</button>
-        <button class="tab-btn" onclick="showTab('usersTab', this)" data-tr="tab_users">🔐 Users</button>
+        <button class="tab-btn active" onclick="showTab('addTripTab', this)">📝 إضافة مشوار</button>
+        <button class="tab-btn admin-only" onclick="showTab('mastersTab', this)">⚙️ الإعدادات</button>
+        <button class="tab-btn admin-only" onclick="showTab('financeTab', this)">💵 المالية</button>
+        <button class="tab-btn admin-only" onclick="showTab('maintenanceTab', this)">🔧 الصيانة</button>
+        <button class="tab-btn admin-only" onclick="showTab('reportsTab', this)">📊 التقارير</button>
+        <button class="tab-btn" onclick="showTab('usersTab', this)">🔐 الحسابات</button>
     </div>
 
     <!-- Tab 1: Add Trip -->
     <div id="addTripTab" class="tab-content active">
         <div class="card">
+            <!-- شريط التنقل الجديد (أيقونات مودرن) -->
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f39c12; padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                <h2 class="section-title" data-tr="add_title">📝 Add New Trip</h2>
-                <div style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
-                    <button class="btn btn-dark" style="padding: 5px 10px;" onclick="navTrip('first')" data-tr="btn_first">|◀ الأول</button>
-                    <button class="btn btn-dark" style="padding: 5px 10px;" onclick="navTrip('prev')" data-tr="btn_prev">◀ السابق</button>
-                    <button class="btn btn-dark" style="padding: 5px 10px;" onclick="navTrip('next')" data-tr="btn_next">اللاحق ▶</button>
-                    <button class="btn btn-dark" style="padding: 5px 10px;" onclick="navTrip('last')" data-tr="btn_last">الأخير ▶|</button>
-                    <button class="btn btn-green" style="padding: 5px 10px;" onclick="clearForm()" data-tr="btn_new">جديد 🆕</button>
-                    <button class="btn btn-gray" style="padding: 5px 10px;" onclick="clearForm()" data-tr="btn_clear">مسح 🧹</button>
+                <h2 class="section-title">📝 إضافة مشوار جديد</h2>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
+                    <!-- تم استبدال النصوص بأيقونات مع الاحتفاظ بالوظيفة -->
+                    <button class="nav-icon-btn" onclick="navTrip('last')" title="الأخير">⏭️</button>
+                    <button class="nav-icon-btn" onclick="navTrip('next')" title="اللاحق">▶️</button>
+                    <button class="nav-icon-btn" onclick="navTrip('prev')" title="السابق">◀️</button>
+                    <button class="nav-icon-btn" onclick="navTrip('first')" title="الأول">⏮️</button>
+                    <button class="btn btn-green" style="padding: 8px 15px; border-radius: 20px;" onclick="clearForm()">جديد 🆕</button>
                 </div>
             </div>
 
             <div class="grid-form">
-                <div class="form-group"><label data-tr="client">Client:</label><input type="text" id="tripClientSelect" list="clientList"></div>
-                <div class="form-group"><label data-tr="driver">Partner (الشريك):</label><input type="text" id="tripDriverSelect" list="driverList"></div>
+                <div class="form-group"><label>العميل (Client):</label><input type="text" id="tripClientSelect" list="clientList" placeholder="اسم العميل..."></div>
+                <div class="form-group"><label>الشريك (Partner):</label><input type="text" id="tripDriverSelect" list="driverList" placeholder="اسم الشريك..."></div>
                 <div class="form-group">
-                    <label data-tr="vehicle">Vehicle Type:</label>
+                    <label>نوع السيارة:</label>
                     <select id="tripVehicleType" onchange="onVehicleTypeChange(); onTripSelected();">
-                        <option value="Limousine" data-tr="v_limo">Limousine</option>
-                        <option value="Microbus" data-tr="v_micro">Microbus</option>
-                        <option value="Coaster" data-tr="v_coaster">Coaster</option>
-                        <option value="Bus" data-tr="v_bus">Bus</option>
+                        <option value="Limousine">ليموزين / ملاكي</option>
+                        <option value="Microbus">ميكروباص</option>
+                        <option value="Coaster">كوستر / ميني باص</option>
+                        <option value="Bus">أتوبيس</option>
                     </select>
                 </div>
-                <div class="form-group"><label data-tr="trip">Trip Name:</label><input type="text" id="tripNameSelect" list="tripList" oninput="onTripSelected()"></div>
+                <div class="form-group"><label>اسم المشوار:</label><input type="text" id="tripNameSelect" list="tripList" oninput="onTripSelected()" placeholder="اختر المشوار..."></div>
             </div>
 
             <div class="grid-form" style="margin-top: 15px;">
-                <div class="form-group"><label>Actual Driver (السائق الفعلي):</label><input type="text" id="tripActualDriver" list="actualDriverListMaster" placeholder="اختياري..."></div>
-                <div class="form-group"><label>Vehicle Plate (رقم السيارة):</label><input type="text" id="tripVehiclePlate" list="vehiclePlateListMaster" oninput="onPlateChange()" placeholder="اختر وسيتم تحديث النوع..." style="direction: ltr;"></div>
-                <div class="form-group"><label data-tr="date">Date & Time:</label><input type="datetime-local" id="tripDate"></div>
-                <div class="form-group"><label data-tr="notes">Notes:</label><input type="text" id="tripNotes"></div>
+                <div class="form-group"><label>السائق الفعلي (Actual Driver):</label><input type="text" id="tripActualDriver" list="actualDriverListMaster" placeholder="اسم السائق..."></div>
+                <div class="form-group"><label>رقم السيارة (Plate):</label><input type="text" id="tripVehiclePlate" list="filteredPlateList" oninput="onPlateChange()" placeholder="اختر وسيتم تحديث النوع..." style="direction: ltr;"></div>
+                <div class="form-group"><label>التاريخ والوقت:</label><input type="datetime-local" id="tripDate"></div>
+                <div class="form-group"><label>ملاحظات:</label><input type="text" id="tripNotes" placeholder="أضف أي ملاحظات هنا..."></div>
             </div>
 
             <div class="grid-form" style="margin-top:20px; background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
                 <div class="form-group">
-                    <label style="color:#27ae60;" data-tr="rev_client">💰 Revenue from Client (EGP):</label>
+                    <label style="color:#27ae60;">💰 حساب العميل (EGP):</label>
                     <input type="number" id="revEGP" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: 800; color: #27ae60;">
                 </div>
                 <div class="form-group">
-                    <label style="color:#e74c3c;" data-tr="fee_driver">💵 Partner Fee (EGP):</label>
+                    <label style="color:#e74c3c;">💵 حساب الشريك (EGP):</label>
                     <input type="number" id="tripDriverFee" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: 800; color: #e74c3c;">
                 </div>
                 <div class="form-group">
-                    <label style="color:#8e44ad;">🧑‍✈️ Actual Driver Fee (عمولة السائق):</label>
+                    <label style="color:#8e44ad;">🧑‍✈️ عمولة السائق الفعلي:</label>
                     <input type="number" id="tripActualDriverFee" value="0" oninput="calcTotals()" style="font-size: 1.2rem; font-weight: 800; color: #8e44ad;" placeholder="0">
                 </div>
             </div>
 
             <div style="margin-top:20px; padding:15px; background:#1e3c72; color:white; border-radius:10px; text-align:center;">
-                <span style="font-size:1.1rem; font-weight:700;" data-tr="net">Net Profit (صافي الربح): </span>
+                <span style="font-size:1.1rem; font-weight:700;">صافي العمولة (Net Profit): </span>
                 <span id="netCommission" style="color:#f1c40f; font-size:2rem; font-weight:800;">0.00</span>
             </div>
 
-            <button id="saveTripBtn" class="btn btn-green" style="width:100%; margin-top:20px; font-size:1.1rem;" onclick="saveTrip()" data-tr="save_trip">Save Trip 💾</button>
+            <button id="saveTripBtn" class="btn btn-green" style="width:100%; margin-top:20px; font-size:1.1rem;" onclick="saveTrip()">حفظ المشوار 💾</button>
         </div>
 
         <div class="card">
-            <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px; font-weight:800;" data-tr="recent_trips">🕒 Recent Trips</h3>
+            <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px; font-weight:800;">🕒 أحدث المشاوير</h3>
             <div class="table-responsive">
                 <table id="recentTripsTable" style="width:100%;">
-                    <thead><tr><th data-tr="th_num">#</th><th data-tr="date">Date</th><th data-tr="client">Client</th><th data-tr="driver">Partner</th><th>Actual Driver</th><th>Car Plate</th><th data-tr="trip">Trip</th><th data-tr="rev">Rev</th><th>Net</th><th>Action</th></tr></thead>
+                    <thead><tr><th>#</th><th>التاريخ</th><th>العميل</th><th>الشريك</th><th>السائق الفعلي</th><th>السيارة</th><th>المشوار</th><th>إيراد</th><th>صافي</th><th>إجراء</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -235,77 +240,77 @@
     <!-- Tab: Masters -->
     <div id="mastersTab" class="tab-content admin-only">
         <div class="card">
-            <h2 class="section-title" data-tr="tab_masters">⚙️ Master Data Management</h2>
+            <h2 class="section-title">⚙️ الإعدادات (البيانات الأساسية)</h2>
             <div class="master-grid">
                 
                 <div class="master-card">
-                    <h3 data-tr="lbl_clients">👥 Clients</h3>
+                    <h3>👥 قائمة العملاء</h3>
                     <div style="display:flex; gap:8px; margin-bottom:10px;">
                         <input type="text" id="mClientName" placeholder="..." style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">
-                        <button id="addClientBtn" class="btn btn-green" onclick="addMasterItem('client', this)">Add</button>
+                        <button id="addClientBtn" class="btn btn-green" onclick="addMasterItem('client', this)">إضافة</button>
                     </div>
                     <div class="table-responsive" style="max-height:250px;">
-                        <table id="mClientTable" style="width:100%;"><thead><tr><th data-tr="th_num">#</th><th data-tr="client">Client Name</th><th>Action</th></tr></thead><tbody></tbody></table>
+                        <table id="mClientTable" style="width:100%;"><thead><tr><th>#</th><th>اسم العميل</th><th>إجراء</th></tr></thead><tbody></tbody></table>
                     </div>
                 </div>
 
                 <div class="master-card">
-                    <h3 data-tr="lbl_partners">🤝 Partners (الشركاء)</h3>
+                    <h3>🤝 الشركاء (Partners)</h3>
                     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
-                        <input type="text" id="mDriverName" placeholder="..." style="padding:8px; border-radius:6px; border:1px solid #ccc;">
-                        <input type="text" id="mDriverPhone" placeholder="Phone (e.g. 201xxxx)" style="padding:8px; border-radius:6px; border:1px solid #ccc; direction:ltr;">
-                        <button id="addDriverBtn" class="btn btn-green" onclick="addMasterItem('driver', this)">Add / Update</button>
+                        <input type="text" id="mDriverName" placeholder="الاسم..." style="padding:8px; border-radius:6px; border:1px solid #ccc;">
+                        <input type="text" id="mDriverPhone" placeholder="رقم الهاتف" style="padding:8px; border-radius:6px; border:1px solid #ccc; direction:ltr;">
+                        <button id="addDriverBtn" class="btn btn-green" onclick="addMasterItem('driver', this)">إضافة / تعديل</button>
                     </div>
                     <div class="table-responsive" style="max-height:250px;">
-                        <table id="mDriverTable" style="width:100%;"><thead><tr><th data-tr="th_num">#</th><th data-tr="driver">Name</th><th>Phone</th><th>Action</th></tr></thead><tbody></tbody></table>
+                        <table id="mDriverTable" style="width:100%;"><thead><tr><th>#</th><th>الاسم</th><th>الهاتف</th><th>إجراء</th></tr></thead><tbody></tbody></table>
                     </div>
                 </div>
                 
                 <div class="master-card">
-                    <h3 style="color:#8e44ad;">🧑‍✈️ Actual Drivers (السائقين الفعليين)</h3>
+                    <h3 style="color:#8e44ad;">🧑‍✈️ السائقين الفعليين</h3>
                     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
                         <input type="text" id="mActualDriverName" placeholder="اسم السائق..." style="padding:8px; border-radius:6px; border:1px solid #ccc;">
-                        <input type="text" id="mActualDriverPhone" placeholder="Phone (e.g. 201xxxx)" style="padding:8px; border-radius:6px; border:1px solid #ccc; direction:ltr;">
-                        <button id="addActualDriverBtn" class="btn btn-purple" onclick="addMasterItem('actual_driver', this)">Add / Update</button>
+                        <input type="text" id="mActualDriverPhone" placeholder="رقم الهاتف" style="padding:8px; border-radius:6px; border:1px solid #ccc; direction:ltr;">
+                        <button id="addActualDriverBtn" class="btn btn-purple" onclick="addMasterItem('actual_driver', this)">إضافة / تعديل</button>
                     </div>
                     <div class="table-responsive" style="max-height:250px;">
-                        <table id="mActualDriverTable" style="width:100%;"><thead><tr><th data-tr="th_num">#</th><th>Name</th><th>Phone</th><th>Action</th></tr></thead><tbody></tbody></table>
+                        <table id="mActualDriverTable" style="width:100%;"><thead><tr><th>#</th><th>الاسم</th><th>الهاتف</th><th>إجراء</th></tr></thead><tbody></tbody></table>
                     </div>
                 </div>
 
                 <div class="master-card">
-                    <h3 style="color:#34495e;">🚘 Vehicles (السيارات المتاحة)</h3>
+                    <h3 style="color:#34495e;">🚘 السيارات المتاحة</h3>
                     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
                         <input type="text" id="mVehiclePlate" placeholder="رقم السيارة..." style="padding:8px; border-radius:6px; border:1px solid #ccc; direction:ltr;">
                         <select id="mVehicleType" style="padding:8px; border-radius:6px; border:1px solid #ccc;">
-                            <option value="Limousine">Limousine</option>
-                            <option value="Microbus">Microbus</option>
-                            <option value="Coaster">Coaster</option>
-                            <option value="Bus">Bus</option>
+                            <option value="Limousine">ليموزين</option>
+                            <option value="Microbus">ميكروباص</option>
+                            <option value="Coaster">كوستر</option>
+                            <option value="Bus">أتوبيس</option>
                         </select>
-                        <button id="addVehicleBtn" class="btn btn-dark" onclick="addMasterItem('vehicle', this)">Add / Update</button>
+                        <button id="addVehicleBtn" class="btn btn-dark" onclick="addMasterItem('vehicle', this)">إضافة / تعديل</button>
                     </div>
                     <div class="table-responsive" style="max-height:250px;">
-                        <table id="mVehicleTable" style="width:100%;"><thead><tr><th data-tr="th_num">#</th><th>Plate</th><th>Type</th><th>Action</th></tr></thead><tbody></tbody></table>
+                        <table id="mVehicleTable" style="width:100%;"><thead><tr><th>#</th><th>الرقم</th><th>النوع</th><th>إجراء</th></tr></thead><tbody></tbody></table>
                     </div>
                 </div>
 
                 <div class="master-card" style="grid-column: 1 / -1;">
-                    <h3 style="color:#27ae60;">🗺️ Add / Edit Trip Pricing</h3>
+                    <h3 style="color:#27ae60;">🗺️ تسعير أنواع المشاوير</h3>
                     <div class="grid-form" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
-                        <div class="form-group" style="grid-column: 1/-1;"><label data-tr="trip">Trip Name:</label><input type="text" id="mTripName"></div>
-                        <div class="form-group"><label>Limo (Client):</label><input type="number" id="mLimoP"></div>
-                        <div class="form-group"><label>Limo (Partner):</label><input type="number" id="mLimoR"></div>
-                        <div class="form-group"><label>Microbus (Client):</label><input type="number" id="mMicroP"></div>
-                        <div class="form-group"><label>Microbus (Partner):</label><input type="number" id="mMicroR"></div>
-                        <div class="form-group"><label>Coaster (Client):</label><input type="number" id="mCoasterP"></div>
-                        <div class="form-group"><label>Coaster (Partner):</label><input type="number" id="mCoasterR"></div>
-                        <div class="form-group"><label>Bus (Client):</label><input type="number" id="mBusP"></div>
-                        <div class="form-group"><label>Bus (Partner):</label><input type="number" id="mBusR"></div>
+                        <div class="form-group" style="grid-column: 1/-1;"><label>اسم المشوار:</label><input type="text" id="mTripName"></div>
+                        <div class="form-group"><label>ليموزين (عميل):</label><input type="number" id="mLimoP"></div>
+                        <div class="form-group"><label>ليموزين (شريك):</label><input type="number" id="mLimoR"></div>
+                        <div class="form-group"><label>ميكروباص (عميل):</label><input type="number" id="mMicroP"></div>
+                        <div class="form-group"><label>ميكروباص (شريك):</label><input type="number" id="mMicroR"></div>
+                        <div class="form-group"><label>كوستر (عميل):</label><input type="number" id="mCoasterP"></div>
+                        <div class="form-group"><label>كوستر (شريك):</label><input type="number" id="mCoasterR"></div>
+                        <div class="form-group"><label>أتوبيس (عميل):</label><input type="number" id="mBusP"></div>
+                        <div class="form-group"><label>أتوبيس (شريك):</label><input type="number" id="mBusR"></div>
                     </div>
-                    <button class="btn btn-green" style="width:100%; margin-top:15px;" onclick="addMasterItem('trip', this)">Save Trip Type</button>
+                    <button class="btn btn-green" style="width:100%; margin-top:15px;" onclick="addMasterItem('trip', this)">حفظ المشوار</button>
                     <div class="table-responsive" style="max-height:300px; margin-top:15px;">
-                        <table id="mTripTable"><thead><tr><th data-tr="th_num">#</th><th data-tr="trip">Trip</th><th>Limo</th><th>Micro</th><th>Coaster</th><th>Bus</th><th>Action</th></tr></thead><tbody></tbody></table>
+                        <table id="mTripTable"><thead><tr><th>#</th><th>المشوار</th><th>ليموزين</th><th>ميكروباص</th><th>كوستر</th><th>أتوبيس</th><th>إجراء</th></tr></thead><tbody></tbody></table>
                     </div>
                 </div>
             </div>
@@ -315,24 +320,24 @@
     <!-- Tab 2: Finance -->
     <div id="financeTab" class="tab-content admin-only">
         <div class="card">
-            <h2 class="section-title" data-tr="tab_fin">💵 General Finance</h2>
+            <h2 class="section-title">💵 المالية والإيرادات الخارجية</h2>
             <div class="grid-form large-inputs" style="grid-template-columns: 1fr;">
-                <div class="form-group"><label data-tr="rep_type">Type:</label><select id="finType"><option value="Expense" style="color:red;">Expense</option><option value="Revenue" style="color:green;">Revenue</option></select></div>
-                <div class="form-group"><label data-tr="rep_cat">Category / Item:</label><input type="text" id="finCategory" placeholder="e.g. Office Supplies..."></div>
-                <div class="form-group"><label data-tr="rep_amt">Amount (EGP):</label><input type="number" id="finAmount" placeholder="0.00"></div>
-                <div class="form-group"><label data-tr="date">Date & Time:</label><input type="datetime-local" id="finDate"></div>
-                <div class="form-group"><label data-tr="notes">Notes:</label><input type="text" id="finNotes"></div>
+                <div class="form-group"><label>النوع:</label><select id="finType"><option value="Expense" style="color:red;">مصروفات (Expense)</option><option value="Revenue" style="color:green;">إيرادات (Revenue)</option></select></div>
+                <div class="form-group"><label>التصنيف / البند:</label><input type="text" id="finCategory" placeholder="مثال: أدوات مكتبية..."></div>
+                <div class="form-group"><label>المبلغ (EGP):</label><input type="number" id="finAmount" placeholder="0.00"></div>
+                <div class="form-group"><label>التاريخ والوقت:</label><input type="datetime-local" id="finDate"></div>
+                <div class="form-group"><label>ملاحظات:</label><input type="text" id="finNotes"></div>
             </div>
             <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn btn-gray" style="flex:1; padding: 15px; font-size: 1.1rem;" onclick="clearFinanceForm()">Clear 🧹</button>
-                <button id="saveFinanceBtn" class="btn btn-blue" style="flex:3; padding: 15px; font-size: 1.1rem;" onclick="saveFinance()">Save Finance 💾</button>
+                <button class="btn btn-gray" style="flex:1; padding: 15px; font-size: 1.1rem;" onclick="clearFinanceForm()">مسح 🧹</button>
+                <button id="saveFinanceBtn" class="btn btn-blue" style="flex:3; padding: 15px; font-size: 1.1rem;" onclick="saveFinance()">حفظ المعاملة 💾</button>
             </div>
         </div>
 
         <div class="card" style="margin-top: 20px;">
             <div class="table-responsive">
                 <table id="financeTable" style="width:100%;">
-                    <thead><tr><th data-tr="th_num">#</th><th data-tr="date">Date</th><th data-tr="rep_type">Type</th><th data-tr="rep_cat">Category</th><th data-tr="rep_amt">Amount</th><th data-tr="notes">Notes</th><th>Action</th></tr></thead>
+                    <thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التصنيف</th><th>المبلغ</th><th>ملاحظات</th><th>إجراء</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -343,31 +348,31 @@
     <div id="maintenanceTab" class="tab-content admin-only">
         <div id="mntAlerts" class="alert-box"></div>
         <div class="card">
-            <h2 class="section-title" data-tr="tab_mnt">🔧 Car Maintenance Log</h2>
+            <h2 class="section-title">🔧 سجل الصيانة</h2>
             <div class="grid-form large-inputs" style="grid-template-columns: 1fr;">
-                <div class="form-group"><label data-tr="date">Date & Time:</label><input type="datetime-local" id="mntDate"></div>
+                <div class="form-group"><label>التاريخ والوقت:</label><input type="datetime-local" id="mntDate"></div>
                 <div style="display:flex; gap:10px; width:100%;">
-                    <div class="form-group" style="flex:1;"><label>Vehicle Plate:</label><input type="text" id="mntVehiclePlate" list="vehiclePlateListMaster" style="direction: ltr;"></div>
-                    <div class="form-group" style="flex:1;"><label>Type:</label><select id="mntVehicleType"><option>Limousine</option><option>Microbus</option><option>Coaster</option><option>Bus</option></select></div>
+                    <div class="form-group" style="flex:1;"><label>رقم السيارة:</label><input type="text" id="mntVehiclePlate" list="vehiclePlateListMaster" style="direction: ltr;"></div>
+                    <div class="form-group" style="flex:1;"><label>النوع:</label><select id="mntVehicleType"><option>Limousine</option><option>Microbus</option><option>Coaster</option><option>Bus</option></select></div>
                 </div>
-                <div class="form-group"><label>Maintenance Type (نوع الصيانة):</label><input type="text" id="mntType" placeholder="تغيير زيت، تيل فرامل، الخ..."></div>
-                <div class="form-group"><label data-tr="rep_amt">Cost (EGP):</label><input type="number" id="mntAmount"></div>
+                <div class="form-group"><label>نوع الصيانة:</label><input type="text" id="mntType" placeholder="تغيير زيت، تيل فرامل، الخ..."></div>
+                <div class="form-group"><label>التكلفة (EGP):</label><input type="number" id="mntAmount"></div>
                 <div style="display:flex; gap:10px; width:100%;">
-                    <div class="form-group" style="flex:1;"><label>Current Odo:</label><input type="number" id="mntOdometer"></div>
-                    <div class="form-group" style="flex:1;"><label>Next Odo:</label><input type="number" id="mntNextOdo"></div>
+                    <div class="form-group" style="flex:1;"><label>العداد الحالي:</label><input type="number" id="mntOdometer"></div>
+                    <div class="form-group" style="flex:1;"><label>الصيانة القادمة:</label><input type="number" id="mntNextOdo"></div>
                 </div>
-                <div class="form-group"><label data-tr="notes">Notes:</label><input type="text" id="mntNotes"></div>
+                <div class="form-group"><label>ملاحظات:</label><input type="text" id="mntNotes"></div>
             </div>
             <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn btn-gray" style="flex:1; padding: 15px; font-size: 1.1rem;" onclick="clearMaintenanceForm()">Clear</button>
-                <button id="saveMaintenanceBtn" class="btn btn-blue" style="flex:3; padding: 15px; font-size: 1.1rem;" onclick="saveMaintenance()">Save Maintenance</button>
+                <button class="btn btn-gray" style="flex:1; padding: 15px; font-size: 1.1rem;" onclick="clearMaintenanceForm()">مسح</button>
+                <button id="saveMaintenanceBtn" class="btn btn-blue" style="flex:3; padding: 15px; font-size: 1.1rem;" onclick="saveMaintenance()">حفظ الصيانة</button>
             </div>
         </div>
 
         <div class="card" style="margin-top: 20px;">
             <div class="table-responsive">
                 <table id="maintenanceTable" style="width:100%;">
-                    <thead><tr><th data-tr="th_num">#</th><th data-tr="date">Date</th><th>Plate</th><th>Mnt Type</th><th>Cost</th><th>Current Odo</th><th>Next Odo</th><th>Action</th></tr></thead>
+                    <thead><tr><th>#</th><th>التاريخ</th><th>السيارة</th><th>نوع الصيانة</th><th>التكلفة</th><th>العداد</th><th>القادمة</th><th>إجراء</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -377,32 +382,32 @@
     <!-- Tab: Reports -->
     <div id="reportsTab" class="tab-content admin-only">
         <div class="card">
-            <h2 class="section-title" data-tr="tab_rep">📊 Reports Dashboard</h2>
+            <h2 class="section-title">📊 التقارير ولوحة التحكم</h2>
             <div class="grid-form">
                 <div class="form-group">
-                    <label data-tr="rep_type_select">Report Type:</label>
+                    <label>نوع التقرير:</label>
                     <select id="reportType" onchange="toggleReportTarget()">
-                        <option value="client" data-tr="opt_client">Client Report (تقرير عميل)</option>
-                        <option value="driver" data-tr="opt_driver">Partner Report (تقرير شريك)</option>
-                        <option value="actual_driver" style="color: #8e44ad; font-weight: 700;">Driver Report (تقرير سائق فعلي وعمولته)</option>
-                        <option value="vehicle_plate" style="color: #34495e; font-weight: 700;">Vehicle Report (تقرير إيرادات سيارة)</option>
-                        <option value="trip_detailed" data-tr="opt_trip">Trip Report</option>
-                        <option value="finance" data-tr="opt_fin">Finance Report</option>
-                        <option value="maintenance" data-tr="opt_mnt">Maintenance Report</option>
-                        <option value="net_profit" data-tr="opt_net_profit" style="font-weight:800; color:#1e3c72;">Net Profit Summary 💰</option>
+                        <option value="client">تقرير عميل</option>
+                        <option value="driver">تقرير شريك (Partner)</option>
+                        <option value="actual_driver" style="color: #8e44ad; font-weight: 700;">تقرير سائق فعلي وعمولته</option>
+                        <option value="vehicle_plate" style="color: #34495e; font-weight: 700;">تقرير إيرادات سيارة</option>
+                        <option value="trip_detailed">تقرير مشوار</option>
+                        <option value="finance">التقرير المالي</option>
+                        <option value="maintenance">تقرير الصيانة</option>
+                        <option value="net_profit" style="font-weight:800; color:#1e3c72;">تقرير صافي الربح 💰</option>
                         <option value="charts" style="font-weight:800; color:#e74c3c;">📊 الرسم البياني الشامل (Dashboard)</option>
                     </select>
                 </div>
-                <div class="form-group" id="targetContainer"><label id="targetLabel" data-tr="target">Target:</label><select id="reportTarget"></select></div>
-                <div class="form-group"><label data-tr="rep_from">From Date:</label><input type="date" id="repFrom"></div>
-                <div class="form-group"><label data-tr="rep_to">To Date:</label><input type="date" id="repTo"></div>
+                <div class="form-group" id="targetContainer"><label id="targetLabel">الهدف:</label><select id="reportTarget"></select></div>
+                <div class="form-group"><label>من تاريخ:</label><input type="date" id="repFrom"></div>
+                <div class="form-group"><label>إلى تاريخ:</label><input type="date" id="repTo"></div>
             </div>
             
             <div class="btn-grid-container">
-                <button id="searchBtn" class="btn btn-blue" onclick="fetchReports()" data-tr="btn_search">Search 🔍</button>
-                <button class="btn btn-green" onclick="exportToExcel()" data-tr="btn_excel">Excel 📊</button>
-                <button class="btn btn-red" onclick="downloadDirectPDF()" data-tr="btn_print">Print / Save PDF 📄</button>
-                <button class="btn btn-whatsapp" onclick="shareReportText()">WhatsApp Text 💬</button>
+                <button id="searchBtn" class="btn btn-blue" onclick="fetchReports()">بحث 🔍</button>
+                <button class="btn btn-green" onclick="exportToExcel()">إكسيل 📊</button>
+                <button class="btn btn-red" onclick="downloadDirectPDF()">طباعة / PDF 📄</button>
+                <button class="btn btn-whatsapp" onclick="shareReportText()">واتساب 💬</button>
             </div>
             
             <div id="reportPrintArea" class="report-print-container" style="margin-top:20px; background:#fff; padding:15px;">
@@ -412,7 +417,7 @@
                     <table id="reportsTable">
                         <thead></thead>
                         <tbody></tbody>
-                        <!-- شيلنا الـ tfoot من هنا عشان هنضيف الإجمالي كسطر عادي جوه الجدول -->
+                        <tfoot></tfoot>
                     </table>
                 </div>
                 
@@ -432,27 +437,27 @@
     <!-- Tab: Users Management -->
     <div id="usersTab" class="tab-content">
         <div class="card">
-            <h2 class="section-title">🔑 Change Password</h2>
+            <h2 class="section-title">🔑 تغيير كلمة المرور</h2>
             <div class="grid-form" style="margin-top: 15px;">
-                <div class="form-group"><label>New Password:</label><input type="password" id="chgNewPass" placeholder="Enter new password..."></div>
-                <div class="form-group"><label>Confirm Password:</label><input type="password" id="chgConfPass" placeholder="Confirm new password..."></div>
+                <div class="form-group"><label>كلمة المرور الجديدة:</label><input type="password" id="chgNewPass" placeholder="..."></div>
+                <div class="form-group"><label>تأكيد كلمة المرور:</label><input type="password" id="chgConfPass" placeholder="..."></div>
             </div>
-            <button class="btn btn-blue" style="margin-top: 15px; width: 100%;" onclick="changeMyPassword()">Update Password 🔑</button>
+            <button class="btn btn-blue" style="margin-top: 15px; width: 100%;" onclick="changeMyPassword()">تحديث كلمة المرور 🔑</button>
         </div>
 
         <div class="card admin-only">
-            <h2 class="section-title">👤 Users & Roles Management</h2>
+            <h2 class="section-title">👤 إدارة المستخدمين</h2>
             <div class="grid-form" style="margin-top: 15px;">
-                <div class="form-group"><label>Username:</label><input type="text" id="newUsername" placeholder="e.g. Ahmed..."></div>
-                <div class="form-group"><label>Password:</label><input type="password" id="newUserPass" placeholder="Password..."></div>
-                <div class="form-group"><label>Role (Role Access):</label><select id="newUserRole"><option value="Admin">Admin (Full Access)</option><option value="User">User (Trips Only)</option></select></div>
+                <div class="form-group"><label>اسم المستخدم:</label><input type="text" id="newUsername" placeholder="مثال: أحمد..."></div>
+                <div class="form-group"><label>كلمة المرور:</label><input type="password" id="newUserPass" placeholder="..."></div>
+                <div class="form-group"><label>الصلاحية:</label><select id="newUserRole"><option value="Admin">أدمن (صلاحيات كاملة)</option><option value="User">مستخدم (إضافة مشاوير فقط)</option></select></div>
             </div>
-            <button class="btn btn-green" style="margin-top: 15px; width: 100%;" onclick="createNewUser()">Create User ➕</button>
+            <button class="btn btn-green" style="margin-top: 15px; width: 100%;" onclick="createNewUser()">إنشاء مستخدم ➕</button>
 
-            <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px; margin-top: 25px; font-weight: 800;">👥 Active System Users</h3>
+            <h3 style="color:#1e3c72; border-bottom: 2px solid #f39c12; padding-bottom:5px; margin-top: 25px; font-weight: 800;">👥 المستخدمين الحاليين</h3>
             <div class="table-responsive">
                 <table id="usersTable" style="width:100%;">
-                    <thead><tr><th>#</th><th>Username</th><th>Role</th><th>Action</th></tr></thead>
+                    <thead><tr><th>#</th><th>المستخدم</th><th>الصلاحية</th><th>إجراء</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -485,22 +490,6 @@
     
     let currentTripViewIndex = -1;
 
-    let currentLang = 'en';
-    const dict = {
-        'en': { username:"Username:", password:"Password:", logout:"Logout", tab_add:"📝 Add Trip", tab_masters:"⚙️ Masters", tab_fin:"💵 Finance", tab_mnt:"🔧 Maintenance", tab_rep:"📊 Reports", tab_users:"🔐 Users", add_title:"📝 Add New Trip", client:"Client:", driver:"Partner (الشريك):", vehicle:"Vehicle Type:", v_limo:"Limousine", v_micro:"Microbus", v_coaster:"Coaster", v_bus:"Bus", trip:"Trip Name:", date:"Date & Time:", notes:"Notes:", rev_client:"💰 Revenue (Client):", fee_driver:"💵 Partner Fee:", net:"Net Profit:", save_trip:"Save Trip 💾", recent_trips:"🕒 Recent Trips", rev:"Rev", fee:"Comm.", lbl_clients:"👥 Clients List", lbl_partners:"🤝 Partners & Phones", rep_type:"Type", rep_cat:"Category", rep_amt:"Amount", rep_loc:"Location", rep_odo:"Odometer", rep_type_select:"Report Type:", target:"Target:", rep_from:"From Date:", rep_to:"To Date:", btn_search:"Search 🔍", btn_excel:"Excel 📊", btn_print:"Print / PDF 📄", opt_client:"Client Report", opt_driver:"Partner Report", opt_trip:"Trip Report", opt_fin:"Finance Report", opt_mnt:"Maintenance Report", opt_net_profit: "Net Profit Summary 💰", th_num:"#", th_desc:"Description", th_tot:"Total", btn_first:"|◀ First", btn_prev:"◀ Prev", btn_next:"Next ▶", btn_last:"Last ▶|", btn_new:"New 🆕", btn_clear:"Clear 🧹" },
-        'ar': { username:"اسم المستخدم:", password:"كلمة المرور:", logout:"خروج", tab_add:"📝 إضافة مشوار", tab_masters:"⚙️ الإعدادات", tab_fin:"💵 المالية", tab_mnt:"🔧 الصيانة", tab_rep:"📊 التقارير", tab_users:"🔐 الحسابات", add_title:"📝 إضافة مشوار جديد", client:"العميل:", driver:"الشريك (Partner):", vehicle:"نوع السيارة:", v_limo:"ليموزين / ملاكي", v_micro:"ميكروباص", v_coaster:"كوستر / ميني باص", v_bus:"أتوبيس", trip:"اسم المشوار:", date:"التاريخ والوقت:", notes:"ملاحظات:", rev_client:"💰 حساب العميل (EGP):", fee_driver:"💵 حساب الشريك (EGP):", net:"صافي الربح:", save_trip:"حفظ المشوار 💾", recent_trips:"🕒 أحدث المشاوير", rev:"حساب", fee:"شريك", lbl_clients:"👥 قائمة العملاء", lbl_partners:"🤝 الشركاء والهواتف", rep_type:"النوع", rep_cat:"التصنيف / البند", rep_amt:"المبلغ", rep_loc:"المكان", rep_odo:"العداد", rep_type_select:"نوع التقرير:", target:"الهدف:", rep_from:"من تاريخ:", rep_to:"إلى تاريخ:", btn_search:"بحث 🔍", btn_excel:"إكسيل 📊", btn_print:"طباعة / PDF 📄", opt_client:"تقرير عميل", opt_driver:"تقرير شريك", opt_trip:"تقرير مشوار", opt_fin:"التقرير المالي", opt_mnt:"تقرير الصيانة", opt_net_profit: "تقرير صافي الربح 💰", th_num:"#", th_desc:"البيان / المشوار", th_tot:"الإجمالي", btn_first:"|◀ الأول", btn_prev:"◀ السابق", btn_next:"اللاحق ▶", btn_last:"الأخير ▶|", btn_new:"جديد 🆕", btn_clear:"مسح 🧹" }
-    };
-
-    function toggleLang() {
-        currentLang = currentLang === 'ar' ? 'en' : 'ar';
-        document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr'; document.documentElement.lang = currentLang;
-        document.querySelectorAll('[data-tr]').forEach(el => {
-            const key = el.getAttribute('data-tr');
-            if(dict[currentLang][key]) { if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = dict[currentLang][key]; else el.innerText = dict[currentLang][key]; }
-        });
-        toggleReportTarget(); if(recentTripsDB.length > 0) renderRecentTrips();
-    }
-
     function getCurrentLocalDateTime() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); return now.toISOString().slice(0, 16); }
     function formatDateDisplay(rawDate) { 
         if(!rawDate) return ''; let dStr = String(rawDate).trim(); 
@@ -522,8 +511,8 @@
     
     function updateOnlineStatus() {
         fetch("https://www.google.com/favicon.ico?t=" + new Date().getTime(), { mode: 'no-cors', cache: 'no-store' }).then(() => {
-            const badge = document.getElementById('networkStatus'); if(badge.innerHTML !== '🟢 Online' && !isSyncing) { badge.className = 'network-badge network-online'; badge.innerHTML = '🟢 Online'; processSyncQueue(); }
-        }).catch(() => { const badge = document.getElementById('networkStatus'); badge.className = 'network-badge network-offline'; badge.innerHTML = '🔴 Offline'; });
+            const badge = document.getElementById('networkStatus'); if(badge.innerHTML !== '🟢 متصل' && !isSyncing) { badge.className = 'network-badge network-online'; badge.innerHTML = '🟢 متصل'; processSyncQueue(); }
+        }).catch(() => { const badge = document.getElementById('networkStatus'); badge.className = 'network-badge network-offline'; badge.innerHTML = '🔴 غير متصل'; });
     }
     setInterval(updateOnlineStatus, 3000);
 
@@ -543,7 +532,7 @@
     }
 
     window.addEventListener('load', () => {
-        document.documentElement.dir = 'ltr'; document.documentElement.lang = 'en'; updateOnlineStatus();
+        updateOnlineStatus();
         document.getElementById('tripDate').value = getCurrentLocalDateTime(); document.getElementById('finDate').value = getCurrentLocalDateTime(); document.getElementById('mntDate').value = getCurrentLocalDateTime();
         const firstDay = new Date(); firstDay.setDate(1); document.getElementById('repFrom').value = firstDay.toISOString().slice(0, 10); document.getElementById('repTo').value = new Date().toISOString().slice(0, 10);
 
@@ -551,20 +540,20 @@
         if (cached) { try { loadDataToUI(JSON.parse(cached)); } catch(e) { localStorage.removeItem('fleet_data_cache'); cached = null; } } 
         else { usersDB = [{username: "SAMY", password: "852", role: "Admin"}]; }
         
-        if (cached) { setTimeout(hideSplashScreen, 1200); forceAppSync(false); } else { document.getElementById('splashLoading').style.display = 'flex'; document.getElementById('splashMessage').innerText = "Loading..."; forceAppSync(true); }
+        if (cached) { setTimeout(hideSplashScreen, 1200); forceAppSync(false); } else { document.getElementById('splashLoading').style.display = 'flex'; document.getElementById('splashMessage').innerText = "جاري التحميل..."; forceAppSync(true); }
     });
 
     function forceAppSync(isFirstLoad = false) {
         fetch(GOOGLE_SCRIPT_URL + "?action=getInitialData").then(res => res.json()).then(data => {
-            if (data.status === 'success') { localStorage.setItem('fleet_data_cache', JSON.stringify(data)); loadDataToUI(data); processSyncQueue(); if(!isFirstLoad) toast('🟢 Data Refreshed Live!', 'success'); }
+            if (data.status === 'success') { localStorage.setItem('fleet_data_cache', JSON.stringify(data)); loadDataToUI(data); processSyncQueue(); if(!isFirstLoad) toast('🟢 تم التحديث بنجاح!', 'success'); }
             if(isFirstLoad) hideSplashScreen();
-        }).catch(err => { if(isFirstLoad) { document.getElementById('splashMessage').innerText = "Loading..."; setTimeout(hideSplashScreen, 2000); } });
+        }).catch(err => { if(isFirstLoad) { document.getElementById('splashMessage').innerText = "جاري التحميل..."; setTimeout(hideSplashScreen, 2000); } });
     }
 
     function login() {
         const u = document.getElementById('loginUser').value.trim().toLowerCase(); const p = document.getElementById('loginPass').value.trim();
         if(!u || !p) return; const matchedUser = usersDB.find(user => user.username.toLowerCase() === u && user.password === p);
-        if (matchedUser || (u === 'samy' && p === '852')) { localStorage.setItem('samy_logged_in_user', JSON.stringify(matchedUser || { username: 'SAMY', role: 'Admin' })); location.reload(); } else { toast('❌ Incorrect Password', 'error'); }
+        if (matchedUser || (u === 'samy' && p === '852')) { localStorage.setItem('samy_logged_in_user', JSON.stringify(matchedUser || { username: 'SAMY', role: 'Admin' })); location.reload(); } else { toast('❌ كلمة المرور غير صحيحة', 'error'); }
     }
     function logout() { localStorage.removeItem('samy_logged_in_user'); location.reload(); }
     function togglePasswordVisibility() { const pass = document.getElementById('loginPass'); pass.type = pass.type === 'password' ? 'text' : 'password'; }
@@ -583,19 +572,18 @@
         
         document.getElementById('actualDriverListMaster').innerHTML = actualDriversDB.map(i => `<option value="${i.name}">`).join('');
         document.getElementById('vehiclePlateListMaster').innerHTML = vehiclesDB.map(i => `<option value="${i.plate}">`).join('');
-        onVehicleTypeChange(); 
 
-        const cBody = document.querySelector('#mClientTable tbody'); if(cBody) cBody.innerHTML = clientsDB.map((c, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('client', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Clients', '${c}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
-        const dBody = document.querySelector('#mDriverTable tbody'); if(dBody) dBody.innerHTML = driversDB.map((d, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${d.name}</td><td style="direction:ltr;">${d.phone||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('driver', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Drivers', '${d.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
-        const aBody = document.querySelector('#mActualDriverTable tbody'); if(aBody) aBody.innerHTML = actualDriversDB.map((d, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${d.name}</td><td style="direction:ltr;">${d.phone||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('actual_driver', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Actual_Drivers', '${d.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
+        const cBody = document.querySelector('#mClientTable tbody'); if(cBody) cBody.innerHTML = clientsDB.map((c, i) => `<tr><td>${i+1}</td><td style="text-align:right;">${c}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('client', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Clients', '${c}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
+        const dBody = document.querySelector('#mDriverTable tbody'); if(dBody) dBody.innerHTML = driversDB.map((d, i) => `<tr><td>${i+1}</td><td style="text-align:right;">${d.name}</td><td style="direction:ltr;">${d.phone||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('driver', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Drivers', '${d.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
+        const aBody = document.querySelector('#mActualDriverTable tbody'); if(aBody) aBody.innerHTML = actualDriversDB.map((d, i) => `<tr><td>${i+1}</td><td style="text-align:right;">${d.name}</td><td style="direction:ltr;">${d.phone||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('actual_driver', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Actual_Drivers', '${d.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
         const vBody = document.querySelector('#mVehicleTable tbody'); if(vBody) vBody.innerHTML = vehiclesDB.map((v, i) => `<tr><td>${i+1}</td><td style="direction:ltr; font-weight:bold;">${v.plate}</td><td>${v.type}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadMasterEdit('vehicle', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Vehicles', '${v.plate}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
-        const mBody = document.querySelector('#mTripTable tbody'); if(mBody) mBody.innerHTML = tripsDB.map((t, i) => `<tr><td>${i+1}</td><td style="text-align:left;">${t.name}</td><td>${t.lp||0}/${t.lr||0}</td><td>${t.mp||0}/${t.mr||0}</td><td>${t.cp||0}/${t.cr||0}</td><td>${t.bp||0}/${t.br||0}</td><td><button class="btn btn-blue" onclick="loadMasterEdit('trip', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
+        const mBody = document.querySelector('#mTripTable tbody'); if(mBody) mBody.innerHTML = tripsDB.map((t, i) => `<tr><td>${i+1}</td><td style="text-align:right;">${t.name}</td><td>${t.lp||0}/${t.lr||0}</td><td>${t.mp||0}/${t.mr||0}</td><td>${t.cp||0}/${t.cr||0}</td><td>${t.bp||0}/${t.br||0}</td><td><button class="btn btn-blue" onclick="loadMasterEdit('trip', ${i})" style="padding:4px">✏️</button><button class="btn btn-red" onclick="removeMasterItem('Trip_Types', '${t.name}', ${i})" style="padding:4px">🗑️</button></td></tr>`).join('');
 
         renderUsersTable(); toggleReportTarget(); renderRecentTrips(); renderFinances(); renderMaintenance(); checkMaintenanceAlerts();
     }
 
     function processSyncQueue() {
-        if (isSyncing || syncQueue.length === 0) return; isSyncing = true; document.getElementById('networkStatus').className = 'network-badge network-sync'; document.getElementById('networkStatus').innerHTML = '🔄 Syncing...';
+        if (isSyncing || syncQueue.length === 0) return; isSyncing = true; document.getElementById('networkStatus').className = 'network-badge network-sync'; document.getElementById('networkStatus').innerHTML = '🔄 جاري المزامنة...';
         const payload = syncQueue[0];
         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         .then(() => { syncQueue.shift(); localStorage.setItem('fleet_sync_queue', JSON.stringify(syncQueue)); isSyncing = false; updateOnlineStatus(); processSyncQueue(); })
@@ -644,7 +632,7 @@
         const vehiclePlate = document.getElementById('tripVehiclePlate').value.trim();
         const actualDriverFee = parseFloat(document.getElementById('tripActualDriverFee').value) || 0;
 
-        if (!client || !driverName || !tripName) return toast('⚠️ Please fill required fields!', 'warn');
+        if (!client || !driverName || !tripName) return toast('⚠️ يرجى ملء الحقول المطلوبة!', 'warn');
 
         const targetId = editingTripId || generateSequentialTripID();
         const tripObj = { id: targetId, date: tDate, client: client, driver: driverName, vehicle: vType, trip: tripName, revenue: rev, fee: fee, notes: notes, actual_driver: actualDriver, vehicle_plate: vehiclePlate, driver_fee: actualDriverFee };
@@ -653,18 +641,19 @@
         localStorage.setItem('fleet_data_cache', JSON.stringify({status: 'success', users: usersDB, clients: clientsDB, drivers: driversDB, actualDrivers: actualDriversDB, vehicles: vehiclesDB, trips: tripsDB, recent: recentTripsDB, finances: financesDB, maintenance: maintenanceDB}));
         renderRecentTrips(); 
         addToSyncQueue({ record_type: editingTripId ? "edit_trip" : "trip", trip_id: targetId, client_name: client, driver_name: driverName, vehicle_type: vType, trip_name: tripName, date: tDate, notes: notes, revenue: rev, driver_fee: fee, actual_driver: actualDriver, vehicle_plate: vehiclePlate, actual_driver_fee: actualDriverFee });
-        clearForm(); toast(`✅ Saved (${targetId})!`, 'success');
+        clearForm(); toast(`✅ تم الحفظ (${targetId})!`, 'success');
     }
 
     function renderRecentTrips() {
         const tbody = document.querySelector('#recentTripsTable tbody'); if(!tbody) return;
-        if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="10">No trips</td></tr>'; return; }
+        if(recentTripsDB.length === 0) { tbody.innerHTML = '<tr><td colspan="10">لا توجد مشاوير</td></tr>'; return; }
         tbody.innerHTML = recentTripsDB.map((t, i) => `<tr><td>${t.id || (i + 1)}</td><td style="direction:ltr;">${formatDateDisplay(t.date)}</td><td>${t.client}</td><td>${t.driver}</td><td>${t.actual_driver||'-'}</td><td style="direction:ltr; font-weight:bold;">${t.vehicle_plate||'-'}</td><td>${t.trip}</td><td style="color:#27ae60;font-weight:bold;">${t.revenue}</td><td style="color:#1e3c72;font-weight:bold;">${(parseFloat(t.revenue||0)-parseFloat(t.fee||0)-parseFloat(t.driver_fee||0)).toFixed(2)}</td><td style="white-space:nowrap;"><button class="btn btn-blue" style="padding:4px 8px;" onclick="loadTrip(${i})">✏️</button><button class="btn btn-red" style="padding:4px 8px;" onclick="delTrip(${i})">🗑️</button><button class="btn btn-whatsapp" style="padding:4px 8px;" onclick="sendWA(${i})" title="WhatsApp">💬</button></td></tr>`).join('');
     }
 
     function sendWA(idx) {
-        let t = recentTripsDB[idx]; let txt = `Trip Details 🚘\nDate: ${formatDateDisplay(t.date)}\nClient: ${t.client}\nPartner: ${t.driver}\nActual Driver: ${t.actual_driver||'-'}\nPlate: ${t.vehicle_plate||'-'}\nTrip: ${t.trip}`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank');
+        let t = recentTripsDB[idx]; let driverObj = driversDB.find(d => d.name === t.driver); let phone = driverObj ? driverObj.phone : ""; let cleanPhone = String(phone).replace(/\D/g,'');
+        let txt = `تفاصيل المشوار 🚘\nالتاريخ: ${formatDateDisplay(t.date)}\nالعميل: ${t.client}\nالشريك: ${t.driver}\nالسائق: ${t.actual_driver||'-'}\nالسيارة: ${t.vehicle_plate||'-'}\nالمشوار: ${t.trip}`;
+        if(cleanPhone) { window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(txt)}`, '_blank'); } else { window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
     }
 
     function navTrip(action) {
@@ -684,73 +673,73 @@
         document.getElementById('tripActualDriver').value = t.actual_driver || ''; document.getElementById('tripVehiclePlate').value = t.vehicle_plate || ''; document.getElementById('tripActualDriverFee').value = t.driver_fee || 0;
         onVehicleTypeChange(); calcTotals(); window.scrollTo({top: 0, behavior: 'smooth'});
     }
-    function delTrip(idx) { if(confirm('Delete this trip?')) { addToSyncQueue({record_type:"delete_trip", trip_id: recentTripsDB[idx].id}); recentTripsDB.splice(idx,1); renderRecentTrips(); } }
+    function delTrip(idx) { if(confirm('تأكيد الحذف?')) { addToSyncQueue({record_type:"delete_trip", trip_id: recentTripsDB[idx].id}); recentTripsDB.splice(idx,1); renderRecentTrips(); } }
     
     function clearForm() { 
         currentTripViewIndex = -1; editingTripId = null; document.getElementById('tripClientSelect').value=''; document.getElementById('tripDriverSelect').value=''; document.getElementById('tripNameSelect').value=''; document.getElementById('revEGP').value='0'; document.getElementById('tripDriverFee').value='0'; document.getElementById('tripNotes').value=''; document.getElementById('tripActualDriver').value=''; document.getElementById('tripVehiclePlate').value=''; document.getElementById('tripActualDriverFee').value='0'; document.getElementById('tripDate').value = getCurrentLocalDateTime(); calcTotals(); 
     }
 
     function loadMasterEdit(type, index) {
-        if(type === 'client') { document.getElementById('mClientName').value = clientsDB[index]; editingMasterIndex.client = index; document.getElementById('addClientBtn').innerText = "Update"; } 
-        else if(type === 'driver') { document.getElementById('mDriverName').value = driversDB[index].name; document.getElementById('mDriverPhone').value = driversDB[index].phone||''; editingMasterIndex.driver = index; document.getElementById('addDriverBtn').innerText = "Update"; } 
-        else if(type === 'actual_driver') { document.getElementById('mActualDriverName').value = actualDriversDB[index].name; document.getElementById('mActualDriverPhone').value = actualDriversDB[index].phone||''; editingMasterIndex.actual_driver = index; document.getElementById('addActualDriverBtn').innerText = "Update"; } 
-        else if(type === 'vehicle') { document.getElementById('mVehiclePlate').value = vehiclesDB[index].plate; document.getElementById('mVehicleType').value = vehiclesDB[index].type||'Limousine'; editingMasterIndex.vehicle = index; document.getElementById('addVehicleBtn').innerText = "Update"; } 
+        if(type === 'client') { document.getElementById('mClientName').value = clientsDB[index]; editingMasterIndex.client = index; document.getElementById('addClientBtn').innerText = "تحديث"; } 
+        else if(type === 'driver') { document.getElementById('mDriverName').value = driversDB[index].name; document.getElementById('mDriverPhone').value = driversDB[index].phone||''; editingMasterIndex.driver = index; document.getElementById('addDriverBtn').innerText = "تحديث"; } 
+        else if(type === 'actual_driver') { document.getElementById('mActualDriverName').value = actualDriversDB[index].name; document.getElementById('mActualDriverPhone').value = actualDriversDB[index].phone||''; editingMasterIndex.actual_driver = index; document.getElementById('addActualDriverBtn').innerText = "تحديث"; } 
+        else if(type === 'vehicle') { document.getElementById('mVehiclePlate').value = vehiclesDB[index].plate; document.getElementById('mVehicleType').value = vehiclesDB[index].type||'Limousine'; editingMasterIndex.vehicle = index; document.getElementById('addVehicleBtn').innerText = "تحديث"; } 
         else if(type === 'trip') { let t = tripsDB[index]; document.getElementById('mTripName').value = t.name; document.getElementById('mLimoP').value=t.lp; document.getElementById('mLimoR').value=t.lr; document.getElementById('mMicroP').value=t.mp; document.getElementById('mMicroR').value=t.mr; document.getElementById('mCoasterP').value=t.cp; document.getElementById('mCoasterR').value=t.cr; document.getElementById('mBusP').value=t.bp; document.getElementById('mBusR').value=t.br; editingMasterIndex.trip = index; }
     }
     function addMasterItem(type, btn) {
-        if(type === 'client') { let n = document.getElementById('mClientName').value.trim(); if(!n) return; if(editingMasterIndex.client > -1) clientsDB[editingMasterIndex.client] = n; else if(!clientsDB.includes(n)) clientsDB.push(n); document.getElementById('mClientName').value = ''; editingMasterIndex.client = -1; btn.innerText = "Add"; } 
-        else if(type === 'driver') { let n = document.getElementById('mDriverName').value.trim(); let p = document.getElementById('mDriverPhone').value.trim(); if(!n) return; if(editingMasterIndex.driver > -1) { driversDB[editingMasterIndex.driver].name = n; driversDB[editingMasterIndex.driver].phone = p; } else { driversDB.push({name:n, phone:p}); } document.getElementById('mDriverName').value = ''; document.getElementById('mDriverPhone').value = ''; editingMasterIndex.driver = -1; btn.innerText = "Add/Update"; } 
-        else if(type === 'actual_driver') { let n = document.getElementById('mActualDriverName').value.trim(); let p = document.getElementById('mActualDriverPhone').value.trim(); if(!n) return; if(editingMasterIndex.actual_driver > -1) { actualDriversDB[editingMasterIndex.actual_driver].name = n; actualDriversDB[editingMasterIndex.actual_driver].phone = p; } else { actualDriversDB.push({name:n, phone:p}); } document.getElementById('mActualDriverName').value = ''; document.getElementById('mActualDriverPhone').value = ''; editingMasterIndex.actual_driver = -1; btn.innerText = "Add/Update"; } 
-        else if(type === 'vehicle') { let pl = document.getElementById('mVehiclePlate').value.trim(); let ty = document.getElementById('mVehicleType').value; if(!pl) return; if(editingMasterIndex.vehicle > -1) { vehiclesDB[editingMasterIndex.vehicle].plate = pl; vehiclesDB[editingMasterIndex.vehicle].type = ty; } else { vehiclesDB.push({plate:pl, type:ty}); } document.getElementById('mVehiclePlate').value = ''; editingMasterIndex.vehicle = -1; btn.innerText = "Add/Update"; } 
+        if(type === 'client') { let n = document.getElementById('mClientName').value.trim(); if(!n) return; if(editingMasterIndex.client > -1) clientsDB[editingMasterIndex.client] = n; else if(!clientsDB.includes(n)) clientsDB.push(n); document.getElementById('mClientName').value = ''; editingMasterIndex.client = -1; btn.innerText = "إضافة"; } 
+        else if(type === 'driver') { let n = document.getElementById('mDriverName').value.trim(); let p = document.getElementById('mDriverPhone').value.trim(); if(!n) return; if(editingMasterIndex.driver > -1) { driversDB[editingMasterIndex.driver].name = n; driversDB[editingMasterIndex.driver].phone = p; } else { driversDB.push({name:n, phone:p}); } document.getElementById('mDriverName').value = ''; document.getElementById('mDriverPhone').value = ''; editingMasterIndex.driver = -1; btn.innerText = "إضافة / تعديل"; } 
+        else if(type === 'actual_driver') { let n = document.getElementById('mActualDriverName').value.trim(); let p = document.getElementById('mActualDriverPhone').value.trim(); if(!n) return; if(editingMasterIndex.actual_driver > -1) { actualDriversDB[editingMasterIndex.actual_driver].name = n; actualDriversDB[editingMasterIndex.actual_driver].phone = p; } else { actualDriversDB.push({name:n, phone:p}); } document.getElementById('mActualDriverName').value = ''; document.getElementById('mActualDriverPhone').value = ''; editingMasterIndex.actual_driver = -1; btn.innerText = "إضافة / تعديل"; } 
+        else if(type === 'vehicle') { let pl = document.getElementById('mVehiclePlate').value.trim(); let ty = document.getElementById('mVehicleType').value; if(!pl) return; if(editingMasterIndex.vehicle > -1) { vehiclesDB[editingMasterIndex.vehicle].plate = pl; vehiclesDB[editingMasterIndex.vehicle].type = ty; } else { vehiclesDB.push({plate:pl, type:ty}); } document.getElementById('mVehiclePlate').value = ''; editingMasterIndex.vehicle = -1; btn.innerText = "إضافة / تعديل"; } 
         else if(type === 'trip') { 
             let n = document.getElementById('mTripName').value.trim(); if(!n) return;
             let lp = parseFloat(document.getElementById('mLimoP').value)||0, lr = parseFloat(document.getElementById('mLimoR').value)||0, mp = parseFloat(document.getElementById('mMicroP').value)||0, mr = parseFloat(document.getElementById('mMicroR').value)||0, cp = parseFloat(document.getElementById('mCoasterP').value)||0, cr = parseFloat(document.getElementById('mCoasterR').value)||0, bp = parseFloat(document.getElementById('mBusP').value)||0, br = parseFloat(document.getElementById('mBusR').value)||0;
             if(editingMasterIndex.trip > -1) { let ex = tripsDB[editingMasterIndex.trip]; ex.name=n; ex.lp=lp; ex.lr=lr; ex.mp=mp; ex.mr=mr; ex.cp=cp; ex.cr=cr; ex.bp=bp; ex.br=br; } else { let ex = tripsDB.find(t => t.name === n); if(ex) { ex.lp=lp; ex.lr=lr; ex.mp=mp; ex.mr=mr; ex.cp=cp; ex.cr=cr; ex.bp=bp; ex.br=br; } else { tripsDB.push({name:n, lp:lp, lr:lr, mp:mp, mr:mr, cp:cp, cr:cr, bp:bp, br:br}); } }
             document.querySelectorAll('#mastersTab input[type="number"]').forEach(i => i.value=''); document.getElementById('mTripName').value=''; editingMasterIndex.trip = -1;
         }
-        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, actualDrivers:actualDriversDB, vehicles:vehiclesDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, actualDrivers: actualDriversDB, vehicles: vehiclesDB, trips: tripsDB }); toast('Saved!');
+        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, actualDrivers:actualDriversDB, vehicles:vehiclesDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, actualDrivers: actualDriversDB, vehicles: vehiclesDB, trips: tripsDB }); toast('تم الحفظ');
     }
     function removeMasterItem(sheetName, name, idx) {
-        if(!confirm('Delete?')) return;
+        if(!confirm('تأكيد الحذف?')) return;
         if(sheetName === 'Clients') clientsDB.splice(idx, 1); if(sheetName === 'Drivers') driversDB.splice(idx, 1); if(sheetName === 'Actual_Drivers') actualDriversDB.splice(idx, 1); if(sheetName === 'Vehicles') vehiclesDB.splice(idx, 1); if(sheetName === 'Trip_Types') tripsDB.splice(idx, 1);
-        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, actualDrivers:actualDriversDB, vehicles:vehiclesDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, actualDrivers: actualDriversDB, vehicles: vehiclesDB, trips: tripsDB }); toast('Deleted');
+        loadDataToUI({users:usersDB, clients:clientsDB, drivers:driversDB, actualDrivers:actualDriversDB, vehicles:vehiclesDB, trips:tripsDB, recent:recentTripsDB, finances:financesDB, maintenance:maintenanceDB}); addToSyncQueue({ record_type: "update_masters", clients: clientsDB, drivers: driversDB, actualDrivers: actualDriversDB, vehicles: vehiclesDB, trips: tripsDB }); toast('تم الحذف');
     }
 
     function renderFinances() {
-        const tbody = document.querySelector('#financeTable tbody'); if(!tbody) return; if(financesDB.length === 0) { tbody.innerHTML = '<tr><td colspan="7">No records</td></tr>'; return; }
-        tbody.innerHTML = financesDB.map((f, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(f.date)}</td><td style="color:${f.type==='Revenue'?'#27ae60':'#e74c3c'};">${f.type}</td><td>${f.category}</td><td style="font-weight:bold;">${f.amount}</td><td>${f.notes||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadFinance(${i})" style="padding:4px 8px;">✏️</button><button class="btn btn-red" onclick="deleteFinance(${i})" style="padding:4px 8px;">🗑️</button></td></tr>`).join('');
+        const tbody = document.querySelector('#financeTable tbody'); if(!tbody) return; if(financesDB.length === 0) { tbody.innerHTML = '<tr><td colspan="7">لا توجد بيانات</td></tr>'; return; }
+        tbody.innerHTML = financesDB.map((f, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(f.date)}</td><td style="color:${f.type==='Revenue'?'#27ae60':'#e74c3c'};">${f.type==='Revenue'?'إيراد':'مصروف'}</td><td>${f.category}</td><td style="font-weight:bold;">${f.amount}</td><td>${f.notes||''}</td><td style="white-space:nowrap;"><button class="btn btn-blue" onclick="loadFinance(${i})" style="padding:4px 8px;">✏️</button><button class="btn btn-red" onclick="deleteFinance(${i})" style="padding:4px 8px;">🗑️</button></td></tr>`).join('');
     }
     function saveFinance() {
         const tDate = document.getElementById('finDate').value.replace('T', ' '); const tType = document.getElementById('finType').value; const cat = document.getElementById('finCategory').value.trim(); const amt = parseFloat(document.getElementById('finAmount').value); const notes = document.getElementById('finNotes').value.trim();
-        if(!amt || !cat) return toast('⚠️ Please fill required fields!', 'warn'); 
+        if(!amt || !cat) return toast('⚠️ يرجى ملء الحقول المطلوبة', 'warn'); 
         let targetId = editingFinId || generateID("FIN"); const finObj = { id: targetId, date: tDate, type: tType, category: cat, amount: amt, notes: notes };
         if(editingFinId) { const idx = financesDB.findIndex(f => f.id === editingFinId); if(idx > -1) financesDB[idx] = finObj; } else { financesDB.push(finObj); }
-        renderFinances(); addToSyncQueue({ record_type: editingFinId ? "edit_finance" : "finance", fin_id: targetId, fin_type: tType, category: cat, amount: amt, date: tDate, notes: notes, added_by: loggedInUser }); clearFinanceForm(); toast('✅ Finance Saved!', 'success');
+        renderFinances(); addToSyncQueue({ record_type: editingFinId ? "edit_finance" : "finance", fin_id: targetId, fin_type: tType, category: cat, amount: amt, date: tDate, notes: notes, added_by: loggedInUser }); clearFinanceForm(); toast('✅ تم الحفظ!', 'success');
     }
     function loadFinance(idx) {
         const f = financesDB[idx]; editingFinId = f.id;
         document.getElementById('finType').value = f.type || 'Expense'; document.getElementById('finCategory').value = f.category || ''; document.getElementById('finAmount').value = f.amount || ''; document.getElementById('finDate').value = String(f.date || '').replace(' ', 'T').slice(0, 16); document.getElementById('finNotes').value = f.notes || ''; window.scrollTo({top: 0, behavior: 'smooth'});
     }
-    function deleteFinance(i) { if(confirm('Delete finance record?')) { addToSyncQueue({record_type:"delete_finance", fin_id: financesDB[i].id}); financesDB.splice(i,1); renderFinances(); } }
+    function deleteFinance(i) { if(confirm('تأكيد الحذف?')) { addToSyncQueue({record_type:"delete_finance", fin_id: financesDB[i].id}); financesDB.splice(i,1); renderFinances(); } }
     function clearFinanceForm() { editingFinId = null; document.getElementById('finCategory').value=''; document.getElementById('finAmount').value=''; document.getElementById('finNotes').value=''; document.getElementById('finDate').value = getCurrentLocalDateTime(); }
 
     function changeMyPassword() {
         const p1 = document.getElementById('chgNewPass').value.trim(); const p2 = document.getElementById('chgConfPass').value.trim();
-        if(!p1) return toast('⚠️ Please enter password!', 'warn'); if(p1 !== p2) return toast('❌ Passwords do not match!', 'error');
+        if(!p1) return toast('⚠️ أدخل كلمة المرور', 'warn'); if(p1 !== p2) return toast('❌ كلمات المرور غير متطابقة', 'error');
         addToSyncQueue({ record_type: "change_password", username: loggedInUser, new_password: p1 });
-        const userObj = usersDB.find(u => u.username.toLowerCase() === loggedInUser.toLowerCase()); if(userObj) userObj.password = p1; document.getElementById('chgNewPass').value = ''; document.getElementById('chgConfPass').value = ''; toast('✅ Password Updated Successfully!', 'success');
+        const userObj = usersDB.find(u => u.username.toLowerCase() === loggedInUser.toLowerCase()); if(userObj) userObj.password = p1; document.getElementById('chgNewPass').value = ''; document.getElementById('chgConfPass').value = ''; toast('✅ تم التحديث!', 'success');
     }
     function createNewUser() {
         const u = document.getElementById('newUsername').value.trim(); const p = document.getElementById('newUserPass').value.trim(); const r = document.getElementById('newUserRole').value;
-        if(!u || !p) return toast('⚠️ Please fill username and password!', 'warn'); if(usersDB.find(x => x.username.toLowerCase() === u.toLowerCase())) return toast('❌ Username already exists!', 'error');
-        usersDB.push({ username: u, password: p, role: r }); addToSyncQueue({ record_type: "add_user", username: u, password: p, role: r }); renderUsersTable(); document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join(''); document.getElementById('newUsername').value = ''; document.getElementById('newUserPass').value = ''; toast('✅ New User Added!', 'success');
+        if(!u || !p) return toast('⚠️ أكمل الحقول المطلوبة', 'warn'); if(usersDB.find(x => x.username.toLowerCase() === u.toLowerCase())) return toast('❌ المستخدم موجود مسبقاً', 'error');
+        usersDB.push({ username: u, password: p, role: r }); addToSyncQueue({ record_type: "add_user", username: u, password: p, role: r }); renderUsersTable(); document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join(''); document.getElementById('newUsername').value = ''; document.getElementById('newUserPass').value = ''; toast('✅ تم إنشاء الحساب', 'success');
     }
     function deleteUser(idx) {
-        const u = usersDB[idx]; if(u.username.toUpperCase() === 'SAMY') return toast('❌ Cannot delete primary Admin SAMY!', 'error');
-        if(confirm(`Delete user ${u.username}?`)) { addToSyncQueue({ record_type: "delete_user", username: u.username }); usersDB.splice(idx, 1); renderUsersTable(); document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join(''); toast('User Deleted'); }
+        const u = usersDB[idx]; if(u.username.toUpperCase() === 'SAMY') return toast('❌ لا يمكن حذف الأدمن الرئيسي', 'error');
+        if(confirm(`حذف المستخدم ${u.username}?`)) { addToSyncQueue({ record_type: "delete_user", username: u.username }); usersDB.splice(idx, 1); renderUsersTable(); document.getElementById('loginUser').innerHTML = usersDB.map(usr => `<option value="${usr.username}">${usr.username}</option>`).join(''); toast('تم الحذف'); }
     }
     function renderUsersTable() {
-        const tbody = document.querySelector('#usersTable tbody'); if(!tbody) return; tbody.innerHTML = usersDB.map((u, i) => `<tr><td>${i + 1}</td><td>${u.username}</td><td><span style="font-weight:bold; color:${u.role==='Admin'?'#27ae60':'#1e3c72'}">${u.role}</span></td><td>${u.username.toUpperCase() !== 'SAMY' ? `<button class="btn btn-red" onclick="deleteUser(${i})" style="padding:4px 8px;">🗑️ Delete</button>` : 'System Default'}</td></tr>`).join('');
+        const tbody = document.querySelector('#usersTable tbody'); if(!tbody) return; tbody.innerHTML = usersDB.map((u, i) => `<tr><td>${i + 1}</td><td>${u.username}</td><td><span style="font-weight:bold; color:${u.role==='Admin'?'#27ae60':'#1e3c72'}">${u.role}</span></td><td>${u.username.toUpperCase() !== 'SAMY' ? `<button class="btn btn-red" onclick="deleteUser(${i})" style="padding:4px 8px;">🗑️ حذف</button>` : 'أساسي'}</td></tr>`).join('');
     }
 
     function checkMaintenanceAlerts() {
@@ -772,27 +761,23 @@
     }
 
     function renderMaintenance() {
-        const tbody = document.querySelector('#maintenanceTable tbody'); if(!tbody) return; if(maintenanceDB.length === 0) { tbody.innerHTML = '<tr><td colspan="8">No records</td></tr>'; return; }
+        const tbody = document.querySelector('#maintenanceTable tbody'); if(!tbody) return; if(maintenanceDB.length === 0) { tbody.innerHTML = '<tr><td colspan="8">لا توجد بيانات</td></tr>'; return; }
         tbody.innerHTML = maintenanceDB.map((m, i) => `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(m.date)}</td><td style="direction:ltr; font-weight:bold;">${m.vehicle_plate||'-'}</td><td>${m.type}</td><td style="color:#e74c3c;">${m.amount}</td><td>${m.odometer||'-'}</td><td>${m.next_odometer||'-'}</td><td style="white-space:nowrap;"><button class="btn btn-red" onclick="deleteMaintenance(${i})" style="padding:4px">🗑️</button></td></tr>`).join(''); checkMaintenanceAlerts();
     }
     function saveMaintenance() {
         const mDate = document.getElementById('mntDate').value.replace('T', ' '); const vPlate = document.getElementById('mntVehiclePlate').value.trim(); const vType = document.getElementById('mntVehicleType').value; const type = document.getElementById('mntType').value; const amt = parseFloat(document.getElementById('mntAmount').value); const odo = document.getElementById('mntOdometer').value; const nOdo = document.getElementById('mntNextOdo').value; const notes = document.getElementById('mntNotes').value;
         if(!amt || !type || !vPlate) return toast('⚠️ الرجاء إدخال رقم السيارة ونوع الصيانة والتكلفة', 'warn'); 
-        let targetId = generateID("MNT"); maintenanceDB.push({ id: targetId, date: mDate, vehicle_plate: vPlate, vehicle_type: vType, type: type, amount: amt, odometer: odo, next_odometer: nOdo, notes: notes }); renderMaintenance(); addToSyncQueue({ record_type: "maintenance", mnt_id: targetId, vehicle_plate: vPlate, vehicle_type: vType, type: type, amount: amt, odometer: odo, next_odometer: nOdo, date: mDate, notes: notes, added_by: loggedInUser }); toast('Saved'); clearMaintenanceForm();
+        let targetId = generateID("MNT"); maintenanceDB.push({ id: targetId, date: mDate, vehicle_plate: vPlate, vehicle_type: vType, type: type, amount: amt, odometer: odo, next_odometer: nOdo, notes: notes }); renderMaintenance(); addToSyncQueue({ record_type: "maintenance", mnt_id: targetId, vehicle_plate: vPlate, vehicle_type: vType, type: type, amount: amt, odometer: odo, next_odometer: nOdo, date: mDate, notes: notes, added_by: loggedInUser }); toast('تم الحفظ'); clearMaintenanceForm();
     }
-    function deleteMaintenance(i) { if(confirm('Del?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
+    function deleteMaintenance(i) { if(confirm('تأكيد الحذف?')) { addToSyncQueue({record_type:"delete_maintenance", mnt_id: maintenanceDB[i].id}); maintenanceDB.splice(i,1); renderMaintenance(); } }
     function clearMaintenanceForm() { document.getElementById('mntType').value=''; document.getElementById('mntAmount').value=''; document.getElementById('mntVehiclePlate').value=''; document.getElementById('mntOdometer').value=''; document.getElementById('mntNextOdo').value='';}
 
-    // ==========================================
-    // الحل الجذري لمشكلة الـ PDF وبدايته من النص
-    // ==========================================
     async function downloadDirectPDF() {
         const element = document.getElementById('reportPrintArea'); const titleText = document.getElementById('printReportTitle').innerText || 'Fleet_Report';
-        if (!element || element.innerText.trim() === '') return toast('⚠️ اختر التقرير أولاً!', 'warn');
+        if (!element || element.innerText.trim() === '') return toast('⚠️ استخرج التقرير أولاً', 'warn');
 
         const isCharts = document.getElementById('reportType').value === 'charts';
         
-        // إجبار الشاشة على الصعود لأعلى نقطة عشان html2canvas ميقراش المسافة الفاضية
         window.scrollTo({ top: 0, behavior: 'instant' });
 
         if (!isCharts) {
@@ -805,17 +790,15 @@
         }
         
         toast('⏳ جاري تجهيز التقرير...', 'info'); 
-        await new Promise(r => setTimeout(r, 400)); // وقت كافي للمتصفح عشان يعمل Scroll ويرسم التعديلات
+        await new Promise(r => setTimeout(r, 400)); 
 
         const fileName = `${titleText.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.pdf`;
         const opt = { 
             margin: 0.2, 
             filename: fileName, 
             image: { type: 'jpeg', quality: 0.98 }, 
-            // ضفنا scrollY: 0 عشان يصور الصفحة من فوق تماماً
             html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, 
             jsPDF: { unit: 'in', format: 'a4', orientation: isCharts ? 'landscape' : 'portrait' }, 
-            // منع قطع صف الإجمالي والرسومات
             pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.chart-page', '.total-row'] } 
         };
 
@@ -825,11 +808,11 @@
                     let pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
                     let cleanBase64 = pdfDataUri.replace(/^data:application\/[a-z]+;base64,/, "");
                     const savedFile = await window.Capacitor.Plugins.Filesystem.writeFile({ path: fileName, data: cleanBase64, directory: 'CACHE' });
-                    await window.Capacitor.Plugins.Share.share({ title: titleText, url: savedFile.uri, dialogTitle: 'حفظ أو طباعة التقرير 📄' });
+                    await window.Capacitor.Plugins.Share.share({ title: titleText, url: savedFile.uri, dialogTitle: 'حفظ التقرير 📄' });
                     toast('✅ تم فتح شاشة المشاركة!', 'success');
                 } catch (shareErr) { console.error('Share Plugin Failed:', shareErr); window.print(); }
             } else {
-                const blob = await html2pdf().set(opt).from(element).outputPdf('blob'); const blobUrl = URL.createObjectURL(blob); const a = document.createElement('a'); a.style.display = 'none'; a.href = blobUrl; a.download = opt.filename; document.body.appendChild(a); a.click(); URL.revokeObjectURL(blobUrl); a.remove(); toast('✅ تم تنزيل الملف!', 'success');
+                const blob = await html2pdf().set(opt).from(element).outputPdf('blob'); const blobUrl = URL.createObjectURL(blob); const a = document.createElement('a'); a.style.display = 'none'; a.href = blobUrl; a.download = opt.filename; document.body.appendChild(a); a.click(); URL.revokeObjectURL(blobUrl); a.remove(); toast('✅ تم التنزيل!', 'success');
             }
         } catch (err) { console.error('PDF Error:', err); window.print(); } finally { if (!isCharts) element.classList.remove('pdf-compact'); }
     }
@@ -841,8 +824,8 @@
     }
 
     function exportToExcel() {
-        const table = document.getElementById('reportsTable'); if (!table || table.rows.length <= 1) return toast('⚠️ No report data!', 'warn');
-        try { const wb = XLSX.utils.table_to_book(table, { sheet: "Fleet_Report" }); XLSX.writeFile(wb, "Fleet_Report_" + Date.now() + ".xlsx"); toast('✅ Excel Downloaded!', 'success'); } catch(e) { toast('❌ Export Error: ' + e.message, 'error'); }
+        const table = document.getElementById('reportsTable'); if (!table || table.rows.length <= 1) return toast('⚠️ لا توجد بيانات', 'warn');
+        try { const wb = XLSX.utils.table_to_book(table, { sheet: "Fleet_Report" }); XLSX.writeFile(wb, "Fleet_Report_" + Date.now() + ".xlsx"); toast('✅ تم تحميل الإكسيل', 'success'); } catch(e) { toast('❌ خطأ: ' + e.message, 'error'); }
     }
 
     function toast(msg, type='info') {
@@ -856,7 +839,6 @@
         const sel = document.getElementById('reportTarget'); 
         sel.innerHTML = ''; 
         const lbl = document.getElementById('targetLabel'); 
-        let dL = dict[currentLang]; 
         targetContainer.style.display = 'flex';
 
         function addOptions(setValues) {
@@ -864,13 +846,32 @@
             arr.forEach(i => { let opt = document.createElement('option'); opt.value = i; opt.text = i; sel.appendChild(opt); });
         }
 
-        if(type === 'client') { lbl.innerText = dL.client; let vals = new Set(); recentTripsDB.forEach(t => { if(t.client) vals.add(t.client.trim()); }); addOptions(vals); } 
-        else if(type === 'driver') { lbl.innerText = "Partner (الشريك):"; let vals = new Set(); recentTripsDB.forEach(t => { if(t.driver) vals.add(t.driver.trim()); }); addOptions(vals); } 
-        else if(type === 'actual_driver') { lbl.innerText = "Actual Driver (السائق الفعلي):"; let vals = new Set(); recentTripsDB.forEach(t => { if(t.actual_driver) vals.add(t.actual_driver.trim()); }); addOptions(vals); } 
-        else if(type === 'vehicle_plate') { lbl.innerText = "Vehicle Plate (رقم السيارة):"; let vals = new Set(); recentTripsDB.forEach(t => { if(t.vehicle_plate) vals.add(t.vehicle_plate.trim()); }); addOptions(vals); } 
-        else if(type === 'trip_detailed') { lbl.innerText = dL.trip; let vals = new Set(); recentTripsDB.forEach(t => { if(t.trip) vals.add(t.trip.trim()); }); addOptions(vals); } 
-        else if (type === 'finance' || type === 'maintenance' || type === 'net_profit' || type === 'charts') { targetContainer.style.display = 'none'; } 
-        else { lbl.innerText = dL.target; }
+        if(type === 'client') { 
+            lbl.innerText = "العميل:"; 
+            let vals = new Set(); recentTripsDB.forEach(t => { if(t.client) vals.add(t.client.trim()); }); addOptions(vals);
+        } 
+        else if(type === 'driver') { 
+            lbl.innerText = "الشريك (Partner):"; 
+            let vals = new Set(); recentTripsDB.forEach(t => { if(t.driver) vals.add(t.driver.trim()); }); addOptions(vals);
+        } 
+        else if(type === 'actual_driver') { 
+            lbl.innerText = "السائق الفعلي:"; 
+            let vals = new Set(); recentTripsDB.forEach(t => { if(t.actual_driver) vals.add(t.actual_driver.trim()); }); addOptions(vals);
+        } 
+        else if(type === 'vehicle_plate') { 
+            lbl.innerText = "رقم السيارة:"; 
+            let vals = new Set(); recentTripsDB.forEach(t => { if(t.vehicle_plate) vals.add(t.vehicle_plate.trim()); }); addOptions(vals);
+        } 
+        else if(type === 'trip_detailed') { 
+            lbl.innerText = "اسم المشوار:"; 
+            let vals = new Set(); recentTripsDB.forEach(t => { if(t.trip) vals.add(t.trip.trim()); }); addOptions(vals);
+        } 
+        else if (type === 'finance' || type === 'maintenance' || type === 'net_profit' || type === 'charts') { 
+            targetContainer.style.display = 'none'; 
+        } 
+        else { 
+            lbl.innerText = "الهدف:"; 
+        }
     }
 
     function fetchReports() {
@@ -882,7 +883,7 @@
         const tbody = document.querySelector('#reportsTable tbody'); const thead = document.querySelector('#reportsTable thead'); const summaryCard = document.getElementById('netProfitSummary'); const chartsArea = document.getElementById('chartsArea'); const tableWrapper = document.getElementById('tableWrapper');
         tbody.innerHTML = ''; thead.innerHTML = ''; summaryCard.style.display = 'none'; summaryCard.innerHTML = ''; chartsArea.style.display = 'none'; tableWrapper.style.display = 'block';
 
-        let res = []; let dL = dict[currentLang]; 
+        let res = []; 
         function getCleanDay(rawDate) { if (!rawDate) return ""; return String(rawDate).trim().slice(0, 10); }
 
         if (type === 'charts') {
@@ -891,7 +892,7 @@
             recentTripsDB.forEach(t => {
                 const d = getCleanDay(t.date);
                 if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) {
-                    let p = String(t.driver || 'Unknown').trim(); let c = String(t.client || 'Unknown').trim(); let tName = String(t.trip || t.trip_name || 'Unknown').trim();
+                    let p = String(t.driver || 'غير محدد').trim(); let c = String(t.client || 'غير محدد').trim(); let tName = String(t.trip || t.trip_name || 'غير محدد').trim();
                     partnerData[p] = (partnerData[p] || 0) + parseFloat(t.fee || 0); clientData[c] = (clientData[c] || 0) + parseFloat(t.revenue || 0); tripsByDate[d] = (tripsByDate[d] || 0) + 1; tripNameData[tName] = (tripNameData[tName] || 0) + 1;
                 }
             });
@@ -914,7 +915,7 @@
             maintenanceDB.forEach(m => { const d = getCleanDay(m.date); if ((!fDate || d >= fDate) && (!tDate || d <= tDate)) mExp += parseFloat(m.amount || 0); });
 
             let totalIncome = comm + fRev; let totalExpenses = fExp + mExp; let net = totalIncome - totalExpenses;
-            tableWrapper.style.display = 'none'; document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_net_profit} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`; document.getElementById('printReportTitle').style.display = 'block';
+            tableWrapper.style.display = 'none'; document.getElementById('printReportTitle').innerHTML = `🚘 تقرير صافي الربح <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`; document.getElementById('printReportTitle').style.display = 'block';
             summaryCard.style.display = 'block'; summaryCard.innerHTML = `<div class="net-profit-card"><p style="font-size:1.1rem; margin-bottom:5px;">إجمالي الدخل (صافي عمولات المشاوير + إيرادات خارجية): <strong>${totalIncome.toFixed(2)}</strong></p><p style="font-size:1.1rem; margin-bottom:15px; color:#ffcccc;">إجمالي المصروفات (الصيانة + المصروفات الخارجية): <strong>${totalExpenses.toFixed(2)}</strong></p><hr style="border-color:rgba(255,255,255,0.2); margin-bottom:15px;"><p style="font-size:1.3rem;">NET PROFIT / صافي الربح الحقيقي</p><h2>${net.toFixed(2)} EGP</h2></div>`;
             return;
         }
@@ -940,22 +941,21 @@
         
         let tot = 0;
         
-        // تعديل الجداول وإضافة سطر الإجمالي جوه الـ tbody عشان ميختفيش في الطباعة أبداً
         if (type === 'finance') {
-            thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_cat}</th><th>${dL.rep_amt}</th></tr>`;
-            res.forEach((r, i) => { tot += (r.type === 'Revenue' ? parseFloat(r.amount) : -parseFloat(r.amount)); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.category}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; 
-            document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_fin} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
+            thead.innerHTML = `<tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التصنيف</th><th>المبلغ</th></tr>`;
+            res.forEach((r, i) => { tot += (r.type === 'Revenue' ? parseFloat(r.amount) : -parseFloat(r.amount)); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type==='Revenue'?'إيراد':'مصروف'}</td><td>${r.category}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; });
+            tbody.innerHTML += `<tr class="total-row"><td colspan="4">الإجمالي</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; 
+            document.getElementById('printReportTitle').innerHTML = `🚘 التقرير المالي <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else if (type === 'maintenance') {
-            thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.rep_type}</th><th>${dL.rep_loc}</th><th>${dL.rep_amt}</th></tr>`;
-            res.forEach((r, i) => { tot += parseFloat(r.amount); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td>${r.location}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="4">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; 
-            document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.opt_mnt} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
+            thead.innerHTML = `<tr><th>#</th><th>التاريخ</th><th>نوع الصيانة</th><th>المكان/السيارة</th><th>التكلفة</th></tr>`;
+            res.forEach((r, i) => { tot += parseFloat(r.amount); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.type}</td><td style="direction:ltr;">${r.vehicle_plate || r.location || ''}</td><td style="font-weight:bold;">${parseFloat(r.amount).toFixed(2)}</td></tr>`; });
+            tbody.innerHTML += `<tr class="total-row"><td colspan="4">الإجمالي</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; 
+            document.getElementById('printReportTitle').innerHTML = `🚘 تقرير الصيانة <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         } else {
-            thead.innerHTML = `<tr><th>${dL.th_num}</th><th>${dL.date}</th><th>${dL.th_desc}</th><th>${dL.rep_amt}</th></tr>`;
+            thead.innerHTML = `<tr><th>#</th><th>التاريخ</th><th>البيان / المشوار</th><th>المبلغ</th></tr>`;
             res.forEach((r, i) => { tot += parseFloat(r.amt); tbody.innerHTML += `<tr><td>${i + 1}</td><td style="direction:ltr;">${formatDateDisplay(r.date)}</td><td>${r.desc}</td><td style="font-weight:bold;">${parseFloat(r.amt).toFixed(2)}</td></tr>`; });
-            tbody.innerHTML += `<tr class="total-row"><td colspan="3">${dL.th_tot}</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; 
-            document.getElementById('printReportTitle').innerHTML = `🚘 ${dL.tab_rep}: ${target.toUpperCase()} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
+            tbody.innerHTML += `<tr class="total-row"><td colspan="3">الإجمالي</td><td style="direction:ltr;">${tot.toFixed(2)}</td></tr>`; 
+            document.getElementById('printReportTitle').innerHTML = `🚘 التقارير: ${target.toUpperCase()} <br><span style="font-size:10pt; color:#666;">(${fDate} ➡ ${tDate})</span>`;
         }
         document.getElementById('printReportTitle').style.display = 'block';
     }
